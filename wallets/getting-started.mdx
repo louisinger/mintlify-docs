@@ -1,0 +1,46 @@
+---
+title: 'Getting Started with Wallets'
+description: 'Learn how to integrate Arkade wallets into your application'
+---
+
+# Wallet Integration Guide
+
+Arkade provides a powerful wallet infrastructure that enables secure, self-custodial Bitcoin transactions in your applications.
+
+## Installation
+
+```bash
+npm install @arkade/wallet-sdk
+```
+
+## Basic Setup
+
+```typescript
+import { ArkadeWallet } from '@arkade/wallet-sdk';
+
+const wallet = new ArkadeWallet({
+  network: 'testnet', // or 'mainnet'
+  apiKey: 'your-api-key'
+});
+```
+
+## Features
+
+### Key Management
+- Secure key generation and storage
+- Multi-signature support
+- Hardware wallet integration
+
+### Transaction Management
+- Create and sign transactions
+- Batch operations
+- Fee estimation
+
+### Security
+- Client-side signing
+- Optional recovery mechanisms
+- Threshold signatures
+
+## Next Steps
+
+See the [Integration Guide](/wallets/integration) for detailed implementation steps and best practices.

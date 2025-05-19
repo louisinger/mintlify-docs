@@ -1,82 +1,84 @@
 {
   "$schema": "https://mintlify.com/docs.json",
+  "name": "Build on Arkade",
   "theme": "mint",
-  "name": "Mint Starter Kit",
-  "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
-  },
-  "favicon": "/favicon.svg",
-  "navigation": {
-    "tabs": [
-      {
-        "tab": "Guides",
-        "groups": [
-          {
-            "group": "Get Started",
-            "pages": [
-              "index",
-              "quickstart",
-              "development"
-            ]
-          },
-          {
-            "group": "Essentials",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/settings",
-              "essentials/navigation",
-              "essentials/reusable-snippets"
-            ]
-          }
-        ]
-      }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Community",
-          "href": "https://mintlify.com/community",
-          "icon": "slack"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
   },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#391998",
+    "light": "#F2F2F2",
+    "dark": "#101013"
+  },
+  "fonts": {
+    "body": {
+      "family": "Geist",
+      "weight": 400
+    },
+    "heading": {
+      "family": "TT Firs Neue Trial",
+      "weight": 500,
+      "format": "woff",
+      "source": "https://fonts.cdnfonts.com/s/120955/TT Firs Neue Trial Medium.woff"
+
     }
+  },
+  "navigation": {
+    "groups": [
+      {
+        "group": "Learn about Arkade",
+        "pages": [
+          "overview",
+          "quickstart",
+          "architecture",
+          {
+            "group": "Core Concepts",
+            "pages": ["concepts"]
+          }
+        ]
+      },
+      {
+        "group": "Wallets and Payments",
+        "pages": [
+          {
+            "group": "Wallet Integration",
+            "pages": [
+              "wallets/getting-started",
+              "wallets/integration"
+            ]
+          },
+          {
+            "group": "Payment Processing",
+            "pages": [
+              "payments/overview",
+              "payments/api-reference"
+            ]
+          }
+        ]
+      },
+      {
+        "group": "Advanced Contracts",
+        "pages": [
+          "contracts/introduction",
+          {
+            "group": "Contract Development",
+            "pages": [
+              "contracts/development",
+              "contracts/deployment",
+              "contracts/testing"
+            ]
+          }
+        ]
+      }
+    ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/arkade_os",
+      "github": "https://github.com/arkade-os",
+      "telegram": "https://t.me/arkade_os"
     }
   }
 }

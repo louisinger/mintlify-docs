@@ -12,6 +12,10 @@
     "light": "#F2F2F2",
     "dark": "#101013"
   },
+  "appearance": {
+    "default": "light",
+    "strict": false
+  },
   "fonts": {
     "body": {
       "family": "Geist",

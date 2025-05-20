@@ -30,13 +30,9 @@
       {
         "group": "Learn about Arkade",
         "pages": [
-          "overview",
-          "quickstart",
-          "architecture",
-          {
-            "group": "Core Concepts",
-            "pages": ["concepts"]
-          }
+          "index",
+          "learn/concepts",
+          "learn/architecture"
         ]
       },
       {

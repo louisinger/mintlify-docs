@@ -1,0 +1,125 @@
+---
+title: "Ramps: Boarding and Exiting"
+description: "Mechanisms for onboarding and exiting Arkade"
+icon: "bitcoin"
+---
+
+Ramps are the mechanisms that allow users with Bitcoin to onboard and exit from Arkade with its own built-in mechanisms. They are designed to provide a seamless experience for users, allowing them to move funds in and out of Arkade. There are two types of ramps: Boarding (onboarding) and Exiting (offboarding).
+
+## Boarding
+
+Boarding is the process of swapping an on-chain UTXO for an off-chain VTXO. The preferred method for onboarding funds into Arkade is by sending Bitcoin to a boarding address.
+
+### 1. Generate a boarding address
+
+First, get a boarding address from your wallet. This is a specialized 2-of-2 multisig Taproot address.
+
+```typescript
+// Get a boarding address
+const addresses = await wallet.getAddress()
+console.log('Boarding Address:', addresses.boarding)
+```
+
+### 2. Send Bitcoin to the boarding address
+
+Send Bitcoin to this address using any standard Bitcoin wallet. This creates an on-chain UTXO that will be used for boarding.
+
+### 3. Check for boarding UTXOs and settle them to your wallet
+
+Once the transaction is confirmed, check for available boarding UTXOs and settle them to your Arkade wallet.
+
+```typescript
+// Get all available inputs (both VTXOs and boarding UTXOs)
+const inputs = (await Promise.all([
+  wallet.getVtxos(),
+  wallet.getBoardingUtxos()
+])).flat()
+
+// Get your own off-chain address
+const ownAddress = (await wallet.getAddress()).offchain
+
+// Calculate the total amount from all inputs
+const amount = BigInt(inputs.reduce((acc, input) => acc + input.amount, 0))
+
+// Settle the inputs to your own address
+const settleTxid = await wallet.settle({
+  inputs,
+  outputs: [{
+    address: ownAddress,    
+    amount
+  }]
+})
+
+console.log('Settlement transaction ID:', settleTxid)
+```
+
+### 4. Operator includes the UTXO in a Commitment Transaction
+
+The Arkade Operator processes the registration and includes the UTXO in a Commitment Transaction.
+
+### 5. Receive a VTXO
+
+Once the Commitment Transaction is confirmed, you now have a VTXO (Virtual UTXO) within a Batch Output that you can spend off-chain.
+
+<Tip>
+Boarding addresses resemble VTXOs but typically use longer timelocks to reduce risk.
+</Tip>
+
+While any UTXO can be used as an input, a boarding address is the preferred way as it removes the risk of a malicious user double-spending the UTXO and replacing or failing the commitment transaction.
+
+## Exiting
+
+Exiting is the process of swapping a VTXO (off-chain) for a UTXO (on-chain). The collaborative exit process is the most efficient way to exit Arkade when the Operator is available.
+
+### 1. Gather available inputs
+
+First, collect all available inputs, including both VTXOs and boarding UTXOs.
+
+```typescript
+// Get all available inputs (both VTXOs and boarding UTXOs)
+const inputs = (await Promise.all([
+  wallet.getVtxos(),
+  wallet.getBoardingUtxos()
+])).flat()
+```
+
+### 2. Specify destination and amount
+
+Specify the destination address and amount for the on-chain UTXO.
+
+```typescript
+// Specify destination address and amount
+const destinationAddress = "bc1q..." // Your on-chain Bitcoin address
+const amount = 50000 // Amount in sats
+```
+
+### 3. Request settlement
+
+Request the Arkade Operator to settle your VTXO to an on-chain UTXO.
+
+```typescript
+// Settle to an on-chain address
+const settleTxid = await wallet.settle({
+  inputs,
+  outputs: [{
+    address: destinationAddress,
+    amount: BigInt(amount)
+  }]
+})
+
+console.log('Settlement transaction ID:', settleTxid)
+```
+
+### 4. Operator processes and broadcasts
+
+The Operator includes this request in a new Commitment Transaction and broadcasts it to the Bitcoin network.
+
+### 5. Receive on-chain funds
+
+Once confirmed, your funds are available as a standard on-chain Bitcoin UTXO.
+
+This method offers immediate withdrawal with lower delay and is operationally simpler than unilateral exits.
+
+---
+
+<PreviousButton url="/wallets/vtxos" text="VTXOs" />

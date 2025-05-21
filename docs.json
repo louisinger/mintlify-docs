@@ -42,23 +42,23 @@
       {
         "group": "Wallets and Payments",
         "pages": [
-          {
-            "group": "Wallet Integration",
-            "pages": [
-              "wallets/getting-started"
-            ]
-          }
+          "wallets/introduction",
+          "wallets/setup",
+          "wallets/balances",
+          "wallets/settlement",
+          "wallets/detecting-payments",
+          "wallets/payment-history",
+          "wallets/ramps"
         ]
       },
       {
-        "group": "Advanced Contracts",
+        "group": "Simple Contracts",
         "pages": [
-          "contracts/introduction",
-          {
-            "group": "Contract Development",
-            "pages": [
-            ]
-          }
+          "contracts/lightning-swaps",
+          "contracts/chain-swaps",
+          "contracts/oracle-dlc",
+          "contracts/channels",
+          "contracts/escrow"
         ]
       }
     ]

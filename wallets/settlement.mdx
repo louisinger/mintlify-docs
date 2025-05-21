@@ -1,0 +1,32 @@
+---
+title: "Settlement Process"
+description: "Understanding the settlement process in Arkade"
+icon: "recycle"
+---
+
+Settlement is the critical process that moves Virtual UTXOs (VTXOs) from a pre-confirmed state to their final confirmed state on the Bitcoin blockchain. 
+
+In Arkade, VTXOs can exist in two primary states: 
+- **pending** (pre-confirmed) 
+- **settled** (batched on-chain)
+
+When a VTXO is first created through an off-chain transaction, it exists in the pending state where it can be used for further off-chain activity but carries trust assumptions about the Operator. 
+
+Through the settlement process, these pending VTXOs are included in a Commitment Transaction and anchored to the Bitcoin blockchain, providing them with full settlement guarantees and unilateral exit rights.
+
+```typescript
+// Get all VTXOs and check their status
+const vtxos = await wallet.getVtxos()
+const pendingVtxos = vtxos.filter(vtxo => vtxo.status === 'pending')
+const settledVtxos = vtxos.filter(vtxo => vtxo.status === 'settled')
+
+console.log('Pending VTXOs:', pendingVtxos.length)
+console.log('Settled VTXOs:', settledVtxos.length)
+```
+
+For more detailed information about the batch swap process that underlies settlement, see the [Ark Batch Swaps documentation](https://docs.arklabs.xyz/ark/deep-dive/batch-swaps).
+
+---
+
+<PreviousButton url="/wallets/balances" text="Balances" />
+<NextButton url="/wallets/detecting-payments" text="Detecting Payments" />

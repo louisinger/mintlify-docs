@@ -1,0 +1,96 @@
+---
+title: "Detecting Payments"
+description: "Learn how to detect and monitor incoming payments in Arkade"
+icon: "bell"
+---
+
+Arkade provides a robust system for detecting and monitoring incoming payments. This is particularly useful for applications that need to update their UI in real-time when a payment is received.
+
+## Subscribing to Address Updates
+
+You can subscribe to address updates to detect when new VTXOs are created or spent:
+
+```typescript
+try {
+  // Create an abort controller to manage the subscription lifecycle
+  const abortController = new AbortController();
+  
+  // Subscribe to updates for a specific address
+  const subscription = arkProvider.subscribeForAddress(
+    address,
+    abortController.signal
+  );
+  
+  // Store the subscription reference for later cleanup
+  this.vtxoSubscription = abortController;
+  
+  // Process updates as they arrive
+  for await (const update of subscription) {
+    const vtxos = [...update.newVtxos, ...update.spentVtxos];
+    if (vtxos.length === 0) {
+      continue;
+    }
+    
+    // Process the received VTXOs
+    console.log('New VTXOs received:', update.newVtxos.length);
+    console.log('VTXOs spent:', update.spentVtxos.length);
+    
+    // Update your UI or notify the user
+    await updateBalanceDisplay();
+  }
+} catch (error) {
+  console.error("Error processing address updates:", error);
+}
+```
+
+## Processing Payment Updates
+
+When a payment is received, you'll want to process the update and take appropriate actions:
+
+```typescript
+// Example function to process new VTXOs
+async function processNewVtxos(newVtxos) {
+  // Update your application state
+  for (const vtxo of newVtxos) {
+    console.log(`Received payment of ${vtxo.amount} sats`);
+    
+    // You might want to store the VTXO in your database
+    await storeVtxoInDatabase(vtxo);
+    
+    // Notify the user
+    showNotification(`Received ${vtxo.amount} sats!`);
+    
+    // Update the UI
+    await refreshBalanceDisplay();
+  }
+}
+```
+
+## Cleaning Up Subscriptions
+
+When your application no longer needs to listen for updates, make sure to clean up the subscription:
+
+```typescript
+// Clean up the subscription when done
+if (this.vtxoSubscription) {
+  this.vtxoSubscription.abort();
+  this.vtxoSubscription = null;
+}
+```
+
+This is important to prevent memory leaks and unnecessary network traffic, especially when your application is closing or navigating away from the payment screen.
+
+## Best Practices
+
+1. **Error Handling**: Always implement proper error handling for your subscription to ensure your application remains stable even if there are network issues.
+
+2. **Reconnection Logic**: Consider implementing reconnection logic if the subscription is interrupted.
+
+3. **Deduplication**: Implement deduplication logic to ensure you don't process the same payment multiple times.
+
+4. **Confirmation Thresholds**: For larger payments, you might want to wait for additional confirmations before considering the payment fully settled.
+
+---
+
+<PreviousButton url="/wallets/balances" text="Balances" />
+<NextButton url="/wallets/payment-history" text="Payment History" />

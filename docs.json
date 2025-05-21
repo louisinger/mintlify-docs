@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "name": "Build on Arkade",
-  "theme": "mint",
+  "theme": "linden",
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"

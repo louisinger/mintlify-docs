@@ -1,0 +1,69 @@
+---
+title: "Contracts"
+description:
+  "Arkade Script enables expressive, verifiable offchain execution rooted in Bitcoin’s contract model and unilateral
+  exit guarantees."
+---
+
+## 📝 Bitcoin Script
+
+Bitcoin Script is a minimal, stack-based programming language used to lock and unlock UTXOs. The language itself is not Turing complete. 
+It is purposefully constrained to allow static analysis and deterministic behavior. 
+Standard opcodes support basic signature verification, timelocks, and hashlocks.
+
+Every Arkade transaction builds directly on this foundation.
+
+The script is never evaluated onchain unless the fallback path is activated. In the normal case, it is executed offchain
+by the Ark Signer inside a Trusted Execution Environment (TEE), allowing faster execution, longer chain of VTXOs and higher throughput.
+
+## 👾 Arkade Script
+
+Arkade Script extends Bitcoin’s contract model with expressive logic executed offchain. Every Arkade transaction
+consumes one or more Virtual UTXOs (VTXOs) and creates new ones. These transactions are structured as a **DAG** within
+the Virtual Mempool. There is no global state and no contention. Validation is local and concurrent.
+
+The Ark Signer, operating in a Trusted Execution Environment (TEE), runs a constrained Bitcoin Script interpreter to
+evaluate each Arkade transaction. If the logic passes, the signer applies a signature, producing a **preconfirmed**
+transaction that can be used immediately in further offchain execution.
+
+This model avoids reordering attacks, frontrunning, and state probing common in account-based blockchains.
+
+### ⚙️ Commit-Reveal Flows
+
+Arkade Script follows a **commit-reveal pattern**, where the initial VTXO represents a “locked” condition—escrow, swap,
+or time-gated logic—and the follow-up transaction completes the execution.
+
+Once the signer applies a preconfirmation, the second leg of the contract should proceed within milliseconds. This
+real-time progression allows developers to treat offchain VTXOs as active contract state, executing logic that projects
+forward to user ownership or payout conditions.
+
+Applications like escrows and atomic swaps can express complex “lock” conditions up front and rely on the Arkade signer
+to finalize the reveal without delay. The transition from locked state to unlocked spend is fast, trust-constrained, and
+verifiable.
+
+### ⏱️ Execution Scope and Expiration
+
+Every VTXO belongs to a **batch** with an expiry. This fixed deadline ensures that scripts either complete or cleanly
+expire. VTXOs with Arkade Script can be cooperatively redeemed using a **fallback** Taproot path that includes
+participant keys, with a downside of interactity and cooperation, but makes sure Ark operator going offline before the
+completion of the contract don't permanently lock the funds onchain.
+
+### 🔐 Users Stay in Control
+
+At every step, the user retains unilateral exit paths. Application developers may layer temporary trust assumptions—such
+as burnable operator bonds—to support more expressive logic during preconfirmed execution. But the final spend path
+always resolves back to Bitcoin. The fallback script never depends on the application or signer to remain online.
+
+Arkade enables safe liveness without compromising self-custody.
+
+### 🛠️ Arkade Script Extensions
+
+The Arkade signer executes a full Bitcoin Script engine with additional opcodes. These
+opcodes are not broadcast to the Bitcoin network and cannot be executed onchain.
+
+Arkade Script extends standard Bitcoin Script with new capabilities:
+
+- Introspection opcodes (e.g., `OP_INSPECTINPUTVALUE`, `OP_INSPECTOUTPUTVALUE`)
+- Arithmetic and logical operations (e.g., `OP_ADD64`, `OP_MUL64`)
+- Stack manipulation and control flow (e.g., `OP_CAT`, `OP_SUBSTR`)
+- Elliptic curve operations (e.g., `OP_TWEAKVERIFY`, `OP_ECMULSCALARVERIFY`)

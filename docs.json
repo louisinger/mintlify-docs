@@ -35,8 +35,9 @@
         "group": "Learn about Arkade",
         "pages": [
           "index",
-          "learn/concepts",
-          "learn/architecture"
+          "learn/background",
+          "learn/architecture",
+          "learn/arkade-script"
         ]
       },
       {
@@ -45,15 +46,7 @@
           {
             "group": "Wallet Integration",
             "pages": [
-              "wallets/getting-started",
-              "wallets/integration"
-            ]
-          },
-          {
-            "group": "Payment Processing",
-            "pages": [
-              "payments/overview",
-              "payments/api-reference"
+              "wallets/getting-started"
             ]
           }
         ]
@@ -65,9 +58,6 @@
           {
             "group": "Contract Development",
             "pages": [
-              "contracts/development",
-              "contracts/deployment",
-              "contracts/testing"
             ]
           }
         ]

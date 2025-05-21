@@ -1,127 +1,88 @@
 ---
-title: 'Architecture'
-description: 'Explore Arkade’s architecture—scalable execution, deterministic exits, and bonded accountability through hardware attestation.'
+title: "Architecture"
+description:
+  "Explore Arkade’s architecture—scalable execution, deterministic exits, and bonded accountability through hardware
+  attestation."
 ---
 
-Arkade virtualizes Bitcoin's transaction layer to support scalable, expressive applications without changing Bitcoin or introducing trust in new consensus systems. At its core, Arkade introduces a **TEE-anchored execution architecture**, where security flows from a bounded trust assumption—one verifiable program running in one verifiable hardware environment.
+## 🧩 Arkade Roles
 
-Arkade is composed of three core layers:
+Arkade defines two main roles: **Users** and **Operators**.
 
-- **Virtual Execution Layer**: Offchain transaction logic and parallel DAG-based processing.
-- **Coordination Layer**: Batch construction, ordering, and liquidity handling.
-- **Bitcoin Settlement Layer**: Final anchoring and user exit paths to Bitcoin L1.
+Users hold and transact Virtual UTXOs (VTXOs). They initiate Ark transactions and can exit to Bitcoin unilaterally at
+any time.
 
----
+The Operator coordinates execution and settlement. The role is modular. It can be run by one entity or split across
+independent actors. The Operator consists of:
 
-## 🔐 Bonded Accountability via TEE-Backed Ark Signer
+- **Ark Signer**: verifies and signs Ark transactions
+- **Ark Batcher**: collects intents and builds transaction batches
+- **Liquidity Providers**: fund batch commitments with Bitcoin
 
-Arkade makes a crucial design tradeoff: it embraces centralization of the signing process but wraps it in **verifiable, accountable hardware** to guarantee integrity.
-
-### Why this matters
-
-In both Ark and Arkade, **preconfirmed state has never been trustless**. Users rely on the signer not to double-sign competing transactions. The Arkade Signer runs inside a **Trusted Execution Environment (TEE)**, which:
-
-- **Generates a single signing key** internally and shares only the public key.
-- **Cosigns all VTXOs**: each VTXO in the system is partially locked to this signer key.
-- **Is verifiably attested**: users can independently confirm the exact binary running in the TEE.
-
-### 💥 Collusion Defense: Bonded Signer with Burn Enforcement
-
-To deter signer collusion with a prior sender (to double-spend a VTXO), Arkade introduces **capital bonding**:
-
-- The Ark Operator locks funds **onchain to the Ark Signer's key**, publicly visible.
-- If a user detects a double-sign (two conflicting preconfirmed states), they:
-  - Build an unsigned **burn transaction** using the signer’s bonded UTXOs.
-  - Send a message to the Ark Signer (via **end-to-end encrypted** channel) including:
-    - A proof of misbehavior.
-    - The unsigned burn transaction.
-- The Ark Signer, by design, verifies the proof and signs the burn transaction.
-- **The bond is burned onchain**, permanently slashing the signer.
-
-> This approach flips Arkade's greatest weakness—centralized execution—into a security mechanism. Because we know exactly what the signer will do under which conditions, we can assign **verifiable accountability** with economic consequences.
+This separation of concerns gives Arkade a modular trust surface. Operators can be unbundled.
 
 ---
 
-## 🔁 Diagram
+## 📦 Virtual Mempool
 
-```mermaid
-flowchart TD
-  subgraph Bitcoin_Settlement_Layer["Bitcoin Settlement Layer 🧱"]
-    BB[Bitcoin Blockchain 🧱]
-    BO[On-Chain Batch Output 🥩]
-    BB --> BO
-  end
+The Virtual Mempool processes Ark transactions. These are Bitcoin-like spends of VTXOs, composed offchain, and executed
+in parallel.
 
-  subgraph Liquidity_Pool["Bitcoin Liquidity Pool 💰"]
-    LP1[LP Wallet 💰]
-    LP2[LP Wallet 💰]
-  end
+VTXOs follow Bitcoin’s stateless model. Every transaction is local and deterministic. There is no shared state.
+Transactions form a DAG, not a blockchain.
 
-  subgraph Coordination_Layer["Coordination Layer 🧃"]
-    AB[Ark Batcher 🧃]
-  end
+## 🔐 Ark Signer
 
-  subgraph Virtual_Execution_Layer["Virtual Execution Layer 📦"]
-    VM[Virtual Mempool 📦]
-    TEE1[Ark Signer 🔐]
-    UW1[User Wallet 🧑‍💻]
-    UW2[User Wallet 🧑‍💻]
+Arkade enforces execution integrity not through staking, committees, or onchain slashing contracts, but by binding a
+single-purpose signer to a deterministic program running inside sealed hardware.
 
-    VM --> TEE1
-    TEE1 --> UW1
-    TEE1 --> UW2
-    VM --> UW1
-    VM --> UW2
-  end
+The Ark Signer operates within a **Trusted Execution Environment (TEE)**. This enclave runs only one specific, attested
+binary, which any user can verify. The binary generates a private key internally and exposes only the public key. All
+VTXOs in the system require this key to co-sign.
 
-  LP1 --> AB
-  LP2 --> AB
-  AB --> BO
-  TEE1 --> AB
-  BO --> BB
-  UW1 --> BB
-  UW2 --> BB
-```
----
+To establish accountability, the Ark Operator locks Bitcoin to an onchain address spendable only by this signer key. These UTXOs
+are visible on the Bitcoin blockchain. No complex "bonding" contract governs them. Instead, security flows from the predictability of the
+signer’s behavior: it will not actively collude with previous owner to double-spend a VTXO. 
 
+If a violation does occur, the user does not appeal to a protocol or validator set. Instead:
 
-## 🧠 Virtual Execution Layer
+1. The user detects a double-sign and constructs the proof.
+2. The user builds an unsigned **burn transaction**, sweeping the signer’s bonded UTXOs to an unspendable address.
+3. The user sends both the proof and transaction to the Ark Signer via end-to-end encrypted messaging.
+4. The signer verifies the proof and, by its own logic, signs the burn. The bond is destroyed onchain.
 
-- **Virtual Mempool**: DAG-based coordination of Arkade Transactions.
-- **Arkade Transactions**: Offchain programs backed by fallback Bitcoin scripts.
-- **ArkadeScript**: Programmable logic executed across VTXO chains.
+The signer cannot refuse this action. It cannot be patched or reconfigured without the entire world noticing and trigger a mass unilateral exit and loss of reputation as reliable Ark operator. 
+Double-spending can only occur through intentional data corruption or operator-induced resets. 
 
----
 
 ## 🧃 Coordination Layer
 
-- **Ark Batcher**: Assembles user intents into batches.
-- **Liquidity Providers**: Fund batch outputs; participate in expiry and batch swap logic.
+The Coordination Layer links user intents (chain of VTXOs in a pre-confirmed state) with onchain funding and ordering logic.
+
+The **Ark Batcher** collects user intents and constructs batches. It follows deterministic rules and may run in its own
+TEE. The output is a virtual transaction tree passed to the Ark Signer for execution.
+
+**Liquidity Providers** fund batch outputs. They post capital to Bitcoin in return for fee yield. Each provider cosigns
+the batch expiry path. A pre-signed sweep transaction allows withdrawal if a round fails.
+
+Coordination is modular. Anyone can operate a batcher or provide liquidity.
 
 ---
 
 ## 🧱 Bitcoin Settlement Layer
 
-- **Batch Output**: Aggregated VTXOs finalized onchain.
-- **Unilateral Exit**: Every user can leave the system independently with their VTXO.
+The Settlement Layer anchors Arkade batches on Bitcoin.
+
+Each batch produces a single UTXO. It encapsulates many VTXOs in one output. Settlement happens only when needed. Users
+choose when to exit. Each VTXO includes a presigned onchain path.
+
+This guarantees safety. If the Ark Signer disappears or misbehaves, the user can still reclaim funds without permission.
+
+Finality is inherited from Bitcoin. Once settled, VTXOs cannot be reversed or re-signed. Preconfirmed state becomes
+immutable.
 
 ---
 
-## 🔬 Further Research
-
-Arkade is designed to minimize trust assumptions but also to evolve them. One active area of exploration is support for **Self-Hosted TEEs**.
-
-### 🧩 Self-Hosted Ark Signers (coming soon)
-
-While today’s Arkade Signer is run by the operator, the architecture is modular:
-
-- **Users may deploy their own TEE instance** running the same open-source Ark Signer software.
-- The existing Ark Signer can handshake, verify, and replicate signing authority to the new enclave.
-- This gives users the ability to **bypass the operator** while preserving:
-  - Consistent VTXO logic
-  - Double-spend resistance
-  - Presigned Bitcoin exits
-
-> Long term, this opens a path to **federated or user-hosted Arkade environments**, without requiring protocol forks or validator-based consensus.
-
-Arkade's execution layer begins centralized but not opaque. Through TEEs, capital bonding, and future modularity, users are equipped with tools to extend, fork, and harden the trust surface over time.
+Arkade transforms Bitcoin’s primitive transaction model into a verifiable, modular execution layer. Trust is minimal.
+Security is enforced with TEEs and cryptographic accountability. Execution is fast. Exit is deterministic. Consensus is
+unchanged.

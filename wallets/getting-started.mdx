@@ -1,11 +1,21 @@
 ---
-title: 'Getting Started with Wallets'
-description: 'Learn how to integrate Arkade wallets into your application'
+title: "Getting Started with Wallets"
+description: "Learn how to integrate Arkade wallets into your application"
 ---
 
 # Wallet Integration Guide
 
-Arkade provides a powerful wallet infrastructure that enables secure, self-custodial Bitcoin transactions in your applications.
+Arkade integrates directly without external daemons by design. Developers can interact with the protocol using standard Bitcoin-compatible infrastructure and purpose-built native SDKs in various languages.
+
+## **Operator Instances**
+
+If you prefer to work with existing Arkade instances, you can connect to the following live Ark Operator instances. This allows you to test your integration against a live environment without the need for a local setup.
+
+| **Network** | **URL**                                                           | **Status**                                                                                   |
+| :---------- | :---------------------------------------------------------------- | :------------------------------------------------------------------------------------------- |
+| Regtest     | [<u>http://localhost:7070</u>](http://localhost:7070)             | [<u>Self-deployed</u>](https://github.com/ArkLabsHQ/ark-docs/blob/develop/integrate/dev-env) |
+| Mutinynet   | [<u>https://mutinynet.arkade.sh</u>](https://mutinynet.arkade.sh) | ✅ Active                                                                                     |
+| Signet      | [<u>https://signet.arkade.sh</u>](https://signet.arkade.sh)       | ✅ Active                                                                                     |
 
 ## Installation
 
@@ -18,27 +28,19 @@ npm install @arkade/wallet-sdk
 ```typescript
 import { ArkadeWallet } from '@arkade/wallet-sdk';
 
-const wallet = new ArkadeWallet({
-  network: 'testnet', // or 'mainnet'
-  apiKey: 'your-api-key'
-});
+const identity = new InMemoryKey()
+const wallet = await Wallet.create({
+  identity: identity,
+  arkServerUrl: 'https://mutinynet.arkade.sh',
+})
+
+// You can receive from any Arkade wallet!
+const addresses = await wallet.getAddress()
+console.log('Ark Address:', addresses.offchain)
 ```
 
-## Features
-
-### Key Management
-- Secure key generation and storage
-- Multi-signature support
-- Hardware wallet integration
-
-### Transaction Management
-- Create and sign transactions
-- Batch operations
-- Fee estimation
-
-### Security
-- Client-side signing
-- Optional recovery mechanisms
-- Threshold signatures
-
 ## Next Steps
+
+- Send and Receive bitcoins offchain
+- Check your balances and history
+- Perform a Lightning swap

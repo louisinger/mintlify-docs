@@ -29,9 +29,9 @@
     }
   },
   "navigation": {
-    "groups": [
+    "tabs": [
       {
-        "group": "Learn about Arkade",
+        "tab": "Learn",
         "pages": [
           "index",
           "learn/background",
@@ -40,19 +40,21 @@
         ]
       },
       {
-        "group": "Wallets and Payments",
+        "tab": "Wallet and Payments",
         "pages": [
           "wallets/introduction",
           "wallets/setup",
+          "wallets/ark-addresses",
+          "wallets/receiving-payments",
           "wallets/balances",
           "wallets/settlement",
-          "wallets/detecting-payments",
+          "wallets/sending-payments",
           "wallets/payment-history",
           "wallets/ramps"
         ]
       },
       {
-        "group": "Simple Contracts",
+        "tab": "Advanced Contracts",
         "pages": [
           "contracts/lightning-swaps",
           "contracts/chain-swaps",

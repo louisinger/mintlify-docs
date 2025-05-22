@@ -1,22 +1,27 @@
 ---
-title: "Create your Arkade Wallet"
+title: "Create your Wallet"
 description: "Learn how to integrate Arkade wallets into your application"
 icon: "wallet"
 ---
 
 ## Prerequisites
 
+<Tip>
+Ensure you have the following installed before getting started:
 - Node.js (v16 or higher)
+</Tip>
 
 ## Installation
 
 ```bash
-npm install @arkade-os/wallet-sdk
+npm install @arkade-os/ts-sdk
 ```
 
 ## Arkade Operator Instances
 
+<Info>
 Connect to the following live Arkade Operator instances. This allows you to test your integration against a live environment without the need for a local setup.
+</Info>
 
 | **Network** | **URL**                                                           | **Status**                                                                                   |
 | :---------- | :---------------------------------------------------------------- | :------------------------------------------------------------------------------------------- |
@@ -27,6 +32,10 @@ Connect to the following live Arkade Operator instances. This allows you to test
 
 
 ## Basic Setup
+
+<Note>
+When creating a wallet, you can use an existing private key or generate a new one. For production applications, always use a secure key management solution rather than hardcoded keys.
+</Note>
 
 ```typescript
 import { InMemoryKey, Wallet } from '@arkade-os/ts-sdk'

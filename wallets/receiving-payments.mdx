@@ -1,0 +1,183 @@
+---
+title: "Receiving Payments"
+description: "Learn how to receive Bitcoin payments with your Arkade wallet"
+icon: "download"
+---
+
+## Overview
+
+Receiving payments with Arkade is simple and efficient. Your wallet can generate addresses for both on-chain and off-chain (Ark) payments, allowing your users to send Bitcoin to you through either method.
+
+## Getting Your Wallet Address
+
+To receive payments, you first need to generate an address:
+
+```typescript
+// Get both on-chain and off-chain addresses
+const addresses = await wallet.getAddress()
+
+// The off-chain Ark address for instant payments
+console.log('Ark Address:', addresses.offchain)
+
+// The on-chain Bitcoin address
+console.log('Bitcoin Address:', addresses.onchain)
+```
+
+## Ark Addresses
+
+Ark addresses (starting with `ark1` on mainnet or `tark1` on testnet) enable instant, off-chain payments with near-zero fees. These addresses are perfect for:
+
+- Micropayments
+- Frequent transactions
+- Applications requiring instant settlement
+- Services with high transaction volume
+
+When someone sends Bitcoin to your Ark address, the payment is settled instantly off-chain, with no need for on-chain confirmations.
+
+<Card title="Understanding Ark Addresses" icon="address-card" href="/wallets/ark-addresses">
+  Learn about the technical structure of Ark addresses, how they're generated, and the security guarantees they provide.
+</Card>
+
+## Displaying QR Codes
+
+For user-facing applications, you can generate QR codes for your addresses:
+
+```typescript
+import QRCode from 'qrcode'
+
+// Generate QR code for your Ark address
+const addresses = await wallet.getAddress()
+const arkAddress = addresses.offchain
+
+// Generate QR code as data URL
+const qrDataUrl = await QRCode.toDataURL(arkAddress)
+
+// In a web application, you can display it like this:
+document.getElementById('qr-code').src = qrDataUrl
+```
+
+## Payment URI Format
+
+You can also create payment URIs that include amount and label information:
+
+```typescript
+// Create a payment URI with amount (in satoshis) and label
+function createPaymentUri(address, amountSats, label) {
+  return `bitcoin:${address}?amount=${amountSats / 100000000}&label=${encodeURIComponent(label)}`
+}
+
+// Example usage
+const paymentUri = createPaymentUri(
+  addresses.offchain, 
+  50000, 
+  'Payment for Coffee'
+)
+
+// Generate QR code for the payment URI
+const qrDataUrl = await QRCode.toDataURL(paymentUri)
+```
+
+## Monitoring for Incoming Payments
+
+To detect when payments are received, you can use the subscription API to monitor your address for incoming transactions in real-time.
+
+### Setting Up a Subscription
+
+```typescript
+try {
+  // Create an abort controller to manage the subscription lifecycle
+  const abortController = new AbortController();
+  
+  // Subscribe to updates for your address
+  const addresses = await wallet.getAddress();
+  const subscription = arkProvider.subscribeForAddress(
+    addresses.offchain,
+    abortController.signal
+  );
+  
+  // Store the subscription reference for later cleanup
+  this.vtxoSubscription = abortController;
+  
+  // Process updates as they arrive
+  for await (const update of subscription) {
+    const vtxos = [...update.newVtxos, ...update.spentVtxos];
+    if (vtxos.length === 0) {
+      continue;
+    }
+    
+    // Process the received VTXOs
+    console.log('New VTXOs received:', update.newVtxos.length);
+    console.log('VTXOs spent:', update.spentVtxos.length);
+    
+    // Process new payments
+    await processNewVtxos(update.newVtxos);
+  }
+} catch (error) {
+  console.error("Error processing address updates:", error);
+}
+```
+
+### Processing Payment Updates
+
+When a payment is received, you'll want to process the update and take appropriate actions:
+
+```typescript
+// Example function to process new VTXOs
+async function processNewVtxos(newVtxos) {
+  // Update your application state
+  for (const vtxo of newVtxos) {
+    console.log(`Received payment of ${vtxo.amount} sats`);
+    
+    // You might want to store the VTXO in your database
+    await storeVtxoInDatabase(vtxo);
+    
+    // Notify the user
+    showNotification(`Received ${vtxo.amount} sats!`);
+    
+    // Update the UI
+    await refreshBalanceDisplay();
+  }
+}
+```
+
+### Cleaning Up Subscriptions
+
+When your application no longer needs to listen for updates, make sure to clean up the subscription:
+
+```typescript
+// Clean up the subscription when done
+if (this.vtxoSubscription) {
+  this.vtxoSubscription.abort();
+  this.vtxoSubscription = null;
+}
+```
+
+This is important to prevent memory leaks and unnecessary network traffic, especially when your application is closing or navigating away from the payment screen.
+
+### Best Practices
+
+<Accordion title="Error Handling" icon="shield-check">
+  Always implement proper error handling for your subscription to ensure your application remains stable even if there are network issues.
+</Accordion>
+
+<Accordion title="Reconnection Logic" icon="arrow-repeat">
+  Consider implementing reconnection logic if the subscription is interrupted due to network issues.
+</Accordion>
+
+<Accordion title="Deduplication" icon="filter">
+  Implement deduplication logic to ensure you don't process the same payment multiple times, especially if your application restarts.
+</Accordion>
+
+<Accordion title="Confirmation Thresholds" icon="check-double">
+  For larger payments, you might want to wait for additional confirmations before considering the payment fully settled.
+</Accordion>
+
+## Next Steps
+
+- [Check Balances](/wallets/balances) - Learn how to verify your wallet balance after receiving payments
+- [Send Payments](/wallets/sending-payments) - Learn how to send payments to others
+- [Payment History](/wallets/payment-history) - Track all your received and sent payments
+
+---
+
+<NextButton url="/wallets/balances" text="Check Balances" />

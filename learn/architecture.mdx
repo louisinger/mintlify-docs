@@ -31,6 +31,50 @@ in parallel.
 VTXOs follow Bitcoin’s stateless model. Every transaction is local and deterministic. There is no shared state.
 Transactions form a DAG, not a blockchain.
 
+<Frame caption="Comparison between Bitcoin and Arkade transactions">
+  <table className="w-full">
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>Traditional Bitcoin</th>
+        <th>Arkade Layer 2</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Transaction Speed</td>
+        <td>10+ minutes (confirmation time)</td>
+        <td>Instant (milliseconds)</td>
+      </tr>
+      <tr>
+        <td>Transaction Fees</td>
+        <td>Variable, often high during congestion</td>
+        <td>Near-zero</td>
+      </tr>
+      <tr>
+        <td>Scalability</td>
+        <td>~7 TPS (transactions per second)</td>
+        <td>Thousands of TPS</td>
+      </tr>
+      <tr>
+        <td>Settlement</td>
+        <td>Every transaction on-chain</td>
+        <td>Batched settlement, on-demand</td>
+      </tr>
+      <tr>
+        <td>Security Model</td>
+        <td>Proof of Work</td>
+        <td>TEE + Bitcoin PoW</td>
+      </tr>
+      <tr>
+        <td>Exit Guarantees</td>
+        <td>N/A (native chain)</td>
+        <td>Deterministic, user-controlled</td>
+      </tr>
+    </tbody>
+  </table>
+</Frame>
+
 ## 🔐 Ark Signer
 
 Arkade enforces execution integrity not through staking, committees, or onchain slashing contracts, but by binding a
@@ -86,3 +130,28 @@ immutable.
 Arkade transforms Bitcoin’s primitive transaction model into a verifiable, modular execution layer. Trust is minimal.
 Security is enforced with TEEs and cryptographic accountability. Execution is fast. Exit is deterministic. Consensus is
 unchanged.
+
+<Frame caption="Arkade Transaction Flow">
+  ```mermaid
+  flowchart TD
+    A[User Creates Transaction] --> B[Virtual Mempool]
+    B --> C[Ark Signer]
+    C --> D[Batch Formation]
+    D --> E[Liquidity Providers]
+    E --> F[Bitcoin Settlement]
+    F --> G[On-chain Commitment]
+    
+    H[User Exit Request] --> I[Pre-signed Exit Path]
+    I --> G
+    
+    style A fill:#f9f9f9,stroke:#333,stroke-width:1px
+    style B fill:#e6f7ff,stroke:#333,stroke-width:1px
+    style C fill:#e6f7ff,stroke:#333,stroke-width:1px
+    style D fill:#e6f7ff,stroke:#333,stroke-width:1px
+    style E fill:#fffbe6,stroke:#333,stroke-width:1px
+    style F fill:#f6ffed,stroke:#333,stroke-width:1px
+    style G fill:#f6ffed,stroke:#333,stroke-width:1px
+    style H fill:#f9f9f9,stroke:#333,stroke-width:1px
+    style I fill:#fff2e8,stroke:#333,stroke-width:1px
+  ```
+</Frame>

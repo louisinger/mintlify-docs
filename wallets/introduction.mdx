@@ -19,14 +19,49 @@ Whether you're building for your own custody or shipping self-custodial wallets 
 
 In the following developer guides, we'll primarily use JavaScript/TypeScript for examples, but the concepts apply to all SDKs.
 
-Our TypeScript SDK supports multiple platforms:
+<Accordion title="Supported Platforms" icon="laptop-code" defaultOpen={true}>
+  Our TypeScript SDK supports multiple platforms:
 
-- **Browser** - For web applications
-- **React Native** - For mobile applications
-- **Node.js** - For server-side applications
+  - **Browser** - For web applications
+  - **React Native** - For mobile applications
+  - **Node.js** - For server-side applications
+</Accordion>
 
+<Accordion title="Key Features" icon="star">
+  - **Self-custody** - You control your keys, always
+  - **Instant Payments** - No waiting for confirmations with off-chain transactions
+  - **Low Fees** - Significantly reduced transaction costs
+  - **Simple API** - Intuitive methods that abstract away complexity
+  - **Bitcoin-compatible** - Works with standard Bitcoin infrastructure
+</Accordion>
 
-This is just the beginning. If there's something you wish the SDK did — tell us. We're listening.
+<Accordion title="Getting Support" icon="headset">
+  If you need help with the SDK or have feature requests:
+  
+  - Join the [Arkade Telegram community](https://t.me/arkade_os)
+  - Open an issue on [GitHub](https://github.com/arkade-os/ts-sdk/issues)
+  - Check our [documentation](https://docs.arkadeos.com)
+  
+  This is just the beginning. If there's something you wish the SDK did — tell us. We're listening.
+</Accordion>
+
+### Project Structure
+
+When integrating Arkade into your application, your project structure might look like this:
+
+<FileTree>
+  <FileTree.Folder name="your-project" defaultOpen>
+    <FileTree.Folder name="src" defaultOpen>
+      <FileTree.File name="index.ts" />
+      <FileTree.File name="wallet.ts" />
+      <FileTree.File name="payments.ts" />
+    </FileTree.Folder>
+    <FileTree.File name="package.json" />
+    <FileTree.File name="tsconfig.json" />
+    <FileTree.File name=".env" />
+    <FileTree.File name="README.md" />
+  </FileTree.Folder>
+</FileTree>
 
 ### Other Languages
 

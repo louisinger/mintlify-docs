@@ -54,13 +54,38 @@
         ]
       },
       {
-        "tab": "Advanced Contracts",
+        "tab": "Contracts and Apps",
         "pages": [
-          "contracts/lightning-swaps",
-          "contracts/chain-swaps",
-          "contracts/oracle-dlc",
-          "contracts/channels",
-          "contracts/escrow"
+          "contracts/overview",
+          {
+            "group": "Arkade Language",
+            "pages": [
+              "contracts/smart-contracts-utxo",
+              "contracts/arkade-script",
+              "contracts/arkade-compiler",
+              "contracts/arkade-syntax",
+              "contracts/arkade-types",
+              "contracts/arkade-functions"
+            ]
+          },
+          {
+            "group": "Simple Contracts",
+            "pages": [
+              "contracts/lightning-swaps",
+              "contracts/chain-swaps",
+              "contracts/oracle-dlc",
+              "contracts/channels",
+              "contracts/escrow"
+            ]
+          },
+          {
+            "group": "Advanced Contracts",
+            "pages": [
+              "contracts/non-interactive-swaps",
+              "contracts/synthetic-assets",
+              "contracts/automated-market-makers"
+            ]
+          }
         ]
       }
     ]

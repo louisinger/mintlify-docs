@@ -15,21 +15,26 @@ You can retrieve the complete transaction history for your wallet with a single 
 const history = await wallet.getTransactionHistory()
 console.log('Number of transactions:', history.length)
 
-// Log important information about each transaction
 history.forEach((tx, index) => {
   console.log(`Transaction #${index + 1}:`);
-  console.log(`  Type: ${tx.type === TxType.TxReceived ? 'Received' : 'Sent'}`);
+  console.log(`  Type: ${tx.type}`);
   console.log(`  Amount: ${tx.amount} sats`);
   console.log(`  Settled: ${tx.settled ? 'Yes' : 'No'}`);
+  console.log(`  Created At: ${tx.createdAt}`);
   
-  // Log transaction identifiers
+  // boarding tx
   if (tx.key.boardingTxid) {
     console.log(`  Boarding TXID: ${tx.key.boardingTxid}`);
   }
+  // offchain tx
   if (tx.key.redeemTxid) {
     console.log(`  Redeem TXID: ${tx.key.redeemTxid}`);
   }
-});
+  // settlement tx
+  if (tx.key.roundTxid) {
+    console.log(`  Settlement TXID: ${tx.key.roundTxid}`);
+  }
+}); 
 ```
 
 ## Transaction Types

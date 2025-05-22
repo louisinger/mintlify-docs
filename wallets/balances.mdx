@@ -46,10 +46,10 @@ console.log('Number of VTXOs:', vtxos.length)
 // Log important information about each VTXO
 vtxos.forEach((vtxo, index) => {
   console.log(`VTXO #${index + 1}:`);
-  console.log(`  ID: ${vtxo.id}`);
-  console.log(`  Amount: ${vtxo.amount} sats`);
-  console.log(`  Batch ID: ${vtxo.batchId}`);
-  console.log(`  Status: ${vtxo.status}`);
+  console.log(`  ID: ${vtxo.txid}:${vtxo.vout}`);
+  console.log(`  Amount: ${vtxo.value} sats`);
+  console.log(`  Batch ID: ${vtxo.virtualStatus.batchTxID}`);
+  console.log(`  Status: ${vtxo.virtualStatus.state}`); // "pending" | "settled" | "swept" | "spent";
 });
 ```
 
@@ -67,8 +67,7 @@ boardingUtxos.forEach((utxo, index) => {
   console.log(`Boarding UTXO #${index + 1}:`);
   console.log(`  TXID: ${utxo.txid}`);
   console.log(`  Output Index: ${utxo.vout}`);
-  console.log(`  Amount: ${utxo.amount} sats`);
-  console.log(`  Address: ${utxo.address}`);
+  console.log(`  Amount: ${utxo.value} sats`);
   console.log(`  Status: ${utxo.status.confirmed ? 'Confirmed' : 'Unconfirmed'}`);
 });
 ```

@@ -49,9 +49,6 @@ try {
     abortController.signal
   );
   
-  // Store the subscription reference for later cleanup
-  this.vtxoSubscription = abortController;
-  
   // Process updates as they arrive
   for await (const update of subscription) {
     const vtxos = [...update.newVtxos, ...update.spentVtxos];
@@ -100,10 +97,7 @@ When your application no longer needs to listen for updates, make sure to clean 
 
 ```typescript
 // Clean up the subscription when done
-if (this.vtxoSubscription) {
-  this.vtxoSubscription.abort();
-  this.vtxoSubscription = null;
-}
+abortController.abort();
 ```
 
 This is important to prevent memory leaks and unnecessary network traffic, especially when your application is closing or navigating away from the payment screen.

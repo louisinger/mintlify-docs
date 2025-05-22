@@ -45,6 +45,7 @@ const identity = InMemoryKey.fromHex('secret')
 
 // create a wallet instance
 const wallet = await Wallet.create({
+  network: 'mutinynet',
   identity,
   arkServerUrl: 'https://mutinynet.arkade.sh',
 })

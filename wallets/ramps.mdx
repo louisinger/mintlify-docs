@@ -29,26 +29,8 @@ Send Bitcoin to this address using any standard Bitcoin wallet. This creates an 
 Once the transaction is confirmed, check for available boarding UTXOs and settle them to your Arkade wallet.
 
 ```typescript
-// Get all available inputs (both VTXOs and boarding UTXOs)
-const inputs = (await Promise.all([
-  wallet.getVtxos(),
-  wallet.getBoardingUtxos()
-])).flat()
-
-// Get your own off-chain address
-const ownAddress = (await wallet.getAddress()).offchain
-
-// Calculate the total amount from all inputs
-const amount = BigInt(inputs.reduce((acc, input) => acc + input.amount, 0))
-
-// Settle the inputs to your own address
-const settleTxid = await wallet.settle({
-  inputs,
-  outputs: [{
-    address: ownAddress,    
-    amount
-  }]
-})
+// Settle all VTXOs and boarding UTXOs to your own address
+const settleTxid = await wallet.settle()
 
 console.log('Settlement transaction ID:', settleTxid)
 ```

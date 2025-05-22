@@ -31,50 +31,6 @@ in parallel.
 VTXOs follow Bitcoin’s stateless model. Every transaction is local and deterministic. There is no shared state.
 Transactions form a DAG, not a blockchain.
 
-<Frame caption="Comparison between Bitcoin and Arkade transactions">
-  <table className="w-full">
-    <thead>
-      <tr>
-        <th>Feature</th>
-        <th>Traditional Bitcoin</th>
-        <th>Arkade Layer 2</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Transaction Speed</td>
-        <td>10+ minutes (confirmation time)</td>
-        <td>Instant (milliseconds)</td>
-      </tr>
-      <tr>
-        <td>Transaction Fees</td>
-        <td>Variable, often high during congestion</td>
-        <td>Near-zero</td>
-      </tr>
-      <tr>
-        <td>Scalability</td>
-        <td>~7 TPS (transactions per second)</td>
-        <td>Thousands of TPS</td>
-      </tr>
-      <tr>
-        <td>Settlement</td>
-        <td>Every transaction on-chain</td>
-        <td>Batched settlement, on-demand</td>
-      </tr>
-      <tr>
-        <td>Security Model</td>
-        <td>Proof of Work</td>
-        <td>TEE + Bitcoin PoW</td>
-      </tr>
-      <tr>
-        <td>Exit Guarantees</td>
-        <td>N/A (native chain)</td>
-        <td>Deterministic, user-controlled</td>
-      </tr>
-    </tbody>
-  </table>
-</Frame>
-
 ## 🔐 Ark Signer
 
 Arkade enforces execution integrity not through staking, committees, or onchain slashing contracts, but by binding a

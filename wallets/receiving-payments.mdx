@@ -25,57 +25,11 @@ console.log('Bitcoin Address:', addresses.onchain)
 
 ## Ark Addresses
 
-Ark addresses (starting with `ark1` on mainnet or `tark1` on testnet) enable instant, off-chain payments with near-zero fees. These addresses are perfect for:
-
-- Micropayments
-- Frequent transactions
-- Applications requiring instant settlement
-- Services with high transaction volume
-
-When someone sends Bitcoin to your Ark address, the payment is settled instantly off-chain, with no need for on-chain confirmations.
+Ark addresses start with `ark1` on Bitcoin mainnet or `tark1` on testnet and regtest.
 
 <Card title="Understanding Ark Addresses" icon="address-card" href="/wallets/ark-addresses">
   Learn about the technical structure of Ark addresses, how they're generated, and the security guarantees they provide.
 </Card>
-
-## Displaying QR Codes
-
-For user-facing applications, you can generate QR codes for your addresses:
-
-```typescript
-import QRCode from 'qrcode'
-
-// Generate QR code for your Ark address
-const addresses = await wallet.getAddress()
-const arkAddress = addresses.offchain
-
-// Generate QR code as data URL
-const qrDataUrl = await QRCode.toDataURL(arkAddress)
-
-// In a web application, you can display it like this:
-document.getElementById('qr-code').src = qrDataUrl
-```
-
-## Payment URI Format
-
-You can also create payment URIs that include amount and label information:
-
-```typescript
-// Create a payment URI with amount (in satoshis) and label
-function createPaymentUri(address, amountSats, label) {
-  return `bitcoin:${address}?amount=${amountSats / 100000000}&label=${encodeURIComponent(label)}`
-}
-
-// Example usage
-const paymentUri = createPaymentUri(
-  addresses.offchain, 
-  50000, 
-  'Payment for Coffee'
-)
-
-// Generate QR code for the payment URI
-const qrDataUrl = await QRCode.toDataURL(paymentUri)
-```
 
 ## Monitoring for Incoming Payments
 

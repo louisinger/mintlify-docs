@@ -17,14 +17,6 @@ fee auction. Senders overpay to outbid others. Payments are delayed and unpredic
 
 Pending transactions wait in the **mempool**. Miners choose which ones to include, prioritizing by fee per byte. Since block space is scarce and block times are slow (10 min), users compete in a **fee auction**. This introduces delays and unpredictable costs, making Bitcoin unfriendly for real-time applications.
 
-### Bitcoin Contract Paradigm: Commit and Reveal
-
-Bitcoin contracts follow a **lock-then-unlock** pattern:
-- Lock value with a script (pubkey, hash, timelock).
-- Unlock by revealing data that satisfies the script.
-
-This contrasts with Ethereum-style accounts, where contracts can hold and mutate arbitrary state. Bitcoin’s approach is static and predictable, but limited in expressiveness.
-
 ### Ark and Virtual UTXOs (VTXOs)
 
 Ark is a Bitcoin-native transaction batching protocol that introduced **Virtual UTXOs (VTXOs)** and **Batch

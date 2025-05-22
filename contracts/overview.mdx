@@ -4,45 +4,42 @@ description: "Arkade Contracts and Arkade Script"
 icon: "file-contract"
 ---
 
-<Frame>
-  <img className="block dark:hidden" src="/images/hero-light.png" alt="Hero Light" />
-  <img className="hidden dark:block" src="/images/hero-dark.png" alt="Hero Dark" />
-</Frame>
+<div className="custom-warning block dark:hidden p-4 mb-4 border-l-4 border-red-500 bg-red-50 text-red-900">
+  <strong>EXPERIMENTAL PROTOTYPE</strong>
+  
+  <p>This section presents an exploration of an ideal API for Arkade contracts. The compiler is an exploratory prototype being shared with developers early to iterate on optimal syntax. The implementation is not production-ready and is subject to significant changes.</p>
+</div>
 
+<div className="custom-warning hidden dark:block p-4 mb-4 border-l-4 border-yellow-500 bg-yellow-900/20 text-yellow-300">
+  <strong>EXPERIMENTAL PROTOTYPE</strong>
+  
+  <p>This section presents an exploration of an ideal API for Arkade contracts. The compiler is an exploratory prototype being shared with developers early to iterate on optimal syntax. The implementation is not production-ready and is subject to significant changes.</p>
+</div>
 
-Arkade contracts provide powerful programmability through Arkade Script, an extension of Bitcoin Script that operates within the VTXO (Virtual Transaction Output) paradigm. Building on the foundations laid by previous Bitcoin smart contracting languages like [Ivy](https://ivylang.org) and [CashScript](https://cashscript.org), Arkade Script enables developers to create sophisticated smart contracts while maintaining Bitcoin's security and decentralization properties.
+Arkade Script is a Bitcoin scripting language for the VTXO (Virtual Transaction Output) model. It provides two execution paths:
 
-The VTXO paradigm offers two execution paths:
-
-1. **Immediate Execution** - The happy path with server co-signature for instant finality
-2. **Timelock Unilateral Path** - Fallback mechanism for on-chain redemption in worst-case scenarios
-
-This dual-path approach ensures that contracts can execute efficiently off-chain while maintaining the security guarantees of Bitcoin's on-chain settlement.
+1. **Immediate Execution** - Server co-signature for instant finality
+2. **Timelock Unilateral Path** - On-chain redemption fallback
 
 ## Arkade Script
 
-In the following developer guides, we'll explore how to write and deploy Arkade Script contracts for various use cases.
+This documentation outlines the proposed syntax and functionality for Arkade Script contracts.
 
 <Accordion title="Getting Support" icon="headset">
-  If you need help with Arkade Script or have feature requests:
+  For questions or feedback on the prototype:
   
   - Join the [Arkade Telegram community](https://t.me/arkade_os)
   - Open an issue on [GitHub](https://github.com/arkade-os/compiler/issues)
-  - Learn more about [Arkade Script](/learn/arkade-script)
-  
-  We're actively developing Arkade Script and welcome feedback from developers.
 </Accordion>
 
-### Development Roadmap
+### Development Status
 
-The Arkade ecosystem is actively developing tools to enhance the contract development experience. Our roadmap includes:
+The current prototype includes:
 
-- **Arkade Script Compiler** - To convert high-level contract code to optimized Bitcoin Script
-- **Contract Simulator** - For testing contract execution in various scenarios
-- **Debugger** - To step through contract execution and identify issues
-- **Contract Explorer** - For visualizing contract state and execution paths
+- **Basic Compiler** - Early version that converts Arkade Script to Bitcoin Script
+- **Limited Testing Tools** - Basic verification of contract logic
 
-These tools are currently in early experimental stages as we continue to build out the Arkade Script ecosystem.
+All tools are in early experimental stages and NOT ready for production use.
 
 ---
 

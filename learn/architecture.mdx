@@ -5,109 +5,78 @@ description:
   attestation."
 ---
 
-## 🧩 Arkade Roles
+## Roles
 
-Arkade defines two main roles: **Users** and **Operators**.
+### Arkade Operator
 
-Users hold and transact Virtual UTXOs (VTXOs). They initiate Ark transactions and can exit to Bitcoin unilaterally at
-any time.
+The Arkade Operator coordinates Arkade's virtual execution environment through a **modular architecture** that separates core functions: **transaction validation**, **batch creation**, **liquidity provisioning**, and **system coordination**. The operator validates incoming transactions against the current VTXO set, forwards valid requests to the Arkade Signer for cosigning, and aggregates multiple user operations into single onchain commitment transactions.
 
-The Operator coordinates execution and settlement. The role is modular. It can be run by one entity or split across
-independent actors. The Operator consists of:
+This modular design enables horizontal scaling and distributed deployment. Future implementations will enable individual operator functions to be replicated across multiple infrastructure providers, geographic regions, or operated by different entities, reducing single points of failure and improving system resilience.
 
-- **Ark Signer**: verifies and signs Ark transactions
-- **Ark Batcher**: collects intents and builds transaction batches
-- **Liquidity Providers**: fund batch commitments with Bitcoin
+The operator's role is designed with strict boundaries. It cannot unilaterally spend user VTXOs or override unilateral exit paths, as these are secured by presigned transaction trees that users control independently.
 
-This separation of concerns gives Arkade a modular trust surface. Operators can be unbundled.
+### Arkade Signer
 
----
+The Arkade Signer represents a critical architectural separation that isolates transaction signing authority from operator control. Rather than allowing the Arkade Operator to directly sign user transactions, this responsibility is delegated to an independent module that operates under verifiable constraints.
 
-## 📦 Virtual Mempool
+The Signer generates a single signing key that all Arkade addresses require for VTXO cosigning, but this key is protected within a secure hardware environment that prevents access even by the operator. Users communicate directly with the Signer through encrypted channels, ensuring that signature requests remain confidential and uncensorable. This architectural decision transforms the trust model from relying on operator honesty to relying on cryptographic and hardware guarantees that can be independently verified.
 
-The Virtual Mempool processes Ark transactions. These are Bitcoin-like spends of VTXOs, composed offchain, and executed
-in parallel.
+The detailed security mechanisms, including Trusted Execution Environment implementation, remote attestation procedures, and collateral enforcement, are covered in the Security & Trust Model documentation.
 
-VTXOs follow Bitcoin’s stateless model. Every transaction is local and deterministic. There is no shared state.
-Transactions form a DAG, not a blockchain.
+## Components
 
-## 🔐 Ark Signer
+### Virtual Transaction Output (VTXO)
 
-Arkade enforces execution integrity not through staking, committees, or onchain slashing contracts, but by binding a
-single-purpose signer to a deterministic program running inside sealed hardware.
+Virtual Transaction Outputs (VTXOs) are the fundamental building blocks of Arkade's execution layer. They are programmable, offchain objects that mirror Bitcoin's UTXO structure while expanding their capabilities within Arkade's virtual execution environment.
 
-The Ark Signer operates within a **Trusted Execution Environment (TEE)**. This enclave runs only one specific, attested
-binary, which any user can verify. The binary generates a private key internally and exposes only the public key. All
-VTXOs in the system require this key to co-sign.
+VTXOs are presigned Bitcoin transactions secured by a Taproot script with **two distinct spending paths**:
 
-To establish accountability, the Ark Operator locks Bitcoin to an onchain address spendable only by this signer key. These UTXOs
-are visible on the Bitcoin blockchain. No complex "bonding" contract governs them. Instead, security flows from the predictability of the
-signer’s behavior: it will not actively collude with previous owner to double-spend a VTXO. 
+**Exit Path (Unilateral Control)**: This path is exclusively controlled by the VTXO owner, enabling them to move their funds onchain at any time without requiring permission or cooperation from the Arkade operator. This ensures true self-custody.
 
-If a violation does occur, the user does not appeal to a protocol or validator set. Instead:
+**Collaborative Path**: This path requires a cosignature from the Arkade Signer in addition to the owner's signature. This is the default path used during normal Arkade operations, enabling instant, offchain transactions within the Virtual Mempool.
 
-1. The user detects a double-sign and constructs the proof.
-2. The user builds an unsigned **burn transaction**, sweeping the signer’s bonded UTXOs to an unspendable address.
-3. The user sends both the proof and transaction to the Ark Signer via end-to-end encrypted messaging.
-4. The signer verifies the proof and, by its own logic, signs the burn. The bond is destroyed onchain.
+VTXOs operate like Bitcoin UTXOs but with lower latency and cost. Each VTXO carries a discrete Bitcoin value and associated spending conditions within Arkade's Virtual Mempool or settled onchain when necessary.
 
-The signer cannot refuse this action. It cannot be patched or reconfigured without the entire world noticing and trigger a mass unilateral exit and loss of reputation as reliable Ark operator. 
-Double-spending can only occur through intentional data corruption or operator-induced resets. 
+**VTXO lifecycle**
 
+1. **Creation**: VTXOs are created when users deposit into Arkade or when an existing VTXO is spent, creating new output VTXOs.  
+2. **Preconfirmed State**: In this state, the VTXO has been validated and cosigned by the Arkade Signer but has not yet been settled onchain. It can be spent immediately within the Virtual Mempool.  
+3. **Bitcoin Finality**: When included in a batch output, the VTXO becomes part of a commitment transaction confirmed on the Bitcoin blockchain, inheriting Bitcoin's full security guarantees.  
+4. **Spending**: VTXOs can be spent by creating Arkade Transactions that consume them as inputs and create new VTXOs as outputs, mirroring Bitcoin's transaction model but executing instantly.  
+5. **Exit**: VTXOs can be transformed into onchain UTXOs either collaboratively with the operator or unilaterally through presigned exit paths. Users must periodically refresh VTXOs to avoid expiry, but retain unilateral exit capability at all times.
 
-## 🧃 Coordination Layer
+### **VTXO vs. Traditional Account Models**
 
-The Coordination Layer links user intents (chain of VTXOs in a pre-confirmed state) with onchain funding and ordering logic.
+Unlike account-based systems that maintain a global state ledger, Arkade's VTXO model requires no global state machine, only local transitions between VTXOs. This enables truly parallel execution across independent transaction branches without the bottlenecks common in account models, where operations must be serialized to maintain consistent state.
 
-The **Ark Batcher** collects user intents and constructs batches. It follows deterministic rules and may run in its own
-TEE. The output is a virtual transaction tree passed to the Ark Signer for execution.
+### Virtual Mempool
 
-**Liquidity Providers** fund batch outputs. They post capital to Bitcoin in return for fee yield. Each provider cosigns
-the batch expiry path. A pre-signed sweep transaction allows withdrawal if a round fails.
+The Virtual Mempool is Arkade's offchain execution engine, a high-throughput environment where transactions flow without the constraints of block times or confirmation delays.
 
-Coordination is modular. Anyone can operate a batcher or provide liquidity.
+Transactions in the Virtual Mempool form a directed acyclic graph (DAG) that enables parallel execution of offchain transactions. Unlike Bitcoin’s mempool, which processes transactions in a linear queue for block inclusion, Arkade’s DAG structure explicitly encodes transaction dependencies. 
 
----
+This design allows independent transaction chains to progress concurrently, unlocking massive throughput improvements. By eliminating the need for a global state or sequential processing, the virtual mempool creates a scalable foundation for Bitcoin-native applications.
 
-## 🧱 Bitcoin Settlement Layer
+When a wallet broadcasts a transaction to the Virtual Mempool, the Ark Operator validates it against the current VTXO set, cosigns it if valid, and immediately updates the graph. This gives users instant pre-confirmation without waiting for block inclusion. The transaction's outputs become immediately spendable, enabling fluid, interactive financial applications.
 
-The Settlement Layer anchors Arkade batches on Bitcoin.
+**Features**
 
-Each batch produces a single UTXO. It encapsulates many VTXOs in one output. Settlement happens only when needed. Users
-choose when to exit. Each VTXO includes a presigned onchain path.
+**Parallel Execution**: The DAG structure allows transactions affecting different VTXOs to execute simultaneously without coordination overhead. Transaction processing scales with the number of independent VTXO branches rather than competing for sequential execution slots.
 
-This guarantees safety. If the Ark Signer disappears or misbehaves, the user can still reclaim funds without permission.
+**Deterministic Processing**: Every operation produces a predetermined, verifiable outcome. Participants can locally simulate transactions before submission and predict exact execution results. This eliminates reliability issues common to other execution environments and reduces the risk of value extraction through transaction manipulation (MEV), ensuring reliable market conditions.
 
-Finality is inherited from Bitcoin. Once settled, VTXOs cannot be reversed or re-signed. Preconfirmed state becomes
-immutable.
+**No Global State Bottleneck**: Arkade's VTXO model requires only local state transitions between specific inputs and outputs. Validation occurs independently without global state synchronization or consensus coordination, enabling horizontal scaling.
 
----
+### Onchain Anchoring
 
-Arkade transforms Bitcoin’s primitive transaction model into a verifiable, modular execution layer. Trust is minimal.
-Security is enforced with TEEs and cryptographic accountability. Execution is fast. Exit is deterministic. Consensus is
-unchanged.
+Transaction batching is the foundation of Arkade's design. Rather than each user having their own onchain output, Arkade consolidates multiple users' ownership claims into a single output called a **Batch Output** using **Commitment Transactions.**
 
-<Frame caption="Arkade Transaction Flow">
-  ```mermaid
-  flowchart TD
-    A[User Creates Transaction] --> B[Virtual Mempool]
-    B --> C[Ark Signer]
-    C --> D[Batch Formation]
-    D --> E[Liquidity Providers]
-    E --> F[Bitcoin Settlement]
-    F --> G[On-chain Commitment]
-    
-    H[User Exit Request] --> I[Pre-signed Exit Path]
-    I --> G
-    
-    style A fill:#f9f9f9,stroke:#333,stroke-width:1px
-    style B fill:#e6f7ff,stroke:#333,stroke-width:1px
-    style C fill:#e6f7ff,stroke:#333,stroke-width:1px
-    style D fill:#e6f7ff,stroke:#333,stroke-width:1px
-    style E fill:#fffbe6,stroke:#333,stroke-width:1px
-    style F fill:#f6ffed,stroke:#333,stroke-width:1px
-    style G fill:#f6ffed,stroke:#333,stroke-width:1px
-    style H fill:#f9f9f9,stroke:#333,stroke-width:1px
-    style I fill:#fff2e8,stroke:#333,stroke-width:1px
-  ```
-</Frame>
+\<image\>
+
+**Commitment Transaction**. A Commitment Transactions is the single onchain footprint that underpins the entire Arkade protocol. When users choose to anchor their offchain activity to Bitcoin, the Ark Operator coordinates a Bitcoin transaction that creates a Commitment Transaction containing two outputs: a Batch Output that encapsulates multiple users' ownership claims through a tree of presigned virtual transactions, and a Connector Output that enables atomic batch swaps.
+
+**Batch Output**. A Batch Output is locked to a Taproot address with an n-of-n MuSig2 internal key, with all participants as cosigners, along with a Taproot script spend leaf that allows the Ark Operator to unilaterally spend after the Batch Expiry. Each user's claim is represented by a VTXO, secured through this combination of multisig and presigned transactions. Once the Commitment Transaction structure is finalized, a tree of virtual transactions is created that splits the Batch Output into individual VTXOs at its leaves.
+
+**Virtual Transaction Tree**. The transaction tree organizes virtual transactions in a hierarchical structure that enables individual users to exit without affecting other participants' VTXOs. When a user needs to exit unilaterally, they broadcast only the transactions along their specific path to their VTXO. This selective unrolling ensures other users' VTXOs remain in the batch, maintaining efficiency for the remaining participants. Each virtual transaction in the tree is cosigned by the relevant VTXO owners and the Ark Operator.
+
+**Batch Expiry**. Each Batch Output is structured as a **Taproot script with dual spending paths**: an unroll path for users to access individual VTXOs and a **sweep path** that allows the Arkade Operator to claim the entire output after a predetermined expiry period. This sweep mechanism is essential for operator liquidity management, as operators must front capital to fund new VTXOs while users forfeit existing ones during batch operations.

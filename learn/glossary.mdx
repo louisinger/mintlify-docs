@@ -9,19 +9,13 @@ description:
 **Arkade**
 A Bitcoin-native virtual execution layer that enables programmable money through offchain coordination while preserving Bitcoin's security guarantees. Arkade virtualizes Bitcoin's transaction layer to enable instant, parallel execution without requiring protocol changes.
 
-**ArkadeOS**
-The operating system layer of Arkade that provides a complete execution environment for Bitcoin-native applications, including the Virtual Mempool, scripting capabilities, and coordination infrastructure.
-
-**Arkade Batcher**
-A dedicated entity responsible for collecting transaction intents and constructing batches with policy-driven properties. Operates within a TEE separately from the Arkade Operator to ensure trustworthy batch construction and transaction ordering.
-
 **Arkade Operator**
 The coordinator of Arkade's virtual execution environment who validates transactions, forwards requests to the Arkade Signer, and aggregates operations into onchain commitment transactions. Cannot unilaterally spend user VTXOs due to architectural constraints.
 
 **Arkade Script**
 An enhanced version of Bitcoin Script that enables expressive and stateful transaction flows. Extends Bitcoin's opcodes with additional primitives for introspection, arithmetic, logic, and asset operations, running exclusively in the preconfirmation state.
 
-**ArkadeScript Compiler**
+**Arkade Script Compiler**
 A development tool that translates high-level contract logic into executable Arkade Script code. Inspired by Bitcoin scripting languages like Ivy and CashScript, it verifies scripts preserve Ark constraints and unilateral exit guarantees.
 
 **Arkade Signer**

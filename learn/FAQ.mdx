@@ -14,7 +14,7 @@ description:
 * Access lending protocols without giving up custody of your Bitcoin  
 * Trade on decentralized exchanges without custodial intermediaries  
 * Build smart wallets with embedded logic and recovery mechanisms  
-* Deploy programmable payments and coordination contracts
+* Deploy programmable payments and contracts
 
 Operations execute offchain for speed, with users choosing when to anchor to Bitcoin for full security.
 
@@ -24,7 +24,7 @@ Operations execute offchain for speed, with users choosing when to anchor to Bit
 
 Arkade solves **Bitcoin's application problem**.
 
-Bitcoin is the world's most secure monetary network, but its potential as programmable money remains largely untapped. While Bitcoin excels as a store of value, it lacks the ability to express complex financial logic without custodial services or bridges to alternative chains.
+Bitcoin is the world's most secure monetary network, but its potential as programmable money remains largely untapped. While Bitcoin excels as a store of value, it lacks the ability to express advanced financial logic without custodial services or bridges to alternative chains.
 
 **Arkade delivers:**
 
@@ -40,7 +40,7 @@ Arkade enables a **new era of programmable finance**, directly anchored to the m
 ## **Is Arkade a new blockchain?**
 
 **No.** Arkade is not a blockchain, sidechain, or rollup.  
- It is an offchain coordination layer that operates over native Bitcoin UTXOs using Virtual Transaction Outputs (VTXOs), batch settlement, and presigned transaction paths.
+ It is an offchain execution layer that operates over native Bitcoin UTXOs using Virtual Transaction Outputs (VTXOs), batch settlement, and presigned transaction paths.
 
 There is no new consensus protocol, validator set, or token.
 
@@ -56,7 +56,7 @@ It powers real-time transaction flows that:
 * Execute in parallel without global state bottlenecks  
 * Let users control when (and if) to finalize to the Bitcoin blockchain
 
-**Unlike Bitcoin's mempool**, Arkade's execution layer is designed for scale. Transactions form a directed acyclic graph (DAG) that enables independent branches to execute simultaneously. Execution is instant, and settlement is batched onchain. This makes Arkade scalable, composable, and trust-minimized — all without changing Bitcoin.
+**Unlike Bitcoin's mempool**, Arkade's execution layer is designed for scale. Transactions form a directed acyclic graph (DAG) that enables independent branches to execute simultaneously. Execution is instant, and settlement is batched onchain. This makes Arkade scalable, composable, and trust-minimized.
 
 ---
 
@@ -90,9 +90,7 @@ VTXOs operate in three states:
 
 1. **Preconfirmed**: Validated and cosigned, can be spent immediately  
 2. **Bitcoin Finality**: Anchored onchain through commitment transactions  
-3. **Expired**: Subject to sweep if not refreshed periodically
-
-This architecture retains the determinism and security of UTXOs while enabling rich offchain programmability and parallel execution.
+3. **Expired**: Subject to sweep if not swapped periodically
 
 ---
 
@@ -162,7 +160,7 @@ Arkade enables composable, offchain financial logic anchored to Bitcoin:
 * **Complex logic** — Multi-path execution and sophisticated conditional flows  
 * **Asset operations** — Native handling of multi-asset flows and collateral tracking
 
-**Arkade Script Compiler** translates high-level contract logic into executable code, drawing inspiration from languages like Ivy and CashScript. Unlike Bitcoin Script's constraints, ArkadeScript is designed for expressiveness and safety while maintaining compatibility with Bitcoin settlement.
+Arkade Script is designed for expressiveness and safety while maintaining compatibility with Bitcoin settlement.
 
 ---
 
@@ -170,20 +168,14 @@ Arkade enables composable, offchain financial logic anchored to Bitcoin:
 
 Arkade uses **presigned transactions** and **unilateral exit paths** to guarantee users remain in full control of their funds.
 
-**If the operator becomes unresponsive or malicious, users can:**
-
-* Use presigned transactions to exit to Bitcoin unilaterally  
-* Retrieve value from the last known valid VTXO state  
-* Require no additional party to intervene
+If the operator becomes unresponsive or malicious, users can use presigned transactions to exit to Bitcoin unilaterally, retrieving value from the last known valid VTXO state.
 
 **Additional safeguards:**
 
 * **Arkade Signer** operates independently within TEEs, isolated from operator control  
 * **End-to-end encryption** prevents censorship of user communications  
-* **Collateral burn mechanism** creates economic penalties for operator misbehavior  
+* **Slashingr** creates economic penalties for operator misbehavior  
 * **Remote attestation** provides cryptographic proof of system integrity
-
-This design guarantees sovereign ownership, enforced by Bitcoin script and hardware security.
 
 ---
 
@@ -196,7 +188,6 @@ Arkade batches thousands of offchain operations into **a single Bitcoin transact
 1. **Commitment Transaction** creates a Batch Output on Bitcoin  
 2. **Virtual Transaction Tree** organizes individual VTXOs within the batch  
 3. **Batch confirmation** gives all included VTXOs Bitcoin-level finality  
-4. **Selective unrolling** allows individual exits without affecting other users
 
 This batching dramatically reduces per-transaction costs while preserving individual control and Bitcoin security guarantees.
 
@@ -210,14 +201,13 @@ Arkade is designed with **fail-safe exits** and **minimal trust assumptions**.
 
 * Users retain full control via presigned transactions  
 * Existing funds remain secure with unilateral exit capability  
-* No custodian risk — security defaults to Bitcoin's finality  
 * Modular architecture enables rapid migration to alternative infrastructure
 
 **If the Operator misbehaves:**
 
 * Misconduct is cryptographically provable  
 * TEE attestation provides verifiable integrity guarantees  
-* Collateral burn mechanism creates automatic economic penalties  
+* Slashing mechanism creates automatic economic penalties  
 * End-to-end encryption prevents censorship
 
 While exit guarantees are always enforceable, mass exits may face higher Bitcoin fees during periods of network congestion.
@@ -235,27 +225,10 @@ A **Trusted Execution Environment (TEE)** — like Intel SGX — is a secure har
 **Arkade uses TEEs for:**
 
 * **Arkade Signer** — Protects signing keys from operator access  
-* **Arkade Batcher** — Ensures fair transaction ordering and batch construction  
 * **Remote attestation** — Proves only authorized code is running  
 * **Encrypted communication** — Enables private user-signer interaction
 
 TEEs transform "trust the operator" into "verify the operator" through cryptographic guarantees and hardware isolation.
-
----
-
-## **How does Arkade handle scale & performance?**
-
-Arkade moves execution offchain into the Virtual Mempool while preserving Bitcoin security through presigned exits and TEE attestations.
-
-**This architecture enables:**
-
-* **Instant transactions** — No block times, no confirmation delays  
-* **Parallel execution** — Independent VTXO branches process simultaneously  
-* **Horizontal scaling** — More users create more parallel processing capacity  
-* **Massive throughput** — Thousands of operations settle in single Bitcoin commitments  
-* **No MEV risk** — Deterministic execution prevents transaction manipulation
-
-The system scales naturally with demand while maintaining Bitcoin's security guarantees.
 
 ---
 
@@ -319,7 +292,6 @@ Arkade is **BTC-native** with no governance tokens or wrapped assets required.
 **Current status:**
 
 * **Closed beta** on Bitcoin mainnet with select partners  
-* **Launch partners** include Boltz, Breez, Mempool.space, and Maestro  
 * **Developer SDK** available on GitHub for early builders
 
 **Roadmap:**

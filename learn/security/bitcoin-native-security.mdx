@@ -13,4 +13,6 @@ Instant transaction execution happens through a preconfirmation mechanism. User 
 
 Users maintain control over their funds and choose when to transition from a preconfirmed state to Bitcoin finality through batch settlements. This model enables instant programmable flows when speed is prioritized, with the option to inherit full Bitcoin security guarantees when needed.
 
-**Architecture Note**: Unlike bridge-based systems that create wrapped Bitcoin requiring trust in external validators, Arkade's presigned transaction model means every Virtual Transaction Output (VTXO) is backed by a valid Bitcoin transaction. Users hold the cryptographic keys to exit unilaterally at any time, transforming offchain execution from a custody model into a coordination model.
+<Info>
+  **Architecture Note**: Unlike bridge-based systems that create wrapped Bitcoin requiring trust in external validators, Arkade's presigned transaction model means every Virtual Transaction Output (VTXO) is backed by a valid Bitcoin transaction. Users hold the cryptographic keys to exit unilaterally at any time, transforming offchain execution from a custody model into a coordination model.
+</Info>

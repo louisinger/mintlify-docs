@@ -1,0 +1,25 @@
+---
+title: "Advanced Security Mechanisms"
+description: "Overview of advanced security mechanisms in Arkade, such as verifiable execution and end-to-end encryption."
+---
+## Advanced Security Mechanisms
+
+Rather than asking users to simply trust operators, Arkade implements technical safeguards that transform "trust the operator" into "verify the operator." These mechanisms ensure that misbehavior is cryptographically detectable, honest execution is verifiable, economic incentives are aligned, and communication remains uncensorable.
+
+### Verifiable Execution
+
+To minimize trust risks in the preconfirmation state, Arkade isolates the Arkade Signer within Trusted Execution Environments (TEEs). TEEs create isolated hardware environments that can attest to the software they're running and can provide robust guarantees against external tampering. 
+
+The Arkade Signer operates within this isolated TEE environment to independently manage the cryptographic keys used for signing transactions. This isolation makes key exfiltration or tampering practically infeasible, with the signing key generated and securely maintained internally, inaccessible even to the Arkade Operator. Signing responsibilities remain strictly segregated from broader operational tasks.
+
+The system also plans to integrate remote, verifiable attestation based on open-source software and reproducible builds. These attestations serve as cryptographic verification that the Ark Signer is running the expected code.
+
+### End-to-End Encryption
+
+Arkade is designed to support end-to-end encryption (E2EE) between users and the Arkade Signer, preserving confidentiality and protecting against censorship attempts by the operator. 
+
+The E2EE protocol safeguards signature requests and other messages from interception or manipulation, rendering the Arkade Operator incapable of snooping on or censoring specific transactions. Even when the operator serves as the message routing infrastructure, they cannot:
+
+* See what specific transactions are being processed  
+* Block individual transactions based on their content  
+* Analyze user behavior patterns for surveillance purposes

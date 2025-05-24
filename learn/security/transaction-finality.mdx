@@ -1,0 +1,21 @@
+---
+title: "Transaction Finality"
+description: "Understanding transaction finality in Arkade, including preconfirmation and Bitcoin finality."
+---
+## Transaction Finality
+
+Arkade enables users to seamlessly shift between preconfirmation and Bitcoin finality Ebased on their security and performance requirements.
+
+### Preconfirmation
+
+Funds in the Virtual Mempool operate under the preconfirmation trust model. All Virtual Transaction Outputs (VTXOs) are cosigned by the Arkade Signer, enabling instant transaction execution and rich programmable flows.
+
+This model requires users to trust the Arkade Signer won't double-sign conflicting transactions. Any misbehavior can be cryptographically proven, while economic incentives and deterministic execution ensure reliable operation.
+
+### Bitcoin Finality
+
+Finality is achieved when users swap their preconfirmed VTXOs into a new Batch Output confirmed on Bitcoin. 
+
+Users can balance security needs against convenience by choosing when to settle. 
+
+Settled VTXOs, while structurally identical to preconfirmed ones, are solely traceable back to Batch Output transactions, ensuring full Bitcoin-level immutability and censorship resistance.

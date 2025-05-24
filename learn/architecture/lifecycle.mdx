@@ -1,0 +1,11 @@
+---
+title: "VTXO Lifecycle"
+description: "Understanding the lifecycle of Virtual Transaction Outputs (VTXOs) in Arkade, from creation to exit."
+---
+## VTXO Lifecycle
+
+1.  **Creation**: VTXOs are created when users deposit into Arkade or when an existing VTXO is spent, creating new output VTXOs.  
+2.  **Preconfirmed State**: In this state, the VTXO has been validated and cosigned by the Arkade Signer but has not yet been settled onchain. It can be spent immediately within the Virtual Mempool.  
+3.  **Bitcoin Finality**: When included in a batch output, the VTXO becomes part of a commitment transaction confirmed on the Bitcoin blockchain, inheriting Bitcoin's full security guarantees.  
+4.  **Spending**: VTXOs can be spent by creating Arkade Transactions that consume them as inputs and create new VTXOs as outputs, mirroring Bitcoin's transaction model but executing instantly.  
+5.  **Exit**: VTXOs can be transformed into onchain UTXOs either collaboratively with the operator or unilaterally through presigned exit paths. Users must periodically refresh VTXOs to avoid expiry, but retain unilateral exit capability at all times.

@@ -35,11 +35,28 @@
         "pages": [
           "index",
           "learn/background",
-          "learn/architecture",
-          "learn/security",
-          "learn/arkade-script",
           "learn/FAQ",
-          "learn/glossary"
+          "learn/glossary",
+          {
+            "group": "Architecture",
+            "pages": [
+              "learn/architecture/roles",
+              "learn/architecture/components",
+              "learn/architecture/lifecycle"
+            ]
+          },
+          {
+            "group": "Security",
+            "pages": [
+              "learn/security/bitcoin-native-security",
+              "learn/security/unilateral-exit",
+              "learn/security/transaction-finality",
+              "learn/security/liveness",
+              "learn/security/advanced-security",
+              "learn/security/economic-security",
+              "learn/security/risks-limitations"
+            ]
+          }
         ]
       },
       {

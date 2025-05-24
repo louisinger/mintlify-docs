@@ -1,0 +1,23 @@
+---
+title: "Roles"
+description: "Detailed explanation of key roles in the Arkade architecture, such as the Arkade Operator and Arkade Signer."
+---
+## Roles
+
+### Arkade Operator
+
+The Arkade Operator coordinates Arkade's virtual execution environment through a **modular architecture** that separates core functions: **transaction validation**, **batch creation**, **liquidity provisioning**, and **system coordination**. The operator validates incoming transactions against the current VTXO set, forwards valid requests to the Arkade Signer for cosigning, and aggregates multiple user operations into single onchain commitment transactions.
+
+This modular design enables horizontal scaling and distributed deployment. Future implementations will enable individual operator functions to be replicated across multiple infrastructure providers, geographic regions, or operated by different entities, reducing single points of failure and improving system resilience.
+
+The operator's role is designed with strict boundaries. It cannot unilaterally spend user VTXOs or override unilateral exit paths, as these are secured by presigned transaction trees that users control independently.
+
+### Arkade Signer
+
+The Arkade Signer represents a critical architectural separation that isolates transaction signing authority from operator control. Rather than allowing the Arkade Operator to directly sign user transactions, this responsibility is delegated to an independent module that operates under verifiable constraints.
+
+The Signer generates a single signing key that all Arkade addresses require for VTXO cosigning, but this key is protected within a secure hardware environment that prevents access even by the operator. Users communicate directly with the Signer through encrypted channels, ensuring that signature requests remain confidential and uncensorable. This architectural decision transforms the trust model from relying on operator honesty to relying on cryptographic and hardware guarantees that can be independently verified.
+
+<Info>
+  Detailed security mechanisms, including Trusted Execution Environment implementation, remote attestation procedures, and collateral enforcement, are covered in the Security & Trust Model documentation.
+</Info>

@@ -21,9 +21,9 @@ The Arkade Signer represents a critical architectural separation that isolates t
 
 The Signer generates a single signing key that all Arkade addresses require for VTXO cosigning, but this key is protected within a secure hardware environment that prevents access even by the operator. Users communicate directly with the Signer through encrypted channels, ensuring that signature requests remain confidential and uncensorable. This architectural decision transforms the trust model from relying on operator honesty to relying on cryptographic and hardware guarantees that can be independently verified.
 
-<Tip>
+<Info>
   Detailed security mechanisms, including Trusted Execution Environment implementation, remote attestation procedures, and collateral enforcement, are covered in the Security & Trust Model documentation.
-</Tip>
+</Info>
 
 ## Components
 
@@ -63,7 +63,7 @@ This design allows independent transaction chains to progress concurrently, unlo
 
 When a wallet broadcasts a transaction to the Virtual Mempool, the Ark Operator validates it against the current VTXO set, cosigns it if valid, and immediately updates the graph. This gives users instant pre-confirmation without waiting for block inclusion. The transaction's outputs become immediately spendable, enabling fluid, interactive financial applications.
 
-<Check>
+<Info>
 **Features**
 
 **Parallel Execution**: The DAG structure allows transactions affecting different VTXOs to execute simultaneously without coordination overhead. Transaction processing scales with the number of independent VTXO branches rather than competing for sequential execution slots.
@@ -71,7 +71,7 @@ When a wallet broadcasts a transaction to the Virtual Mempool, the Ark Operator 
 **Deterministic Processing**: Every operation produces a predetermined, verifiable outcome. Participants can locally simulate transactions before submission and predict exact execution results. This eliminates reliability issues common to other execution environments and reduces the risk of value extraction through transaction manipulation (MEV), ensuring reliable market conditions.
 
 **No Global State Bottleneck**: Arkade's VTXO model requires only local state transitions between specific inputs and outputs. Validation occurs independently without global state synchronization or consensus coordination, enabling horizontal scaling.
-</Check>
+</Info>
 
 ### Onchain Anchoring
 

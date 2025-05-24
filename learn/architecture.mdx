@@ -21,7 +21,9 @@ The Arkade Signer represents a critical architectural separation that isolates t
 
 The Signer generates a single signing key that all Arkade addresses require for VTXO cosigning, but this key is protected within a secure hardware environment that prevents access even by the operator. Users communicate directly with the Signer through encrypted channels, ensuring that signature requests remain confidential and uncensorable. This architectural decision transforms the trust model from relying on operator honesty to relying on cryptographic and hardware guarantees that can be independently verified.
 
-The detailed security mechanisms, including Trusted Execution Environment implementation, remote attestation procedures, and collateral enforcement, are covered in the Security & Trust Model documentation.
+<Developer>
+  Detailed security mechanisms, including Trusted Execution Environment implementation, remote attestation procedures, and collateral enforcement, are covered in the Security & Trust Model documentation.
+</Developer>
 
 ## Components
 

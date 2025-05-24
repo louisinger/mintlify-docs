@@ -4,11 +4,11 @@ description: "Exploration of economic security in Arkade, including collateral b
 ---
 ## Economic Security
 
-### Collateral Burn Mechanism
+### Slashing
 
 Arkade Operators can stake Bitcoin collateral onchain, locked to the Arkade Signer's public key, creating economic deterrence against misbehavior. If the Signer double-signs conflicting transactions, users can present proof to the TEE along with an unsigned burn transaction, which the verified TEE software will automatically sign to destroy the collateral.
 
-Since TEEs cannot reliably maintain global state, malicious operators might attempt to induce double-signing by feeding incorrect data to the TEE or performing restart cycles. However, such protocol violations produce cryptographic evidence that triggers the collateral burn mechanism. The system ensures that potential attack benefits must outweigh the locked collateral value, making attacks economically irrational for operators.
+Since TEEs cannot reliably maintain global state, malicious operators might attempt to induce double-signing by feeding incorrect data to the TEE or performing restart cycles. However, such protocol violations produce cryptographic evidence that triggers slashing. The system ensures that potential attack benefits must outweigh the locked collateral value, making attacks economically irrational for operators.
 
 ### Fee Incentives
 

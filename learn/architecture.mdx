@@ -45,9 +45,11 @@ VTXOs operate like Bitcoin UTXOs but with lower latency and cost. Each VTXO carr
 4. **Spending**: VTXOs can be spent by creating Arkade Transactions that consume them as inputs and create new VTXOs as outputs, mirroring Bitcoin's transaction model but executing instantly.  
 5. **Exit**: VTXOs can be transformed into onchain UTXOs either collaboratively with the operator or unilaterally through presigned exit paths. Users must periodically refresh VTXOs to avoid expiry, but retain unilateral exit capability at all times.
 
-### **VTXO vs. Traditional Account Models**
+<Info>
+  **VTXO vs. Traditional Account Models**
 
 Unlike account-based systems that maintain a global state ledger, Arkade's VTXO model requires no global state machine, only local transitions between VTXOs. This enables truly parallel execution across independent transaction branches without the bottlenecks common in account models, where operations must be serialized to maintain consistent state.
+</Info>
 
 ### Virtual Mempool
 

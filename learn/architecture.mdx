@@ -61,6 +61,7 @@ This design allows independent transaction chains to progress concurrently, unlo
 
 When a wallet broadcasts a transaction to the Virtual Mempool, the Ark Operator validates it against the current VTXO set, cosigns it if valid, and immediately updates the graph. This gives users instant pre-confirmation without waiting for block inclusion. The transaction's outputs become immediately spendable, enabling fluid, interactive financial applications.
 
+<Highlight>
 **Features**
 
 **Parallel Execution**: The DAG structure allows transactions affecting different VTXOs to execute simultaneously without coordination overhead. Transaction processing scales with the number of independent VTXO branches rather than competing for sequential execution slots.
@@ -68,6 +69,7 @@ When a wallet broadcasts a transaction to the Virtual Mempool, the Ark Operator 
 **Deterministic Processing**: Every operation produces a predetermined, verifiable outcome. Participants can locally simulate transactions before submission and predict exact execution results. This eliminates reliability issues common to other execution environments and reduces the risk of value extraction through transaction manipulation (MEV), ensuring reliable market conditions.
 
 **No Global State Bottleneck**: Arkade's VTXO model requires only local state transitions between specific inputs and outputs. Validation occurs independently without global state synchronization or consensus coordination, enabling horizontal scaling.
+</Highlight>
 
 ### Onchain Anchoring
 

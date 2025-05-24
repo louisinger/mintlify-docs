@@ -14,7 +14,7 @@ The operator's role is designed with strict boundaries. It cannot unilaterally s
 
 ### Arkade Signer
 
-The Arkade Signer represents a critical architectural separation that isolates transaction signing authority from operator control. Rather than allowing the Arkade Operator to directly sign user transactions, this responsibility is delegated to an independent module that operates under verifiable constraints.
+The Arkade Signer represents a critical architectural separation that isolates transaction signing authority from operator control. Rather than allowing the Arkade Operator to directly sign user transactions, this responsibility is delegated to an separate module that operates under verifiable constraints.
 
 The Signer generates a single signing key that all Arkade addresses require for VTXO cosigning, but this key is protected within a secure hardware environment that prevents access even by the operator. Users communicate directly with the Signer through encrypted channels, ensuring that signature requests remain confidential and uncensorable. This architectural decision transforms the trust model from relying on operator honesty to relying on cryptographic and hardware guarantees that can be independently verified.
 

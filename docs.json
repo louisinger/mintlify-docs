@@ -19,13 +19,13 @@
   "fonts": {
     "body": {
       "family": "Geist",
-      "weight": 400
+      "weight": 400,
+      "format": "woff2"
     },
     "heading": {
-      "family": "TT Firs Neue Trial",
+      "family": "TT Firs Neue",
       "weight": 500,
-      "format": "woff",
-      "source": "https://fonts.cdnfonts.com/s/120955/TT Firs Neue Trial Medium.woff"
+      "format": "woff2"
     }
   },
   "navigation": {

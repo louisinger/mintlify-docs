@@ -253,25 +253,12 @@ require(tx.time >= expirationTime);
 require(tx.sequence >= relativeLockTime);
 ```
 
-## Script Templates
+## Script Template
 
-Arkade Script provides built-in templates for common script patterns:
+Arkade Script provides a built-in template for deriving the taproot output key:
 
 ```solidity
-// P2PKH script
-bytes p2pkhScript = new P2PKH(pubkey);
-
-// P2SH script
-bytes p2shScript = new P2SH(redeemScript);
-
-// P2WPKH script
-bytes p2wpkhScript = new P2WPKH(pubkey);
-
-// P2WSH script
-bytes p2wshScript = new P2WSH(witnessScript);
-
-// P2TR script
-bytes p2trScript = new P2TR(internalKey, scriptTree);
+bytes p2tr = new P2TR(internalKey, scriptTree);
 ```
 
 ## Error Handling

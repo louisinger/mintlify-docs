@@ -2,9 +2,8 @@
 title: "Risks & Limitations"
 description: "Discussion of potential risks and limitations in the Arkade system, such as mass exit scenarios and Signer compromise."
 ---
-## Risks & Limitations
 
-### Mass Exit Scenarios
+## Mass Exit Scenarios
 
 Mass exit events occur when large numbers of users simultaneously attempt to exit the system, typically triggered by operator infrastructure failures, concerns about operator behavior, regulatory interventions, or system vulnerabilities. When the Arkade Operator goes offline, users lose the ability to initiate new transactions but retain full control over existing VTXOs through presigned unilateral exit paths.
 
@@ -12,7 +11,7 @@ The critical challenge emerges when high demand for exits coincides with elevate
 
 Operators face strong incentives to restore service quickly due to lost fee revenue, while the modular architecture may enable rapid migration to alternative infrastructure. Ongoing research and protocol optimization aim to enhance user coordination capabilities and minimize the economic impact of mass exit events.
 
-### Arkade Signer Compromise
+## Arkade Signer Compromise
 
 Compromise of the Arkade Signer occurs when cryptographic keys are breached, potentially through software vulnerabilities, infrastructure attacks, or other security failures. TEEs provide additional hardware protection, but compromise remains possible through various means. 
 

@@ -2,11 +2,10 @@
 title: "Advanced Security Mechanisms"
 description: "Overview of advanced security mechanisms in Arkade, such as verifiable execution and end-to-end encryption."
 ---
-## Advanced Security Mechanisms
 
 Rather than asking users to simply trust operators, Arkade implements technical safeguards that transform "trust the operator" into "verify the operator." These mechanisms ensure that misbehavior is cryptographically detectable, honest execution is verifiable, economic incentives are aligned, and communication remains uncensorable.
 
-### Verifiable Execution
+## Verifiable Execution
 
 To minimize trust assumptions in the preconfirmation state, Arkade isolates the Arkade Signer within Trusted Execution Environments (TEEs). TEEs create isolated hardware environments that can attest to the software they're running and can provide robust guarantees against external tampering. 
 
@@ -14,7 +13,7 @@ The Arkade Signer operates within this isolated TEE environment to independently
 
 Remote, verifiable attestation based on open-source software and reproducible builds can be used to provide cryptographic evidence that the Ark Signer is running the expected code.
 
-### End-to-End Encryption
+## End-to-End Encryption
 
 Arkade is designed to support end-to-end encryption (E2EE) between users and the Arkade Signer, improving confidentiality and protecting against censorship attempts by the operator. 
 

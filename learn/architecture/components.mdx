@@ -2,9 +2,8 @@
 title: "Components"
 description: "Core components of the Arkade architecture, including VTXOs, Virtual Mempool, and Onchain Anchoring."
 ---
-## Components
 
-### Virtual Transaction Output (VTXO)
+## Virtual Transaction Output (VTXO)
 
 Virtual Transaction Outputs (VTXOs) are the fundamental building blocks of Arkade's execution layer. They are programmable, offchain objects that mirror Bitcoin's UTXO structure while expanding their capabilities within Arkade's virtual execution environment.
 
@@ -22,7 +21,7 @@ VTXOs operate like Bitcoin UTXOs but with lower latency and cost. Each VTXO carr
 Unlike account-based systems that maintain a global state ledger, Arkade's VTXO model requires no global state machine, only local transitions between VTXOs. This enables truly parallel execution across independent transaction branches without the bottlenecks common in account models, where operations must be serialized to maintain consistent state.
 </Info>
 
-### Virtual Mempool
+## Virtual Mempool
 
 The Virtual Mempool is Arkade's offchain execution engine, a high-throughput environment where transactions flow without the constraints of block times or confirmation delays.
 
@@ -32,7 +31,7 @@ This design allows independent transaction chains to progress concurrently, unlo
 
 When a wallet broadcasts a transaction to the Virtual Mempool, the Ark Operator validates it against the current VTXO set, cosigns it if valid, and immediately updates the graph. This gives users instant pre-confirmation without waiting for block inclusion. The transaction's outputs become immediately spendable, enabling fluid, interactive financial applications.
 
-### Commitment Transactions
+## Commitment Transactions
 
 Transaction batching is the foundation of Arkade's design. Rather than each user having their own onchain output, Arkade consolidates multiple users' ownership claims into a single output called a **Batch Output** using **Commitment Transactions.**
 

@@ -2,11 +2,10 @@
 title: "Unilateral Exit"
 description: "Sovereignty & User Control"
 ---
-## Unilateral Exit
 
 Every VTXO includes a presigned transaction path that enables its owner to exit to Bitcoin independently. When a VTXO is created, it comes with a valid set of Bitcoin transactions that can be broadcast at any time without requiring signatures or cooperation from operators or other users.
 
-### Exit Requirements
+## Exit Requirements
 
 Arkade's architecture organizes VTXOs in a virtual tree structure rooted into Batch Outputs. Each Batch Output branches into multiple virtual transactions, which can further branch into additional virtual transactions, creating a tree-like structure of spending relationships. Individual VTXOs exist as leaves or intermediate nodes within this virtual tree.
 
@@ -20,7 +19,7 @@ To enforce a unilateral exit claim onchain, users must publish a complete transa
 
 Each transaction in this chain must be individually broadcast and confirmed on Bitcoin, with users paying standard Bitcoin network fees for each transaction.
 
-### Exit Costs
+## Exit Costs
 
 **Base Costs:** Every unilateral exit incurs Bitcoin network fees for each required transaction in the path. A VTXO requiring a 3-transaction exit path costs 3x the base Bitcoin transaction fee, regardless of the VTXO's value.
 

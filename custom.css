@@ -1,0 +1,11 @@
+body strong, body b {
+  color: #101013 !important;
+  font-weight: bold !important;
+}
+
+html.dark body strong,
+html.dark body b {
+  color: #F2F2F2 !important; 
+  font-weight: bold !important;
+
+}

@@ -20,12 +20,14 @@
     "body": {
       "family": "Geist",
       "weight": 400,
-      "format": "woff2"
+      "format": "woff2",
+      "source": "https://fonts-docs-arkadeos-com.pages.dev/Geist-Regular.woff2"
     },
     "heading": {
       "family": "TT Firs Neue",
       "weight": 500,
-      "format": "woff2"
+      "format": "woff2",
+      "source": "https://fonts-docs-arkadeos-com.pages.dev/TT_Firs_Neue_Medium.woff2"
     }
   },
   "navigation": {

@@ -102,6 +102,18 @@ Once confirmed, your funds are available as a standard on-chain Bitcoin UTXO.
 
 This method offers immediate withdrawal with lower delay and is operationally simpler than unilateral exits.
 
+## Unilateral Exit
+
+Unilateral exit is the process of exiting a VTXO to an on-chain address without the Operator's involvement. This is a more complex and expensivie process and should only be done if the Operator is not available.
+
+```typescript
+// Unilateral exit all vtxos
+await wallet.exit();
+
+// Unilateral exit a specific vtxo
+await wallet.exit([{ txid: vtxo.txid, vout: vtxo.vout }]);
+```
+
 ---
 
 <PreviousButton url="/wallets/vtxos" text="VTXOs" />

@@ -4,6 +4,8 @@ description: "Detailed explanation of key roles in the Arkade architecture, such
 icon: "users"
 ---
 
+![architecture v1_transparent.png](/images/architecturev1_transparent.png)
+
 ## Arkade Operator
 
 The Arkade Operator coordinates Arkade's virtual execution environment through a **modular architecture** that separates core functions: **transaction validation**, **batch creation**, **liquidity provisioning**, and **system coordination**. The operator validates incoming transactions against the current VTXO set, forwards valid requests to the Arkade Signer for cosigning, and aggregates multiple user operations into single onchain commitment transactions.

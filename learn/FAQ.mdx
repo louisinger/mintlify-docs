@@ -207,52 +207,40 @@ Arkade uses a batched fee model optimized for cost efficiency.
 
 Two fee types:
 
-- Execution fees — For offchain transactions in the Virtual Mempool
-- Settlement fees — When finalizing to Bitcoin (shared across many users)
+- Execution fees covering offchain transactions in the Virtual Mempool
+- Settlement fees for anchoring onto Bitcoin (shared across all users)
 
 Benefits:
 
-- Thousands of transactions bundle into single Bitcoin outputs
+- Thousands of transactions bundle into a single Bitcoin output
 - Onchain fees split across all batch participants
-- Significantly lower costs than individual Bitcoin transactions
 - Priority settlement available for faster confirmation
 
 Fee alignment:
 
 - Operators earn from both fee types
 - Incentivizes efficient execution and fair settlement
-- All fees paid in Bitcoin — no gas tokens or wrapped assets
+- All fees paid in Bitcoin
 
 ---
 
 ## Does Arkade require changes to Bitcoin?
 
-No. Arkade works with Bitcoin exactly as it exists today — no forks, new opcodes, or consensus changes required.
+No. Arkade does not require any changes to the Bitcoin protocol. 
 
 How it works:
 
 - All activity happens offchain using standard Bitcoin transaction structures
 - Settlement uses normal Bitcoin transactions and Taproot outputs
-- Presigned exits preserve user custody and enforceability
-- Compatible with existing Bitcoin infrastructure and tools
+- Presigned exits preserve user custody
 
-Arkade delivers programmability and scale today, without waiting for protocol changes or community consensus. Bitcoin remains the secure foundation while Arkade extends what's possible above it.
+Arkade delivers programmability and scale today. Bitcoin remains the secure foundation while Arkade extends what’s possible above it.
 
 ---
 
 ## Does Arkade require a token?
 
-No.
-
-Arkade is BTC-native with no governance tokens or wrapped assets required.
-
-Key points:
-
-- All fees paid in Bitcoin
-- No gas tokens or hidden mechanics
-- Apps can integrate stablecoins or other L1 assets as needed
-- The base protocol itself remains neutral and tokenless
-- Native multi-asset support planned for expanded functionality
+No. Arkade is BTC-native with no governance tokens or wrapped assets.
 
 ---
 

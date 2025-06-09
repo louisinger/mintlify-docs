@@ -75,20 +75,13 @@ For added security, critical roles like the Arkade Signer are separated from the
 
 ## What are VTXOs?
 
-Virtual Transaction Outputs (VTXOs) are programmable, offchain objects that mirror Bitcoin's UTXO structure while expanding their capabilities within Arkade's virtual execution environment.
-
-Each VTXO:
-
-- Has a defined owner and value
-- Can be spent via Arkade Transactions
-- Is backed by a presigned Bitcoin transaction (enforceable onchain)
-- Contains two spending paths: Exit Path (unilateral control) and Collaborative Path (normal operations)
+Virtual Transaction Outputs (VTXOs) are programmable, offchain objects that mirror Bitcoin’s UTXO structure while expanding their capabilities within Arkade’s virtual execution environment. Each VTXO contains two spending paths: the exit path (unilateral control) and a collaborative path (default operation) and is backed by a presigned Bitcoin transaction. 
 
 VTXOs operate in three states:
 
 1. Preconfirmed: Validated and cosigned, can be spent immediately
 2. Bitcoin Finality: Anchored onchain through commitment transactions
-3. Expired: Subject to sweep if not swapped periodically
+3. Expired: Subject to sweep if not swapped in time
 
 ---
 
@@ -100,9 +93,9 @@ Every Arkade transaction:
 
 - Is structured like a Bitcoin transaction (inputs, outputs, scripts)
 - Produces valid presigned Bitcoin exit paths
-- Can be settled to Bitcoin via batch outputs
+- Can be anchored to Bitcoin via batch outputs
 
-However, Arkade transactions are not immediately published to the Bitcoin chain. They execute instantly offchain with preconfirmations, then batch settle onchain. Arkade keeps this tradeoff explicit — users and applications control when to finalize to Bitcoin and reclaim full security guarantees.
+Arkade transactions are not immediately published to the Bitcoin chain. They execute instantly offchain with preconfirmations, then batch settle onchain. Arkade keeps this tradeoff explicit: users and applications control when to finalize to Bitcoin and reclaim full security guarantees.
 
 ---
 
@@ -115,21 +108,7 @@ Arkade builds on Ark as a foundational component:
 - Ark provides the anchoring and settlement layer
 - Arkade provides the execution and coordination layer
 
-Arkade extends Ark far beyond simple payments into a complete execution environment for programmable Bitcoin applications.
-
----
-
-## How is Arkade different from other execution layers?
-
-Arkade isn't a rollup, sidechain, or another blockchain — it's a Bitcoin-native execution layer that preserves custody, avoids bridges, and scales without alternative consensus systems.
-
-Key differences:
-
-- No new consensus — Runs entirely offchain, anchors to Bitcoin via presigned exits
-- No bridges or wrapped BTC — Assets stay native, no wrapped tokens or bridge risk
-- Self-custody by default — Users control funds at all times, exit paths always enforceable
-- Parallel execution — No global state bottlenecks, processes flows independently via VTXOs
-- Verifiable execution — TEE integration provides cryptographic guarantees of honest behavior
+Arkade extends Ark beyond simple payments into a complete execution environment for programmable Bitcoin applications.
 
 ---
 
@@ -140,9 +119,9 @@ Arkade enables composable, offchain financial logic anchored to Bitcoin:
 - Smart Wallets with embedded logic, spending limits, or recovery flows
 - Trustless Swaps across BTC and other assets
 - Programmable Payments for AI agents and automated systems
-- BTC-Backed Lending without custodial intermediaries
+- BTC-backed lending and borrowing
 - Decentralized Trading with sovereign vaults
-- Coordination Contracts with threshold access or delegation
+- Coordination Contracts with threshold access or a delegation
 - Virtual Channels for cost-effective payment channel deployment
 
 ---
@@ -164,30 +143,23 @@ Arkade Script is designed for expressiveness and safety while maintaining compat
 
 ## How does Arkade ensure self-custody?
 
-Arkade uses presigned transactions and unilateral exit paths to guarantee users remain in full control of their funds.
+VTXO ownership means being in control of a presigned Bitcoin transaction.
 
-If the operator becomes unresponsive or malicious, users can use presigned transactions to exit to Bitcoin unilaterally, retrieving value from the last known valid VTXO state.
-
-Additional safeguards:
-
-- Arkade Signer operates independently within TEEs, isolated from operator control
-- End-to-end encryption prevents censorship of user communications
-- Slashing creates economic penalties for operator misbehavior
-- Remote attestation provides cryptographic proof of system integrity
+If the operator becomes unresponsive or malicious, users can simply broadcast their presigned transaction on Bitcoin.
 
 ---
 
-## What is a "Batch Output" and how does settlement work?
+## What is a "Batch Output" and how does onchain settlement work?
 
-Arkade batches thousands of offchain operations into a single Bitcoin transaction output.
+Arkade can batch thousands of offchain operations into a single Bitcoin transaction output.
 
-The settlement process:
+The settlement process is as follows:
 
-1. Commitment Transaction creates a Batch Output on Bitcoin
-2. Virtual Transaction Tree organizes individual VTXOs within the batch
-3. Batch confirmation gives all included VTXOs Bitcoin-level finality
+1. Individual VTXOs get organized by the operator into a virtual transaction tree
+2. The virtual transaction tree is anchored via a batch output in a commitment transaction to Bitcoin
+3. An onchain confirmed commitment transaction gives all included VTXOs Bitcoin-level finality
 
-This batching dramatically reduces per-transaction costs while preserving individual control and Bitcoin security guarantees.
+Transaction batching dramatically reduces per-transaction costs while preserving individual control and Bitcoin security guarantees.
 
 ---
 
@@ -197,24 +169,23 @@ Arkade is designed with fail-safe exits and minimal trust assumptions.
 
 If the Operator goes offline:
 
-- Users retain full control via presigned transactions
-- Existing funds remain secure with unilateral exit capability
+- Users can’t perform new transactions on Arkade  
+- Users can claim existing VTXOs as onchain funds using  their presigned transactions
 - Modular architecture enables rapid migration to alternative infrastructure
 
 If the Operator misbehaves:
 
-- Misconduct is cryptographically provable
-- TEE attestation provides verifiable integrity guarantees
-- Slashing mechanism creates automatic economic penalties
-- End-to-end encryption prevents censorship
+- Misconduct like double-signing attempts are cryptographically provable
+- A Slashing mechanism enforces economic penalties
+- Censorship-attempts of individual transactions are prevented via E2E encryption. 
 
-While exit guarantees are always enforceable, mass exits may face higher Bitcoin fees during periods of network congestion.
+While a unilateral exit path is always enforceable, mass exits may face high onchain transaction cost
 
 ---
 
 ## What's a TEE and how does Arkade use it?
 
-A Trusted Execution Environment (TEE) — like Intel SGX — is a secure hardware enclave that provides:
+A Trusted Execution Environment (TEE) is a secure hardware enclave that provides:
 
 - Isolated execution of sensitive code
 - Cryptographic attestation of software integrity
@@ -222,11 +193,11 @@ A Trusted Execution Environment (TEE) — like Intel SGX — is a secure hardwar
 
 Arkade uses TEEs for:
 
-- Arkade Signer — Protects signing keys from operator access
-- Remote attestation — Proves only authorized code is running
-- Encrypted communication — Enables private user-signer interaction
+- Arkade Signer: Protects signing keys from operator access
+- Remote attestation: Proves only authorized code is running
+- Encrypted communication: Enables private user-signer interaction
 
-TEEs transform "trust the operator" into "verify the operator" through cryptographic guarantees and hardware isolation.
+TEEs transform the “trust the operator” assumption into “verify the operator”.
 
 ---
 

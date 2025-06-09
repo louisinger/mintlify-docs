@@ -6,32 +6,32 @@ icon: "circle-question"
 
 ## What is Arkade?
 
-Arkade is a programmable execution layer for Bitcoin.  
- It enables fast, self-custodial financial applications on Bitcoin, including lending, smart wallets, and trading, without changing the protocol or requiring trusted intermediaries.
+Arkade is a programmable execution layer for Bitcoin.\
+It enables fast, self-custodial financial applications on Bitcoin, including lending, smart wallets, and trading, without changing the protocol or requiring trusted intermediaries.
 
 With Arkade, you can:
 
-* Access lending protocols without giving up custody of your Bitcoin  
-* Trade on decentralized exchanges without custodial intermediaries  
-* Build smart wallets with embedded logic and recovery mechanisms  
-* Deploy programmable payments and contracts
+- Access lending protocols without giving up custody of your Bitcoin
+- Trade on decentralized exchanges without custodial intermediaries
+- Build smart wallets with embedded logic and recovery mechanisms
+- Deploy programmable payments and contracts
 
 Operations execute offchain for speed, with users choosing when to anchor to Bitcoin for full security.
 
 ---
 
-## What problem does it solve?
+## What problem does Arkade solve?
 
-Arkade solves Bitcoin's application problem.
+Arkade adds financial logic to bitcoin payments.
 
-Bitcoin is the world's most secure monetary network, but its potential as programmable money remains largely untapped. While Bitcoin excels as a store of value, it lacks the ability to express advanced financial logic without custodial services or bridges to alternative chains.
+Bitcoin is the world’s most secure monetary network, but its potential as programmable money remains largely untapped. While Bitcoin excels as a store of value, it lacks the ability to express advanced financial logic without custodial services or bridges to alternative chains.
 
 Arkade delivers:
 
-* Programability, without changing Bitcoin  
-* Self-custody, without trusted intermediaries  
-* Parallel execution, without global state bottlenecks  
-* Dynamic settlement, with user control
+- Programmability - add financial logic to payments
+- Self-custody - users retain unilateral exit control to Bitcoin L1
+- Parallel execution - scale Bitcoin payments horizontally
+- Dynamic settlement - users control their fund’s finality state 
 
 Arkade enables a new era of programmable finance, directly anchored to the most secure monetary base ever created.
 
@@ -39,39 +39,37 @@ Arkade enables a new era of programmable finance, directly anchored to the most 
 
 ## Is Arkade a new blockchain?
 
-No. Arkade is not a blockchain, sidechain, or rollup.  
- It is an offchain execution layer that operates over native Bitcoin UTXOs using Virtual Transaction Outputs (VTXOs), batch settlement, and presigned transaction paths.
-
-There is no new consensus protocol, validator set, or token.
+No. Arkade is not a blockchain, sidechain, or rollup.\
+It is an offchain execution layer that operates over native Bitcoin UTXOs using Virtual Transaction Outputs (VTXOs), batch settlement, and presigned transaction paths.
 
 ---
 
 ## What is the Virtual Mempool?
 
-The Virtual Mempool is Arkade's offchain execution layer, a dynamic coordination environment for Bitcoin-native applications.
+The Virtual Mempool is Arkade’s offchain execution layer, a dynamic coordination environment for Bitcoin-native applications.
 
 It powers real-time transaction flows that:
 
-* Emulate Bitcoin's UTXO model through Virtual Transaction Outputs (VTXOs)  
-* Execute in parallel without global state bottlenecks  
-* Let users control when (and if) to finalize to the Bitcoin blockchain
+- Emulate Bitcoin’s UTXO model through Virtual Transaction Outputs (VTXOs)
+- Execute in parallel without global state bottlenecks
+- Let users control when (and if) to anchor to the Bitcoin blockchain
 
-Unlike Bitcoin's mempool, Arkade's execution layer is designed for scale. Transactions form a directed acyclic graph (DAG) that enables independent branches to execute simultaneously. Execution is instant, and settlement is batched onchain. This makes Arkade scalable, composable, and trust-minimized.
+Arkade’s execution layer is designed for scale. Transactions form a directed acyclic graph (DAG) that enables independent branches to execute simultaneously. Execution is instant, and settlement is batched onchain.
 
 ---
 
 ## Who is the Arkade Operator?
 
-The Arkade Operator coordinates offchain activity through a modular architecture that separates core functions: transaction validation, batch creation, liquidity provisioning, and system coordination.
+The Arkade Operator coordinates offchain activity through a modular architecture comprising several functions: transaction aggregation and validation, onchain batch creation and  liquidity provisioning.
 
 The Operator:
 
-* Validates transactions in the Virtual Mempool  
-* Issues preconfirmations for instant execution  
-* Posts settlement batches to Bitcoin  
-* Cannot control user funds — every VTXO includes presigned Bitcoin exit paths
+- Validates transactions in the Virtual Mempool
+- Issues preconfirmations for instant execution
+- Posts settlement batches to Bitcoin
+- Cannot control user funds — every VTXO includes presigned Bitcoin exit paths
 
-For added security, critical functions like the Arkade Signer operate independently within Trusted Execution Environments (TEEs), providing verifiable proof of correct behavior and preventing even the operator from accessing signing keys.
+For added security, critical roles like the Arkade Signer are separated from the operator and run independently within a Trusted Execution Environment (TEE), providing verifiable proof of correct behavior and preventing even the operator from accessing signing keys.
 
 ---
 
@@ -81,15 +79,15 @@ Virtual Transaction Outputs (VTXOs) are programmable, offchain objects that mirr
 
 Each VTXO:
 
-* Has a defined owner and value  
-* Can be spent via Arkade Transactions  
-* Is backed by a presigned Bitcoin transaction (enforceable onchain)  
-* Contains two spending paths: Exit Path (unilateral control) and Collaborative Path (normal operations)
+- Has a defined owner and value
+- Can be spent via Arkade Transactions
+- Is backed by a presigned Bitcoin transaction (enforceable onchain)
+- Contains two spending paths: Exit Path (unilateral control) and Collaborative Path (normal operations)
 
 VTXOs operate in three states:
 
-1. Preconfirmed: Validated and cosigned, can be spent immediately  
-2. Bitcoin Finality: Anchored onchain through commitment transactions  
+1. Preconfirmed: Validated and cosigned, can be spent immediately
+2. Bitcoin Finality: Anchored onchain through commitment transactions
 3. Expired: Subject to sweep if not swapped periodically
 
 ---
@@ -100,9 +98,9 @@ Yes — and no.
 
 Every Arkade transaction:
 
-* Is structured like a Bitcoin transaction (inputs, outputs, scripts)  
-* Produces valid presigned Bitcoin exit paths  
-* Can be settled to Bitcoin via batch outputs
+- Is structured like a Bitcoin transaction (inputs, outputs, scripts)
+- Produces valid presigned Bitcoin exit paths
+- Can be settled to Bitcoin via batch outputs
 
 However, Arkade transactions are not immediately published to the Bitcoin chain. They execute instantly offchain with preconfirmations, then batch settle onchain. Arkade keeps this tradeoff explicit — users and applications control when to finalize to Bitcoin and reclaim full security guarantees.
 
@@ -114,8 +112,8 @@ The Ark protocol introduces a method for offchain transaction batching and unila
 
 Arkade builds on Ark as a foundational component:
 
-* Ark provides the anchoring and settlement layer  
-* Arkade provides the execution and coordination layer
+- Ark provides the anchoring and settlement layer
+- Arkade provides the execution and coordination layer
 
 Arkade extends Ark far beyond simple payments into a complete execution environment for programmable Bitcoin applications.
 
@@ -127,11 +125,11 @@ Arkade isn't a rollup, sidechain, or another blockchain — it's a Bitcoin-nativ
 
 Key differences:
 
-* No new consensus — Runs entirely offchain, anchors to Bitcoin via presigned exits  
-* No bridges or wrapped BTC — Assets stay native, no wrapped tokens or bridge risk  
-* Self-custody by default — Users control funds at all times, exit paths always enforceable  
-* Parallel execution — No global state bottlenecks, processes flows independently via VTXOs  
-* Verifiable execution — TEE integration provides cryptographic guarantees of honest behavior
+- No new consensus — Runs entirely offchain, anchors to Bitcoin via presigned exits
+- No bridges or wrapped BTC — Assets stay native, no wrapped tokens or bridge risk
+- Self-custody by default — Users control funds at all times, exit paths always enforceable
+- Parallel execution — No global state bottlenecks, processes flows independently via VTXOs
+- Verifiable execution — TEE integration provides cryptographic guarantees of honest behavior
 
 ---
 
@@ -139,13 +137,13 @@ Key differences:
 
 Arkade enables composable, offchain financial logic anchored to Bitcoin:
 
-* Smart Wallets with embedded logic, spending limits, or recovery flows  
-* Trustless Swaps across BTC and other assets  
-* Programmable Payments for AI agents and automated systems  
-* BTC-Backed Lending without custodial intermediaries  
-* Decentralized Trading with sovereign vaults  
-* Coordination Contracts with threshold access or delegation  
-* Virtual Channels for cost-effective payment channel deployment
+- Smart Wallets with embedded logic, spending limits, or recovery flows
+- Trustless Swaps across BTC and other assets
+- Programmable Payments for AI agents and automated systems
+- BTC-Backed Lending without custodial intermediaries
+- Decentralized Trading with sovereign vaults
+- Coordination Contracts with threshold access or delegation
+- Virtual Channels for cost-effective payment channel deployment
 
 ---
 
@@ -155,10 +153,10 @@ Arkade Script is Arkade's enhanced scripting environment that extends Bitcoin Sc
 
 Key features:
 
-* Enhanced introspection — Scripts can examine transaction context and metadata  
-* Advanced arithmetic — Comprehensive mathematical operations for financial logic  
-* Complex logic — Multi-path execution and sophisticated conditional flows  
-* Asset operations — Native handling of multi-asset flows and collateral tracking
+- Enhanced introspection — Scripts can examine transaction context and metadata
+- Advanced arithmetic — Comprehensive mathematical operations for financial logic
+- Complex logic — Multi-path execution and sophisticated conditional flows
+- Asset operations — Native handling of multi-asset flows and collateral tracking
 
 Arkade Script is designed for expressiveness and safety while maintaining compatibility with Bitcoin settlement.
 
@@ -172,10 +170,10 @@ If the operator becomes unresponsive or malicious, users can use presigned trans
 
 Additional safeguards:
 
-* Arkade Signer operates independently within TEEs, isolated from operator control  
-* End-to-end encryption prevents censorship of user communications  
-* Slashing creates economic penalties for operator misbehavior  
-* Remote attestation provides cryptographic proof of system integrity
+- Arkade Signer operates independently within TEEs, isolated from operator control
+- End-to-end encryption prevents censorship of user communications
+- Slashing creates economic penalties for operator misbehavior
+- Remote attestation provides cryptographic proof of system integrity
 
 ---
 
@@ -185,9 +183,9 @@ Arkade batches thousands of offchain operations into a single Bitcoin transactio
 
 The settlement process:
 
-1. Commitment Transaction creates a Batch Output on Bitcoin  
-2. Virtual Transaction Tree organizes individual VTXOs within the batch  
-3. Batch confirmation gives all included VTXOs Bitcoin-level finality  
+1. Commitment Transaction creates a Batch Output on Bitcoin
+2. Virtual Transaction Tree organizes individual VTXOs within the batch
+3. Batch confirmation gives all included VTXOs Bitcoin-level finality
 
 This batching dramatically reduces per-transaction costs while preserving individual control and Bitcoin security guarantees.
 
@@ -199,16 +197,16 @@ Arkade is designed with fail-safe exits and minimal trust assumptions.
 
 If the Operator goes offline:
 
-* Users retain full control via presigned transactions  
-* Existing funds remain secure with unilateral exit capability  
-* Modular architecture enables rapid migration to alternative infrastructure
+- Users retain full control via presigned transactions
+- Existing funds remain secure with unilateral exit capability
+- Modular architecture enables rapid migration to alternative infrastructure
 
 If the Operator misbehaves:
 
-* Misconduct is cryptographically provable  
-* TEE attestation provides verifiable integrity guarantees  
-* Slashing mechanism creates automatic economic penalties  
-* End-to-end encryption prevents censorship
+- Misconduct is cryptographically provable
+- TEE attestation provides verifiable integrity guarantees
+- Slashing mechanism creates automatic economic penalties
+- End-to-end encryption prevents censorship
 
 While exit guarantees are always enforceable, mass exits may face higher Bitcoin fees during periods of network congestion.
 
@@ -218,15 +216,15 @@ While exit guarantees are always enforceable, mass exits may face higher Bitcoin
 
 A Trusted Execution Environment (TEE) — like Intel SGX — is a secure hardware enclave that provides:
 
-* Isolated execution of sensitive code  
-* Cryptographic attestation of software integrity  
-* Hardware-backed security guarantees
+- Isolated execution of sensitive code
+- Cryptographic attestation of software integrity
+- Hardware-backed security guarantees
 
 Arkade uses TEEs for:
 
-* Arkade Signer — Protects signing keys from operator access  
-* Remote attestation — Proves only authorized code is running  
-* Encrypted communication — Enables private user-signer interaction
+- Arkade Signer — Protects signing keys from operator access
+- Remote attestation — Proves only authorized code is running
+- Encrypted communication — Enables private user-signer interaction
 
 TEEs transform "trust the operator" into "verify the operator" through cryptographic guarantees and hardware isolation.
 
@@ -238,21 +236,21 @@ Arkade uses a batched fee model optimized for cost efficiency.
 
 Two fee types:
 
-* Execution fees — For offchain transactions in the Virtual Mempool  
-* Settlement fees — When finalizing to Bitcoin (shared across many users)
+- Execution fees — For offchain transactions in the Virtual Mempool
+- Settlement fees — When finalizing to Bitcoin (shared across many users)
 
 Benefits:
 
-* Thousands of transactions bundle into single Bitcoin outputs  
-* Onchain fees split across all batch participants  
-* Significantly lower costs than individual Bitcoin transactions  
-* Priority settlement available for faster confirmation
+- Thousands of transactions bundle into single Bitcoin outputs
+- Onchain fees split across all batch participants
+- Significantly lower costs than individual Bitcoin transactions
+- Priority settlement available for faster confirmation
 
 Fee alignment:
 
-* Operators earn from both fee types  
-* Incentivizes efficient execution and fair settlement  
-* All fees paid in Bitcoin — no gas tokens or wrapped assets
+- Operators earn from both fee types
+- Incentivizes efficient execution and fair settlement
+- All fees paid in Bitcoin — no gas tokens or wrapped assets
 
 ---
 
@@ -262,10 +260,10 @@ No. Arkade works with Bitcoin exactly as it exists today — no forks, new opcod
 
 How it works:
 
-* All activity happens offchain using standard Bitcoin transaction structures  
-* Settlement uses normal Bitcoin transactions and Taproot outputs  
-* Presigned exits preserve user custody and enforceability  
-* Compatible with existing Bitcoin infrastructure and tools
+- All activity happens offchain using standard Bitcoin transaction structures
+- Settlement uses normal Bitcoin transactions and Taproot outputs
+- Presigned exits preserve user custody and enforceability
+- Compatible with existing Bitcoin infrastructure and tools
 
 Arkade delivers programmability and scale today, without waiting for protocol changes or community consensus. Bitcoin remains the secure foundation while Arkade extends what's possible above it.
 
@@ -279,11 +277,11 @@ Arkade is BTC-native with no governance tokens or wrapped assets required.
 
 Key points:
 
-* All fees paid in Bitcoin  
-* No gas tokens or hidden mechanics  
-* Apps can integrate stablecoins or other L1 assets as needed  
-* The base protocol itself remains neutral and tokenless  
-* Native multi-asset support planned for expanded functionality
+- All fees paid in Bitcoin
+- No gas tokens or hidden mechanics
+- Apps can integrate stablecoins or other L1 assets as needed
+- The base protocol itself remains neutral and tokenless
+- Native multi-asset support planned for expanded functionality
 
 ---
 
@@ -291,14 +289,14 @@ Key points:
 
 Current status:
 
-* Closed beta on Bitcoin mainnet with select partners  
-* Developer SDK available on GitHub for early builders
+- Closed beta on Bitcoin mainnet with select partners
+- Developer SDK available on GitHub for early builders
 
 Roadmap:
 
-* Q3 2025: Public mainnet launch  
-* Q4 2025: Expanded developer tools and additional financial primitives  
-* Ongoing: Multi-asset support, advanced lending protocols, and yield opportunities
+- Q3 2025: Public mainnet launch
+- Q4 2025: Expanded developer tools and additional financial primitives
+- Ongoing: Multi-asset support, advanced lending protocols, and yield opportunities
 
 ---
 
@@ -308,22 +306,22 @@ Getting started with Arkade depends on your role and interests:
 
 For Developers:
 
-* Explore the SDK — Check out the Wallet SDK on GitHub to understand integration patterns  
-* Join developer beta — Apply for early access to build and test applications  
-* Review documentation — Study the technical guides and integration examples  
-* Connect with the team — Reach out via hello@arklabs.xyz for partnership discussions
+- Explore the SDK — Check out the Wallet SDK on GitHub to understand integration patterns
+- Join developer beta — Apply for early access to build and test applications
+- Review documentation — Study the technical guides and integration examples
+- Connect with the team — Reach out via [hello@arklabs.xyz](mailto:hello@arklabs.xyz) for partnership discussions
 
 For Users:
 
-* Wait for public launch — Mainnet will be available Q3 2025 for general users  
-* Follow launch partners — Boltz, Breez, Mempool.space, and Maestro will offer Arkade-powered features  
-* Wallet integration — Look for Arkade support in your favorite Bitcoin wallets post-launch
+- Wait for public launch — Mainnet will be available Q3 2025 for general users
+- Follow launch partners — Boltz, Breez, Mempool.space, and Maestro will offer Arkade-powered features
+- Wallet integration — Look for Arkade support in your favorite Bitcoin wallets post-launch
 
 For Organizations:
 
-* Integration planning — Contact the team to discuss how Arkade fits your infrastructure needs  
-* Partnership opportunities — Explore becoming a launch partner or operator  
-* Pilot programs — Participate in closed beta testing for specific use cases
+- Integration planning — Contact the team to discuss how Arkade fits your infrastructure needs
+- Partnership opportunities — Explore becoming a launch partner or operator
+- Pilot programs — Participate in closed beta testing for specific use cases
 
 Stay updated: Follow development progress and announcements at ArkadeOS.com and through the developer community.
 
@@ -335,10 +333,10 @@ Yes. Arkade integrates seamlessly with existing Bitcoin infrastructure requiring
 
 Compatibility:
 
-* Wallets can support Arkade using lightweight SDKs alongside normal Bitcoin transactions  
-* Nodes remain unchanged — operators run standard Bitcoin Core with Arkade software layered on top  
-* Services like exchanges and payment processors connect via APIs that abstract Virtual Mempool complexity  
-* Settlement uses standard Bitcoin transactions, fully compatible with existing tools
+- Wallets can support Arkade using lightweight SDKs alongside normal Bitcoin transactions
+- Nodes remain unchanged — operators run standard Bitcoin Core with Arkade software layered on top
+- Services like exchanges and payment processors connect via APIs that abstract Virtual Mempool complexity
+- Settlement uses standard Bitcoin transactions, fully compatible with existing tools
 
 Everything appears as normal Bitcoin UTXOs onchain, ensuring complete compatibility with the existing ecosystem.
 

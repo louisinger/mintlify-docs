@@ -8,7 +8,7 @@ Ramps are the mechanisms that allow users with Bitcoin to onboard and exit from 
 
 ## Boarding
 
-Boarding is the process of swapping an on-chain UTXO for an off-chain VTXO. The preferred method for onboarding funds into Arkade is by sending Bitcoin to a boarding address.
+Boarding is the process of swapping an onchain UTXO for an offchain VTXO. The preferred method for onboarding funds into Arkade is by sending Bitcoin to a boarding address.
 
 ### 1. Generate a boarding address
 
@@ -22,7 +22,7 @@ console.log('Boarding Address:', addresses.boarding)
 
 ### 2. Send Bitcoin to the boarding address
 
-Send Bitcoin to this address using any standard Bitcoin wallet. This creates an on-chain UTXO that will be used for boarding.
+Send Bitcoin to this address using any standard Bitcoin wallet. This creates an onchain UTXO that will be used for boarding.
 
 ### 3. Check for boarding UTXOs and settle them to your wallet
 
@@ -41,17 +41,17 @@ The Arkade Operator processes the registration and includes the UTXO in a Commit
 
 ### 5. Receive a VTXO
 
-Once the Commitment Transaction is confirmed, you now have a VTXO (Virtual UTXO) within a Batch Output that you can spend off-chain.
+Once the Commitment Transaction is confirmed, you now have a VTXO (Virtual UTXO) within a Batch Output that you can spend offchain.
 
 <Tip>
-Boarding addresses resemble VTXOs but typically use longer timelocks to reduce risk.
+  Boarding addresses resemble VTXOs but typically use longer timelocks to reduce risk.
 </Tip>
 
 While any UTXO can be used as an input, a boarding address is the preferred way as it removes the risk of a malicious user double-spending the UTXO and replacing or failing the commitment transaction.
 
 ## Exiting
 
-Exiting is the process of swapping a VTXO (off-chain) for a UTXO (on-chain). The collaborative exit process is the most efficient way to exit Arkade when the Operator is available.
+Exiting is the process of swapping a VTXO (offchain) for a UTXO (onchain). The collaborative exit process is the most efficient way to exit Arkade when the Operator is available.
 
 ### 1. Gather available inputs
 
@@ -67,7 +67,7 @@ const inputs = (await Promise.all([
 
 ### 2. Specify destination and amount
 
-Specify the destination address and amount for the on-chain UTXO.
+Specify the destination address and amount for the onchain UTXO.
 
 ```typescript
 // Specify destination address and amount
@@ -77,7 +77,7 @@ const amount = 50000 // Amount in sats
 
 ### 3. Request settlement
 
-Request the Arkade Operator to settle your VTXO to an on-chain UTXO.
+Request the Arkade Operator to settle your VTXO to an onchain UTXO.
 
 ```typescript
 // Settle to an on-chain address
@@ -96,15 +96,15 @@ console.log('Settlement transaction ID:', settleTxid)
 
 The Operator includes this request in a new Commitment Transaction and broadcasts it to the Bitcoin network.
 
-### 5. Receive on-chain funds
+### 5. Receive onchain funds
 
-Once confirmed, your funds are available as a standard on-chain Bitcoin UTXO.
+Once confirmed, your funds are available as a standard onchain Bitcoin UTXO.
 
 This method offers immediate withdrawal with lower delay and is operationally simpler than unilateral exits.
 
 ## Unilateral Exit
 
-Unilateral exit is the process of exiting a VTXO to an on-chain address without the Operator's involvement. This is a more complex and expensivie process and should only be done if the Operator is not available.
+Unilateral exit is the process of exiting a VTXO to an onchain address without the Operator's involvement. This is a more complex and expensivie process and should only be done if the Operator is not available.
 
 ```typescript
 // Unilateral exit all vtxos

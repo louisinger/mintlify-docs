@@ -19,18 +19,18 @@ VTXOs operate like Bitcoin UTXOs but with lower latency and cost. Each VTXO carr
 <Info>
   **VTXO vs. Traditional Account Models**
 
-Unlike account-based systems that maintain a global state ledger, Arkade's VTXO model requires no global state machine, only local transitions between VTXOs. This enables truly parallel execution across independent transaction branches without the bottlenecks common in account models, where operations must be serialized to maintain consistent state.
+  Unlike account-based systems that maintain a global state ledger, Arkade's VTXO model requires no global state machine, only local transitions between VTXOs. This enables truly parallel execution across independent transaction branches without the bottlenecks common in account models, where operations must be serialized to maintain consistent state.
 </Info>
 
 ## Virtual Mempool
 
 The Virtual Mempool is Arkade's offchain execution engine, a high-throughput environment where transactions flow without the constraints of block times or confirmation delays.
 
-Transactions in the Virtual Mempool form a directed acyclic graph (DAG) that enables parallel execution of offchain transactions. Unlike Bitcoin’s mempool, which processes transactions in a linear queue for block inclusion, Arkade’s DAG structure explicitly encodes transaction dependencies. 
+Transactions in the Virtual Mempool form a directed acyclic graph (DAG) that enables parallel execution of offchain transactions. Unlike Bitcoin’s mempool, which processes transactions in a linear queue for block inclusion, Arkade’s DAG structure explicitly encodes transaction dependencies.
 
 This design allows independent transaction chains to progress concurrently, unlocking massive throughput improvements. By eliminating the need for a global state or sequential processing, the virtual mempool creates a scalable foundation for Bitcoin-native applications.
 
-When a wallet broadcasts a transaction to the Virtual Mempool, the Ark Operator validates it against the current VTXO set, cosigns it if valid, and immediately updates the graph. This gives users instant pre-confirmation without waiting for block inclusion. The transaction's outputs become immediately spendable, enabling fluid, interactive financial applications.
+When a wallet broadcasts a transaction to the Virtual Mempool, the Ark Operator validates it against the current VTXO set, cosigns it if valid, and immediately updates the graph. This gives users instant preconfirmation without waiting for block inclusion. The transaction's outputs become immediately spendable, enabling fluid, interactive financial applications.
 
 ## Commitment Transactions
 

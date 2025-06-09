@@ -6,7 +6,7 @@ icon: "paper-plane"
 
 ## Overview
 
-Arkade makes sending Arkade payments simple and efficient. The SDK automatically determines whether to use on-chain or off-chain (Ark) transactions based on the destination address, optimizing for speed and cost.
+Arkade makes sending Arkade payments simple and efficient. The SDK automatically determines whether to use onchain or offchain (Ark) transactions based on the destination address, optimizing for speed and cost.
 
 <Steps>
   <Step title="Prepare Payment Details">
@@ -16,7 +16,7 @@ Arkade makes sending Arkade payments simple and efficient. The SDK automatically
     Use the `sendBitcoin` method with the recipient's address and amount.
   </Step>
   <Step title="Automatic Routing">
-    Arkade automatically determines whether to use on-chain or off-chain transactions based on the address type.
+    Arkade automatically determines whether to use onchain or offchain transactions based on the address type.
   </Step>
   <Step title="Payment Confirmation">
     Receive a transaction ID that can be used to track the payment status.
@@ -28,7 +28,7 @@ Arkade makes sending Arkade payments simple and efficient. The SDK automatically
 The `sendBitcoin` is used to send an Arkade payment. It automatically detects the address type and routes the payment accordingly.
 
 <Warning>
-When sending to on-chain Bitcoin addresses, standard Bitcoin network fees will apply. Sending to Ark addresses (starting with `ark1` or `tark1`) will have near-zero fees.
+  When sending to onchain Bitcoin addresses, standard Bitcoin network fees will apply. Sending to Ark addresses (starting with `ark1` or `tark1`) will have near-zero fees.
 </Warning>
 
 ```typescript
@@ -45,12 +45,7 @@ console.log('Transaction ID:', txid)
 
 For Lightning Network payments, Arkade provides seamless integration through submarine swaps. This allows you to send payments from your Arkade wallet to any Lightning invoice.
 
-<Card
-  title="Lightning Swaps"
-  icon="bolt"
-  href="/contracts/lightning-swaps"
-  arrow={true}
->
+<Card title="Lightning Swaps" icon="bolt" href="/contracts/lightning-swaps">
   Learn how to integrate Lightning Network with Arkade using submarine swaps to send and receive Lightning payments.
 </Card>
 

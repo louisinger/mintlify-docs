@@ -4,7 +4,7 @@ description: "Learn how to manage balances, UTXOs, and VTXOs in Arkade"
 icon: "coins"
 ---
 
-Arkade allows you to easily check your wallet balances, both on-chain and off-chain. The balance information is structured to provide detailed insights into your funds.
+Arkade allows you to easily check your wallet balances, both onchain and offchain. The balance information is structured to provide detailed insights into your funds.
 
 ```typescript
 // Get detailed balance information
@@ -15,7 +15,7 @@ console.log('Total Offchain:', balance.offchain.total)
 
 ### Balance Object Structure
 
-The balance object contains detailed information about both on-chain and off-chain funds:
+The balance object contains detailed information about both onchain and offchain funds:
 
 ```typescript
 {
@@ -36,7 +36,7 @@ The balance object contains detailed information about both on-chain and off-cha
 
 ### Getting Virtual UTXOs
 
-Virtual UTXOs (VTXOs) are off-chain constructs that allow for virtual transactions within Arkade. You can retrieve all your VTXOs with a simple call:
+Virtual UTXOs (VTXOs) are offchain constructs that allow for virtual transactions within Arkade. You can retrieve all your VTXOs with a simple call:
 
 ```typescript
 // Get virtual UTXOs (off-chain)
@@ -55,7 +55,7 @@ vtxos.forEach((vtxo, index) => {
 
 ### Getting Boarding UTXOs
 
-Boarding UTXOs are on-chain UTXOs that have been sent to a boarding address but haven't yet been converted to VTXOs:
+Boarding UTXOs are onchain UTXOs that have been sent to a boarding address but haven't yet been converted to VTXOs:
 
 ```typescript
 // Get boarding UTXOs
@@ -83,4 +83,5 @@ Now that you understand how to work with balances and coins in Arkade, you can e
 ---
 
 <PreviousButton url="/wallets/setup" text="Setup" />
+
 <NextButton url="/wallets/detecting-payments" text="Detecting Payments" />

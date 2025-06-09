@@ -4,11 +4,9 @@ description: "Understanding how smart contracts work in Bitcoin's UTXO paradigm"
 icon: "code"
 ---
 
-
-
 <Warning>
   **Experimental Technology**
-  
+
   All code and concepts presented in this documentation are for exploration and proof of concept purposes only. These examples should not be used in production environments. The Arkade Language ecosystem is under active development and subject to significant changes.
 </Warning>
 
@@ -50,6 +48,7 @@ OP_ENDIF
 ```
 
 In this pattern:
+
 - The commit phase locks funds that can be claimed by revealing a preimage to a hash
 - The reveal phase occurs when the receiver spends the output by providing the preimage
 
@@ -144,9 +143,9 @@ function updateState(int newValue, signature userSig, pubkey user) {
 Arkade introduces the Virtual Transaction Output (VTXO) paradigm, which combines the security of Bitcoin's UTXO model with the flexibility needed for complex applications:
 
 - **Immediate Execution Path**: Cooperative execution with server co-signature for instant finality
-- **Timelock Unilateral Path**: Fallback mechanism for on-chain redemption with timelock constraints
+- **Timelock Unilateral Path**: Fallback mechanism for onchain redemption with timelock constraints
 
-This dual-path approach enables efficient off-chain execution while maintaining Bitcoin's security guarantees.
+This dual-path approach enables efficient offchain execution while maintaining Bitcoin's security guarantees.
 
 ## Conclusion
 

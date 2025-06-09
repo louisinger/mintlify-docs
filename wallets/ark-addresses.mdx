@@ -6,29 +6,54 @@ icon: "address-card"
 
 ## Overview
 
-Ark addresses are a fundamental component of the Arkade ecosystem, enabling instant off-chain transactions with near-zero fees. This guide explains the structure and technical implementation of Ark addresses.
+Ark addresses are a fundamental component of the Arkade ecosystem, enabling instant offchain transactions with near-zero fees. This guide explains the structure and technical implementation of Ark addresses.
 
 ## Address Structure
 
 An Ark address is a bech32m encoding of:
+
 1. A network prefix (`ark` for mainnet, `tark` for test networks)
 2. The P2TR (Pay-to-Taproot) output key
 3. The server's x-only public key
 
 <Frame caption="Ark Address Components">
   <div className="flex flex-col space-y-2">
-    <div className="flex items-center p-2 border rounded">
-      <div className="font-bold w-24">Prefix</div>
-      <div className="flex-1">Network identifier: <code>ark</code> (mainnet) or <code>tark</code> (testnet)</div>
-    </div>
-    <div className="flex items-center p-2 border rounded">
-      <div className="font-bold w-24">P2TR Key</div>
-      <div className="flex-1">Taproot output key containing collaborative and exit script paths</div>
-    </div>
-    <div className="flex items-center p-2 border rounded">
-      <div className="font-bold w-24">Server Key</div>
-      <div className="flex-1">Ark Service Provider's x-only public key (32 bytes)</div>
-    </div>
+  <div className="flex items-center p-2 border rounded">
+  <div className="font-bold w-24">
+  Prefix</div>
+
+  
+  <div className="flex-1">
+  Network identifier: <code>
+    ark
+  </code>
+   (mainnet) or <code>
+    tark
+  </code>
+   (testnet)</div>
+
+  </div>
+
+  <div className="flex items-center p-2 border rounded">
+  <div className="font-bold w-24">
+  P2TR Key</div>
+
+  
+  <div className="flex-1">
+  Taproot output key containing collaborative and exit script paths</div>
+
+  </div>
+
+  <div className="flex items-center p-2 border rounded">
+  <div className="font-bold w-24">
+  Server Key</div>
+
+  
+  <div className="flex-1">
+  Ark Service Provider's x-only public key (32 bytes)</div>
+
+  </div>
+
   </div>
 </Frame>
 
@@ -40,11 +65,14 @@ A VTXO (Virtual UTXO) is locked by a P2TR script composed of two paths:
 2. **Exit Path**: Allows the user to unilaterally withdraw funds after a timelock period
 
 <Warning>
-The key path in the P2TR script is always the unspendable key <code>0250929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0</code>. This ensures that all spends must reveal the script path.
+  The key path in the P2TR script is always the unspendable key <code>
+    0250929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0
+  </code>
+  . This ensures that all spends must reveal the script path.
 </Warning>
 
 <Tip>
-Like Bitcoin, the taproot tree encoded in the Ark address is revealed only when the VTXO is spent. If it doesn't pass the server's validation, the owner won't be allowed to spend the VTXO off-chain. The unilateral exit would be the only option.
+  Like Bitcoin, the taproot tree encoded in the Ark address is revealed only when the VTXO is spent. If it doesn't pass the server's validation, the owner won't be allowed to spend the VTXO off-chain. The unilateral exit would be the only option.
 </Tip>
 
 ## Example Addresses

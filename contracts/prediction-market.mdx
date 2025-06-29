@@ -12,8 +12,7 @@ Arkade's prediction market implementation leverages:
 
 * **Logarithmic Market Scoring Rule (LMSR)** for automated market making with bounded losses
 * **Recursive covenants** to maintain market invariants across state transitions  
-* **Single oracle resolution** with cryptographic verification
-* **Control token architecture** for efficient state management
+* **Control token architecture** for state carrying transactions
 
 The LMSR mechanism provides constant liquidity regardless of trading volume while ensuring the market maker's maximum loss is bounded by a predetermined liquidity parameter.
 
@@ -331,17 +330,6 @@ contract LMSRPredictionMarket(
 }
 ```
 
-## Compiler Constants
-
-The Arkade compiler provides several reserved constants for covenant development:
-
-**`UNSPENDABLE_KEY`** - A provably unspendable 32-byte key derived from `H("UNSPENDABLE_COVENANT_KEY")`. This eliminates the need for developers to manually specify unspendable keys and ensures consistency across all covenant contracts.
-
-Other reserved constants include:
-- **`TAPROOT_LEAF_VERSION`** - Always `0xC4` for tapscript leaves
-- **`TAPROOT_TAG`** - `"TapTweak/arkade"` for Arkade covenant tweaking
-- **`MAX_SCRIPT_SIZE`** - Maximum allowable script size for covenant construction
-
 ## Advanced Market Mechanisms
 
 ### Dynamic Liquidity Adjustment
@@ -369,30 +357,6 @@ function adjustLiquidity(int volumeMetric, int timeDecay) internal returns (int)
 }
 ```
 
-### Emergency Market Halt
-
-Operators can implement circuit breakers for extreme market conditions:
-
-```solidity
-function emergencyHalt(signature operatorSig, bytes justification) {
-  // Verify operator authorization
-  require(checkSig(operatorSig, operator), "Invalid operator signature");
-  
-  // Verify halt conditions are met (implementation specific)
-  require(justification.length > 0, "Halt justification required");
-  
-  // Encode halted state
-  bytes haltedState = concat("HALTED", sha256(justification));
-  bytes haltedScript = concat(haltedContractTemplate, haltedState);
-  bytes32 scriptHash = sha256(concat(<0xC4>, haltedScript));
-  bytes32 tapTweak = sha256(concat("TapTweak/arkade", UNSPENDABLE_KEY, scriptHash));
-  
-  // Verify halted market output
-  bytes32 haltedPubkey = tx.outputs[0].scriptPubKey[2:34];
-  require(tweakVerify(haltedPubkey, UNSPENDABLE_KEY, tapTweak), "Invalid halt state");
-  require(tx.outputs[0].value == tx.input.current.value, "Value must be preserved");
-}
-```
 
 ## Security Considerations
 

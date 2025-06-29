@@ -109,7 +109,8 @@
             "pages": [
               "contracts/non-interactive-swaps",
               "contracts/synthetic-assets",
-              "contracts/automated-market-makers"
+              "contracts/automated-market-makers",
+              "contracts/prediction-market"
             ]
           }
         ]

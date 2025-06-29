@@ -1,0 +1,407 @@
+---
+title: "Prediction Markets"
+description: "Building trust-minimized prediction markets with logarithmic market scoring rules in Arkade"
+icon: "dice"
+---
+
+Prediction markets enable decentralized price discovery for future events by allowing participants to trade shares representing different outcomes. Unlike traditional betting platforms that rely on centralized operators, Arkade's prediction markets use mathematical market makers and cryptographic oracles to create trustless, capital-efficient prediction mechanisms.
+
+## Overview
+
+Arkade's prediction market implementation leverages:
+
+* **Logarithmic Market Scoring Rule (LMSR)** for automated market making with bounded losses
+* **Recursive covenants** to maintain market invariants across state transitions  
+* **Single oracle resolution** with cryptographic verification
+* **Control token architecture** for efficient state management
+
+The LMSR mechanism provides constant liquidity regardless of trading volume while ensuring the market maker's maximum loss is bounded by a predetermined liquidity parameter.
+
+## Contract Architecture
+
+The prediction market operates through a control token that carries market state across transactions. State transitions are enforced through Taproot key tweaking, ensuring the contract logic is preserved while allowing efficient state updates.
+
+## Example Implementation
+
+```solidity
+// Contract configuration options
+options {
+  server = operator;
+  exit = 288; // 2-day unilateral exit
+}
+
+contract LMSRPredictionMarket(
+  // Market parameters
+  bytes32[] outcomeHashes,
+  int liquidityParameter,
+  int resolutionTime,
+  pubkey oracle,
+  pubkey operator
+) {
+  
+  // Buy outcome buyShares
+  function buyShares(
+    int outcome,
+    int quantity,
+    int maxCost,
+    signature userSig,
+    pubkey user
+  ) {
+    // Verify outcome index is valid
+    require(outcome >= 0 && outcome < outcomeHashes.length, "Invalid outcome");
+    require(quantity > 0, "Quantity must be positive");
+    
+    // Inspect current UTXO state
+    require(tx.inputs.length == 2, "Must have exactly 2 inputs");
+    require(tx.outputs.length >= 2, "Must have at least 2 outputs");
+    
+    // Get current share count for this outcome from covenant state
+    // State is encoded in the covenant script itself
+    int currentShare = getCurrentOutcomeShare(outcome);
+    int totalExpSum = getCurrentTotalExpSum();
+    
+    // Calculate new share amount and exponential sum
+    int newShare = currentShare + quantity;
+    int oldExp = expApprox(currentShare, liquidityParameter);
+    int newExp = expApprox(newShare, liquidityParameter);
+    int newExpSum = totalExpSum - oldExp + newExp;
+    
+    // Calculate trade cost using LMSR
+    int cost = liquidityParameter * (lnApprox(newExpSum) - lnApprox(totalExpSum));
+    require(cost <= maxCost, "Cost exceeds maximum");
+    require(cost > 0, "Invalid trade cost");
+    
+    // Verify payment input
+    require(tx.inputs[1].value >= cost, "Insufficient payment");
+    
+    // Construct new covenant with updated state
+    bytes newCovenantScript = constructCovenantScript(outcome, newShare, newExpSum);
+    
+    // Calculate taproot commitment for new covenant
+    bytes32 scriptHash = sha256(concat(<0xC4>, newCovenantScript));
+    bytes32 tapTweak = sha256(concat("TapTweak/arkade", UNSPENDABLE_KEY, scriptHash));
+    
+    // Verify output 0 continues the covenant with new state
+    require(tx.outputs[0].scriptPubKey.length == 34, "Invalid taproot output");
+    require(tx.outputs[0].scriptPubKey[0] == 0x51, "Must be witness v1");
+    require(tx.outputs[0].scriptPubKey[1] == 0x20, "Must be 32-byte program");
+    
+    // Clean, composable covenant verification
+    bytes32 outputPubkey = tx.outputs[0].scriptPubKey[2:34];
+    require(tweakVerify(outputPubkey, UNSPENDABLE_KEY, tapTweak), "Invalid covenant continuation");
+    
+    // Verify pool value increases by cost
+    require(tx.outputs[0].value == tx.inputs[0].value + cost, "Pool value mismatch");
+    
+    // Verify user receives outcome tokens
+    bytes32 outcomeAsset = deriveOutcomeAsset(outcome);
+    require(tx.outputs[1].asset == outcomeAsset, "Wrong outcome asset");
+    require(tx.outputs[1].value == quantity, "Token quantity mismatch");
+    
+    // Create user output script
+    require(tx.outputs[1].scriptPubKey.length == 34, "Invalid user output");
+    require(tx.outputs[1].scriptPubKey[0] == 0x51, "Must be witness v1");
+    require(tx.outputs[1].scriptPubKey[1] == 0x20, "Must be 32-byte program");
+    
+    // Verify user signature
+    require(checkSig(userSig, user), "Invalid user signature");
+  }
+  
+  // Sell outcome shares
+  function sellShares(
+    int outcome,
+    int quantity,
+    int minPayout,
+    signature userSig,
+    pubkey user
+  ) {
+    // Verify outcome index and quantity
+    require(outcome >= 0 && outcome < outcomeHashes.length, "Invalid outcome");
+    require(quantity > 0, "Quantity must be positive");
+    
+    // Inspect current state
+    require(tx.inputs.length == 2, "Must have exactly 2 inputs");
+    require(tx.outputs.length >= 2, "Must have at least 2 outputs");
+    
+    // Get current market state
+    int currentShare = getCurrentOutcomeShare(outcome);
+    int totalExpSum = getCurrentTotalExpSum();
+    
+    // Verify sufficient shares exist
+    require(currentShare >= quantity, "Insufficient shares in market");
+    
+    // Calculate new state
+    int newShare = currentShare - quantity;
+    int oldExp = expApprox(currentShare, liquidityParameter);
+    int newExp = expApprox(newShare, liquidityParameter);
+    int newExpSum = totalExpSum - oldExp + newExp;
+    
+    // Calculate payout (negative cost for selling)
+    int payout = liquidityParameter * (lnApprox(totalExpSum) - lnApprox(newExpSum));
+    require(payout >= minPayout, "Payout below minimum");
+    require(payout > 0, "Invalid payout amount");
+    
+    // Verify user is burning correct outcome tokens
+    bytes32 outcomeAsset = deriveOutcomeAsset(outcome);
+    require(tx.inputs[1].asset == outcomeAsset, "Wrong outcome asset");
+    require(tx.inputs[1].value >= quantity, "Insufficient tokens to burn");
+    
+    // Construct new covenant with updated state
+    bytes newCovenantScript = constructCovenantScript(outcome, newShare, newExpSum);
+    bytes32 scriptHash = sha256(concat(<0xC4>, newCovenantScript));
+    bytes32 tapTweak = sha256(concat("TapTweak/arkade", UNSPENDABLE_KEY, scriptHash));
+    
+    // Verify covenant continuation
+    require(tx.outputs[0].scriptPubKey.length == 34, "Invalid taproot output");
+    require(tx.outputs[0].scriptPubKey[0] == 0x51, "Must be witness v1");
+    require(tx.outputs[0].scriptPubKey[1] == 0x20, "Must be 32-byte program");
+    
+    bytes32 outputPubkey = tx.outputs[0].scriptPubKey[2:34];
+    require(tweakVerify(outputPubkey, UNSPENDABLE_KEY, tapTweak), "Invalid covenant continuation");
+    
+    // Verify pool value decreases by payout
+    require(tx.outputs[0].value == tx.inputs[0].value - payout, "Pool value mismatch");
+    
+    // Verify user receives payout
+    require(tx.outputs[1].value == payout, "Payout amount mismatch");
+    require(tx.outputs[1].scriptPubKey.length == 34, "Invalid payout output");
+    require(tx.outputs[1].scriptPubKey[0] == 0x51, "Must be witness v1");
+    
+    // Verify user signature
+    require(checkSig(userSig, user), "Invalid user signature");
+  }
+  
+  // Resolve market with oracle signature
+  function resolve(
+    int winningOutcome,
+    bytes resolutionData,
+    signature oracleSig
+  ) {
+    // Verify resolution time has passed
+    require(tx.time >= resolutionTime, "Resolution time not reached");
+    
+    // Verify winning outcome is valid
+    require(winningOutcome >= 0 && winningOutcome < outcomeHashes.length, "Invalid winning outcome");
+    
+    // Verify oracle signature on resolution data
+    bytes message = sha256(concat(outcomeHashes[winningOutcome], resolutionData, int2bytes(tx.time)));
+    require(checkSigFromStack(oracleSig, oracle, message), "Invalid oracle signature");
+    
+    // Get current market state
+    int totalWinningShares = getCurrentOutcomeShare(winningOutcome);
+    require(totalWinningShares > 0, "No winning shares exist");
+    
+    // Construct resolved covenant state
+    bytes resolvedCovenantScript = constructResolvedCovenantScript(winningOutcome, totalWinningShares);
+    bytes32 resolvedScriptHash = sha256(concat(<0xC4>, resolvedCovenantScript));
+    bytes32 resolvedTapTweak = sha256(concat("TapTweak/arkade", UNSPENDABLE_KEY, resolvedScriptHash));
+    
+    // Verify resolved covenant output
+    require(tx.outputs[0].scriptPubKey.length == 34, "Invalid taproot output");
+    require(tx.outputs[0].scriptPubKey[0] == 0x51, "Must be witness v1");
+    require(tx.outputs[0].scriptPubKey[1] == 0x20, "Must be 32-byte program");
+    
+    bytes32 resolvedPubkey = tx.outputs[0].scriptPubKey[2:34];
+    require(tweakVerify(resolvedPubkey, UNSPENDABLE_KEY, resolvedTapTweak), "Invalid resolution state");
+    
+    // Preserve pool value for redemptions
+    require(tx.outputs[0].value == tx.inputs[0].value, "Pool value must be preserved");
+  }
+  
+  // Redeem winning shares after resolution
+  function redeem(
+    int winningShares,
+    signature userSig,
+    pubkey user
+  ) {
+    // Verify this is a resolved market by checking covenant state
+    require(isResolvedMarket(), "Market not resolved");
+    
+    int winningOutcome = getResolvedWinningOutcome();
+    int totalWinningShares = getResolvedTotalShares();
+    int poolValue = tx.inputs[0].value;
+    
+    // Calculate proportional payout using clean arithmetic
+    int payout = (winningShares * poolValue) / totalWinningShares;
+    
+    // Verify user is burning winning outcome tokens
+    bytes32 winningAsset = deriveOutcomeAsset(winningOutcome);
+    require(tx.inputs[1].asset == winningAsset, "Wrong outcome asset");
+    require(tx.inputs[1].value >= winningShares, "Insufficient winning shares");
+    
+    // Verify payout to user
+    require(tx.outputs[0].value == payout, "Payout amount mismatch");
+    require(tx.outputs[0].scriptPubKey.length == 34, "Invalid payout output");
+    require(tx.outputs[0].scriptPubKey[0] == 0x51, "Must be witness v1");
+    
+    // Update remaining pool if there are still shares to redeem
+    int remainingShares = totalWinningShares - winningShares;
+    if (remainingShares > 0) {
+      int remainingPool = poolValue - payout;
+      
+      // Construct updated resolved covenant
+      bytes updatedResolvedScript = constructResolvedCovenantScript(winningOutcome, remainingShares);
+      bytes32 updatedScriptHash = sha256(concat(<0xC4>, updatedResolvedScript));
+      bytes32 updatedTapTweak = sha256(concat("TapTweak/arkade", UNSPENDABLE_KEY, updatedScriptHash));
+      
+      require(tx.outputs[1].scriptPubKey.length == 34, "Invalid continuation output");
+      require(tx.outputs[1].scriptPubKey[0] == 0x51, "Must be witness v1");
+      require(tx.outputs[1].scriptPubKey[1] == 0x20, "Must be 32-byte program");
+      
+      bytes32 updatedPubkey = tx.outputs[1].scriptPubKey[2:34];
+      require(tweakVerify(updatedPubkey, UNSPENDABLE_KEY, updatedTapTweak), "Invalid continuation");
+      require(tx.outputs[1].value == remainingPool, "Remaining pool value mismatch");
+    }
+    
+    // Verify user signature
+    require(checkSig(userSig, user), "Invalid user signature");
+  }
+  
+  // Helper functions for covenant state management
+  function getCurrentOutcomeShare(int outcome) internal returns (int) {
+    // Extract share count from current covenant script
+    // Implementation depends on how state is encoded in the script
+    return extractStateValue("SHARE_" + int2bytes(outcome));
+  }
+  
+  function getCurrentTotalExpSum() internal returns (int) {
+    // Extract total exponential sum from current covenant script
+    return extractStateValue("TOTAL_EXP_SUM");
+  }
+  
+  function constructCovenantScript(int outcome, int newShare, int newExpSum) internal returns (bytes) {
+    // Compiler automatically handles int to LE64 conversion for state encoding
+    bytes stateCommitment = sha256(concat(
+      concat(int2bytes(outcome), int2bytes(newShare)),
+      int2bytes(newExpSum)
+    ));
+    
+    // Recreate the entire covenant script with new state
+    return concat(contractTemplate, stateCommitment);
+  }
+  
+  function constructResolvedCovenantScript(int winningOutcome, int totalShares) internal returns (bytes) {
+    // Compiler handles conversion automatically
+    bytes resolvedState = sha256(concat(
+      concat("RESOLVED", int2bytes(winningOutcome)),
+      int2bytes(totalShares)
+    ));
+    
+    return concat(resolvedContractTemplate, resolvedState);
+  }
+  
+  function isResolvedMarket() internal returns (bool) {
+    // Check if current covenant script indicates resolved state
+    return checkStateFlag("RESOLVED");
+  }
+  
+  // Mathematical helper functions using clean arithmetic operations
+  function expApprox(int x, int b) internal returns (int) {
+    if (x == 0) return 10000; // Fixed point 1.0
+    
+    // Taylor series: e^(x/b) ≈ 1 + x/b + (x/b)²/2 + (x/b)³/6
+    // Compiler automatically uses OP_MUL64, OP_DIV64 etc for overflow safety
+    int term1 = (x * 10000) / b;
+    int xOverB = x / b;
+    int term2 = (xOverB * xOverB) / 2;
+    int term3 = (xOverB * xOverB * xOverB) / 6;
+    
+    return 10000 + term1 + term2 + term3;
+  }
+  
+  function lnApprox(int x) internal returns (int) {
+    require(x > 0, "Cannot take log of non-positive number");
+    
+    if (x == 10000) return 0; // ln(1) = 0
+    
+    // Series expansion: ln(x) ≈ (x-1) - (x-1)²/2 + (x-1)³/3
+    // Compiler handles 64-bit arithmetic automatically
+    int diff = x - 10000;
+    int term1 = diff;
+    int term2 = (diff * diff) / 20000;
+    int term3 = (diff * diff * diff) / 300000000;
+    
+    return term1 + term3 - term2;
+  }
+  
+  function deriveOutcomeAsset(int outcome) internal returns (bytes32) {
+    // Derive unique asset ID for each outcome
+    return sha256(concat("OUTCOME_TOKEN_", int2bytes(outcome)));
+  }
+}
+```
+
+## Compiler Constants
+
+The Arkade compiler provides several reserved constants for covenant development:
+
+**`UNSPENDABLE_KEY`** - A provably unspendable 32-byte key derived from `H("UNSPENDABLE_COVENANT_KEY")`. This eliminates the need for developers to manually specify unspendable keys and ensures consistency across all covenant contracts.
+
+Other reserved constants include:
+- **`TAPROOT_LEAF_VERSION`** - Always `0xC4` for tapscript leaves
+- **`TAPROOT_TAG`** - `"TapTweak/arkade"` for Arkade covenant tweaking
+- **`MAX_SCRIPT_SIZE`** - Maximum allowable script size for covenant construction
+
+## Advanced Market Mechanisms
+
+### Dynamic Liquidity Adjustment
+
+Markets can programmatically adjust their liquidity parameters based on trading activity and market conditions:
+
+```solidity
+function adjustLiquidity(int volumeMetric, int timeDecay) internal returns (int) {
+  // Increase liquidity during high volume periods
+  int baseAdjustment = liquidityParameter;
+  
+  if (volumeMetric > highVolumeThreshold) {
+    baseAdjustment = (baseAdjustment * 13000) / 10000; // 30% increase
+  }
+  
+  // Apply time decay to encourage resolution
+  int decayFactor = (timeDecay * 9900) / 10000; // 1% decay per period
+  int adjustedLiquidity = (baseAdjustment * decayFactor) / 10000;
+  
+  // Ensure bounds
+  require(adjustedLiquidity >= minLiquidity, "Liquidity too low");
+  require(adjustedLiquidity <= maxLiquidity, "Liquidity too high");
+  
+  return adjustedLiquidity;
+}
+```
+
+### Emergency Market Halt
+
+Operators can implement circuit breakers for extreme market conditions:
+
+```solidity
+function emergencyHalt(signature operatorSig, bytes justification) {
+  // Verify operator authorization
+  require(checkSig(operatorSig, operator), "Invalid operator signature");
+  
+  // Verify halt conditions are met (implementation specific)
+  require(justification.length > 0, "Halt justification required");
+  
+  // Encode halted state
+  bytes haltedState = concat("HALTED", sha256(justification));
+  bytes haltedScript = concat(haltedContractTemplate, haltedState);
+  bytes32 scriptHash = sha256(concat(<0xC4>, haltedScript));
+  bytes32 tapTweak = sha256(concat("TapTweak/arkade", UNSPENDABLE_KEY, scriptHash));
+  
+  // Verify halted market output
+  bytes32 haltedPubkey = tx.outputs[0].scriptPubKey[2:34];
+  require(tweakVerify(haltedPubkey, UNSPENDABLE_KEY, tapTweak), "Invalid halt state");
+  require(tx.outputs[0].value == tx.input.current.value, "Value must be preserved");
+}
+```
+
+## Security Considerations
+
+Prediction markets require careful attention to several attack vectors:
+
+**Oracle Manipulation** - Single oracle designs trade decentralization for simplicity but require strong economic incentives and reputation mechanisms to ensure honest reporting.
+
+**Liquidity Extraction** - The bounded loss property of LMSR prevents infinite losses, but sophisticated traders might exploit pricing inefficiencies during low liquidity periods.
+
+The control token architecture ensures state consistency while Arkade's introspection capabilities enable comprehensive validation of each state transition.
+
+***

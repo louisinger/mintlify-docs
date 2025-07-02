@@ -11,44 +11,36 @@ icon: "hand"
 Arkade introduces a set of foundational primitives that reimagine Bitcoin transaction execution through virtualization. These components work together to provide instant execution, trust-minimized settlement, and scalable programmability without modifying the Bitcoin protocol.
 
 Arkade is built on top of the [Ark protocol](https://docs.arklabs.xyz/ark.pdf), which introduced foundational
-primitives like [**Virtual UTXOs (VTXOs)**](https://docs.arklabs.xyz/ark/deep-dive/vtxos).
+primitives like [**Virtual UTXOs (VTXOs)**](https://docs.arklabs.xyz/ark/deep-dive/vtxos). It extends Ark's capabilities into a full virtual execution environment for complex, scalable financial applications.
 
 Bitcoin’s base layer is intentionally constrained to preserve decentralization and security. Arkade complements it by
 enabling complex application logic—trading, lending, payments—on a scalable offchain layer, while preserving
 self-custody and settlement finality.
 
-Through innovations like the **Virtual Mempool**, **Arkade Script**, and **Dynamic Settlement**, Arkade delivers
-cloud-like parallelism and composability for Bitcoin-native contracts, without soft forks, bridges, or wrapped assets.
-Arkade builds directly on Ark, extending its capabilities into a full virtual execution
-environment for complex, scalable financial applications.
+Through innovations like the **Virtual Mempool**, **Arkade Script**, and **Dynamic Settlement**, Arkade delivers cloud-like parallelism and composability for Bitcoin-native contracts, without soft forks, bridges, or wrapped assets. 
 
 ## What Makes Arkade Different
 
 ### Bitcoin-Native Programmability
 
-Arkade makes Bitcoin truly programmable. Developers can write contracts using **Arkade Script**, a stateful, expressive
-scripting language that compiles into Bitcoin-compatible execution flows. Contracts are tied directly to Bitcoin
-outputs, ensuring enforceability.
-
-### Self-Custodial Security
-
-VTXOs grant users unilateral exit rights, enforced through presigned Bitcoin transactions. All contracts are auditable,
-and users retain full control over their assets at all times. No bridges. No custodians. No wrapped assets.
+Arkade makes Bitcoin truly programmable. Developers can write contracts using **Arkade Script**, a stateful, expressive scripting language that compiles into Bitcoin-compatible execution flows. Contracts are tied directly to Bitcoin outputs, ensuring unilateral enforceability.
 
 ### Parallel Execution
 
-Arkade replaces Bitcoin’s linear mempool with a **Virtual Mempool**, enabling independent VTXO-based transactions to
-execute in parallel. This eliminates global contention and unlocks horizontal scalability for Bitcoin applications.
+Arkade replaces Bitcoin’s linear mempool with a **Virtual Mempool**, enabling independent VTXO-based transactions to execute in parallel. This eliminates global contention and unlocks horizontal scalability for Bitcoin applications.
+
+### Self-Custodial Security
+
+VTXOs grant users unilateral exit rights, enforced through presigned Bitcoin transactions. All contracts are auditable,\
+and users retain full control over their assets at all times. No bridges. No custodians. No wrapped assets.
 
 ### Verifiable Trust
 
-Transactions receive instant offchain preconfirmation by TEEs (Trusted Execution Environments) called **Arkade
-Signers**. These signers attest to execution integrity and reject double-spends. Finality is achieved by anchoring
-batches onchain via Bitcoin commitment transactions.
+Transactions receive instant offchain preconfirmation by **Arkade Signers** which are signing agents running inside **Trusted Execution Environments (TEEs)**. These signers attest to correct execution, prevent double-spending, and provide integrity guarantees. Finality is achieved by periodically anchoring transaction batches onchain via Bitcoin commitment transactions.
 
 ### Efficient Batch Settlement
 
-Thousands of Arkade transactions compress into a single Bitcoin commitment output, dramatically reducing individual settlement costs while preserving the enforceability of each transaction through presigned exit paths.
+Thousands of Arkade transactions compress into a single Batch Output as part of a Commitment Transaction. This dramatically reduces individual settlement costs while preserving the enforceability of each transaction through presigned exit paths.
 
 ## Use Arkade To Build:
 

@@ -14,8 +14,8 @@ To enforce a unilateral exit claim onchain, users must publish a complete transa
 
 **Example Exit Path:**
 
-1. Batch Output → Virtual Transaction A (first level)  
-2. Virtual Transaction A → Virtual Transaction B (second level)  
+1. Batch Output → Virtual Transaction A (first level)
+2. Virtual Transaction A → Virtual Transaction B (second level)
 3. Virtual Transaction B → User's VTXO (final claim)
 
 Each transaction in this chain must be individually broadcast and confirmed on Bitcoin, with users paying standard Bitcoin network fees for each transaction.
@@ -26,10 +26,10 @@ Each transaction in this chain must be individually broadcast and confirmed on B
 
 **Chain Length Impact:** As users engage in more offchain activity, their VTXOs move deeper into the virtual tree structure, creating longer exit paths. Extended offchain transaction chains compound exit costs:
 
-* Direct child of Batch Output: 1 Bitcoin transaction required  
-* Second-level VTXO: 2 Bitcoin transactions required  
-* Third-level VTXO: 3 Bitcoin transactions required  
-* And so on...
+- Direct child of Batch Output: 1 Bitcoin transaction required
+- Second-level VTXO: 2 Bitcoin transactions required
+- Third-level VTXO: 3 Bitcoin transactions required
+- And so on...
 
 For smaller VTXO values, exit costs can become prohibitive. With high Bitcoin fees, the cumulative cost of publishing multiple transactions may exceed the VTXO's balance, effectively stranding smaller holdings until either Bitcoin fees decrease or the VTXO value is enough to cover the expense.
 

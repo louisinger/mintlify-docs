@@ -1,6 +1,6 @@
 ---
 title: "Components"
-description: "Core components of the Arkade architecture, including VTXOs, Virtual Mempool, and Onchain Anchoring."
+description: "Core components of the Arkade architecture, including VTXOs, Offchain Execution, and Onchain Anchoring."
 icon: "puzzle-piece"
 ---
 
@@ -12,17 +12,31 @@ VTXOs are presigned Bitcoin transactions secured by a Taproot script with **two 
 
 **Exit Path (Unilateral Control)**: This path is exclusively controlled by the VTXO owner, enabling them to move their funds onchain at any time without requiring permission or cooperation from the Arkade operator. This ensures true self-custody.
 
-**Collaborative Path**: This path requires a cosignature from the Arkade Signer in addition to the owner's signature. This is the default path used during normal Arkade operations, enabling instant, offchain transactions within the Virtual Mempool.
+**Collaborative Path**: This path requires a cosignature from the Arkade Signer in addition to the owner's signature. This is the default path used during regular Arkade operations, enabling instant, offchain transactions within the Virtual Mempool.
 
-VTXOs operate like Bitcoin UTXOs but with lower latency and cost. Each VTXO carries a discrete Bitcoin value and associated spending conditions within Arkade's Virtual Mempool or settled onchain when necessary.
+VTXOs operate like Bitcoin UTXOs but with lower latency and cost. Each VTXO carries a discrete Bitcoin value and associated spending conditions encoded via Arkade Script.
 
 <Info>
   **VTXO vs. Traditional Account Models**
 
-  Unlike account-based systems that maintain a global state ledger, Arkade's VTXO model requires no global state machine, only local transitions between VTXOs. This enables truly parallel execution across independent transaction branches without the bottlenecks common in account models, where operations must be serialized to maintain consistent state.
+  Unlike account-based systems that maintain a global state ledger, Arkade's VTXO model requires no global state machine, only local transitions between VTXOs. This enables parallel execution across independent transaction branches without the bottlenecks common in account models, where operations must be serialized to maintain consistent state.
 </Info>
 
-## Virtual Mempool
+
+## Onchain Anchoring via Commitment Transactions
+
+Transaction batching is the foundation of Arkade's design. Rather than each user having their own onchain output, Arkade consolidates multiple users' ownership claims into a single output called a **Batch Output** using **Commitment Transactions.**
+
+**Commitment Transaction**. A Commitment Transactions is the single onchain footprint that underpins the entire Arkade protocol. When users choose to anchor their offchain activity to Bitcoin, the Arkade Operator coordinates a Bitcoin transaction that creates a Commitment Transaction containing two outputs: a Batch Output enforcing ownership claims through a virtual transaction transaction tree, and a Connector Output that enables atomic batch swaps.
+
+**Batch Output**. A Batch Output is locked to a Taproot address with an n-of-n MuSig2 internal key, with all participants as cosigners, along with a Taproot script spend path that allows the Arkade Operator to unilaterally spend after the Batch Expiry. Each user's claim is represented by a VTXO, secured through this combination of multisig and presigned transactions. Once the Commitment Transaction structure is finalized, a virtual transaction tree is created that splits the Batch Output into individual VTXOs at its leaves.
+
+**Virtual Transaction Tree**. The transaction tree organizes virtual transactions in a hierarchical structure that enables individual users to exit without affecting other participants' VTXOs. When a user needs to exit unilaterally, they broadcast only the transactions along their specific VTXO path. Each virtual transaction in the tree is cosigned by the respective VTXO owners and the Arkade Signer.
+
+**Batch Expiry**. The Taproot script spend path is called **sweep path**. It allows the Arkade Operator to claim all VTXOs of the entire output after a predetermined expiry period without having to broadcast the respective transactions onchain. This sweep mechanism is essential for operator liquidity management, as operators must front capital to fund new VTXOs while users forfeit existing ones during batch operations.
+
+
+## Offchain Execution in the Virtual Mempool
 
 The Virtual Mempool is Arkade's offchain execution engine, a high-throughput environment where transactions flow without the constraints of block times or confirmation delays.
 
@@ -30,16 +44,9 @@ Transactions in the Virtual Mempool form a directed acyclic graph (DAG) that ena
 
 This design allows independent transaction chains to progress concurrently, unlocking massive throughput improvements. By eliminating the need for a global state or sequential processing, the virtual mempool creates a scalable foundation for Bitcoin-native applications.
 
-When a wallet broadcasts a transaction to the Virtual Mempool, the Ark Operator validates it against the current VTXO set, cosigns it if valid, and immediately updates the graph. This gives users instant preconfirmation without waiting for block inclusion. The transaction's outputs become immediately spendable, enabling fluid, interactive financial applications.
+When a wallet broadcasts a transaction to the Virtual Mempool, the Ark Operator validates it against the current VTXO set, forwards it to the Arkade Signer who cosigns it if valid, and immediately updates the graph. This gives users instant preconfirmation without waiting for block inclusion. The transaction's outputs become immediately spendable, enabling real-time execution of financial applications.
 
-## Commitment Transactions
 
-Transaction batching is the foundation of Arkade's design. Rather than each user having their own onchain output, Arkade consolidates multiple users' ownership claims into a single output called a **Batch Output** using **Commitment Transactions.**
+## Offchain Programmability powered by Arkade Script
 
-**Commitment Transaction**. A Commitment Transactions is the single onchain footprint that underpins the entire Arkade protocol. When users choose to anchor their offchain activity to Bitcoin, the Ark Operator coordinates a Bitcoin transaction that creates a Commitment Transaction containing two outputs: a Batch Output enforcing ownership claims through a virtual transaction transaction tree, and a Connector Output that enables atomic batch swaps.
-
-**Batch Output**. A Batch Output is locked to a Taproot address with an n-of-n MuSig2 internal key, with all participants as cosigners, along with a Taproot script spend leaf that allows the Ark Operator to unilaterally spend after the Batch Expiry. Each user's claim is represented by a VTXO, secured through this combination of multisig and presigned transactions. Once the Commitment Transaction structure is finalized, a tree of virtual transactions is created that splits the Batch Output into individual VTXOs at its leaves.
-
-**Virtual Transaction Tree**. The transaction tree organizes virtual transactions in a hierarchical structure that enables individual users to exit without affecting other participants' VTXOs. When a user needs to exit unilaterally, they broadcast only the transactions along their specific VTXO path. This unrolling process ensures other users' VTXOs remain unaffected. Each virtual transaction in the tree is cosigned by the relevant VTXO owners and the Ark Operator.
-
-**Batch Expiry**. Each Batch Output is structured as a **Taproot script with dual spending paths**: an unroll path for users to access individual VTXOs and a **sweep path** that allows the Arkade Operator to claim the entire output after a predetermined expiry period. This sweep mechanism is essential for operator liquidity management, as operators must front capital to fund new VTXOs while users forfeit existing ones during batch operations.
+**Arkade Script** is an **enhanced scripting environment** that extends Bitcoin Script with additional capabilities for expressive, stateful contract logic. It introduces new primitives for introspection, arithmetic, and asset operations, enabling developers to build complex offchain applications directly tied to Bitcoin outputs. While Bitcoin Script prioritizes minimalism and security, Arkade Script expands the design space for preconfirmation computation without requiring any changes to Bitcoin consensus. All contracts ultimately settle via standard Bitcoin scripts, ensuring compatibility with Bitcoin’s trust model.

@@ -4,8 +4,6 @@ description: "Understanding transaction finality in Arkade, including preconfirm
 icon: "check-double"
 ---
 
-Arkade enables users to seamlessly shift between preconfirmation and Bitcoin finality Ebased on their security and performance requirements.
-
 ## Preconfirmation
 
 Funds in the Virtual Mempool operate under the preconfirmation trust model. All Virtual Transaction Outputs (VTXOs) are cosigned by the Arkade Signer, enabling instant transaction execution and rich programmable flows.
@@ -14,8 +12,18 @@ This model requires users to trust the Arkade Signer won't double-sign conflicti
 
 ## Bitcoin Finality
 
-Finality is achieved when users settle their preconfirmed VTXOs into a new Batch Output confirmed onchain. 
-
-Users can balance security needs against convenience by choosing when to settle. 
+Finality is achieved when users swap their preconfirmed VTXOs into a new Batch Output confirmed on Bitcoin.
 
 Settled VTXOs, while structurally identical to preconfirmed ones, are solely traceable back to Batch Output transactions, ensuring full Bitcoin-level immutability and censorship resistance.
+
+Users can balance security needs against convenience by choosing when to settle.
+
+## Dynamic Settlement
+
+Arkade enables users to seamlessly shift between preconfirmation and Bitcoin finality based on their security and performance requirements.
+
+Users can operate in a fast, offchain environment through the presigned trust model, where transactions are cosigned by the Arkade Signer. This mode enables instant execution and complex logic flows, but requires trust in the operator not to collude with the sender or sign conflicting transactions. Operator misbehavior can be proven cryptographically, and incentive mechanisms help align honest behavior.
+
+Alternatively, users can opt into batch settlement to anchor their activity on Bitcoin. Once a VTXO is included in a batch and confirmed onchain, it inherits full Bitcoin finality, offering maximum censorship resistance and immutability, but at the cost of immediate settlement.
+
+This dynamic settlement architecture empowers users to shift seamlessly between performance and security based on their needs.

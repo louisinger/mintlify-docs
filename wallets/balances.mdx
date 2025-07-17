@@ -19,16 +19,16 @@ The balance object contains detailed information about both onchain and offchain
 
 ```typescript
 {
-  onchain: {
-    total: 100000,     // Total on-chain balance (confirmed + unconfirmed) in sats
-    confirmed: 50000,  // Confirmed on-chain balance in sats
-    unconfirmed: 50000 // Unconfirmed on-chain balance in sats
-  },
-  offchain: {
-    total: 200000,    // Total off-chain balance in sats
-    settled: 200000,   // Settled (available) off-chain balance in sats
-    pending: 0         // Pending off-chain balance in sats
-  }
+  boarding: {
+    confirmed: 50000,   // confirmed on-chain balance in sats
+    unconfirmed: 50000, // unconfirmed on-chain balance in sats
+    total: 100000;      // total on-chain balance (confirmed + unconfirmed) in sats
+  };
+  settled: 20000;         
+  preconfirmed: 0;
+  available: 20000;     // settled + preconfirmed
+  recoverable: 0;       // subdust and (swept=true & unspent=true)
+  total: 20000;         // total off-chain balance in sats
 }
 ```
 
@@ -49,7 +49,7 @@ vtxos.forEach((vtxo, index) => {
   console.log(`  ID: ${vtxo.txid}:${vtxo.vout}`);
   console.log(`  Amount: ${vtxo.value} sats`);
   console.log(`  Batch ID: ${vtxo.virtualStatus.batchTxID}`);
-  console.log(`  Status: ${vtxo.virtualStatus.state}`); // "pending" | "settled" | "swept" | "spent";
+  console.log(`  Status: ${vtxo.virtualStatus.state}`); // "preconfirmed" | "settled" | "swept" | "spent";
 });
 ```
 

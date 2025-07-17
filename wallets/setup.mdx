@@ -38,21 +38,20 @@ When creating a wallet, you can use an existing private key or generate a new on
 </Note>
 
 ```typescript
-import { InMemoryKey, Wallet } from '@arkade-os/sdk'
+import { SingleKey, Wallet } from '@arkade-os/sdk'
 
 // use your private key in hex format  
-const identity = InMemoryKey.fromHex('secret')
+const identity = SingleKey.fromHex('secret')
 
 // create a wallet instance
 const wallet = await Wallet.create({
-  network: 'mutinynet',
   identity,
   arkServerUrl: 'https://mutinynet.arkade.sh',
 })
 
 // You can receive bitcoin offchain instantly! No inbound liquidity!
-const addresses = await wallet.getAddress()
-console.log('Ark Address:', addresses.offchain)
+const address = await wallet.getAddress()
+console.log('Ark Address:', address)
 ```
 
 ## Next Steps

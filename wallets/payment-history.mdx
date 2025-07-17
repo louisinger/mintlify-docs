@@ -27,12 +27,12 @@ history.forEach((tx, index) => {
     console.log(`  Boarding TXID: ${tx.key.boardingTxid}`);
   }
   // offchain tx
-  if (tx.key.redeemTxid) {
-    console.log(`  Redeem TXID: ${tx.key.redeemTxid}`);
+  if (tx.key.arkTxid) {
+    console.log(`  Ark TXID: ${tx.key.arkTxid}`);
   }
-  // settlement tx
-  if (tx.key.roundTxid) {
-    console.log(`  Settlement TXID: ${tx.key.roundTxid}`);
+  // commitment tx
+  if (tx.key.commitmentTxid) {
+    console.log(`  Commitment TXID: ${tx.key.commitmentTxid}`);
   }
 }); 
 ```
@@ -87,7 +87,7 @@ When displaying transaction history in your application, you might want to forma
 ```typescript
 // Format transaction for display
 function formatTransaction(tx) {
-  const date = new Date(tx.timestamp);
+  const date = new Date(tx.createdAt);
   const formattedDate = date.toLocaleDateString();
   const formattedTime = date.toLocaleTimeString();
   
@@ -97,8 +97,8 @@ function formatTransaction(tx) {
     formattedAmount: `${(tx.amount / 100000000).toFixed(8)} BTC`,
     date: formattedDate,
     time: formattedTime,
-    status: tx.settled ? 'Settled' : 'Pending',
-    id: tx.key.redeemTxid || tx.key.boardingTxid || 'N/A'
+    status: tx.settled ? 'Settled' : 'Preconfirmed',
+    id: tx.key.arkTxid || tx.key.boardingTxid || 'N/A'
   };
 }
 

@@ -8,20 +8,20 @@ Settlement is the critical process that moves Virtual UTXOs (VTXOs) from a preco
 
 In Arkade, VTXOs can exist in two primary states:
 
-- **pending** (preconfirmed)
+- **preconfirmed** (preconfirmed)
 - **settled** (batched onchain)
 
-When a VTXO is first created through an offchain transaction, it exists in the pending state where it can be used for further offchain activity but carries trust assumptions about the Operator.
+When a VTXO is first created through an offchain transaction, it exists in the preconfirmed state where it can be used for further offchain activity but carries trust assumptions about the Operator.
 
-Through the settlement process, these pending VTXOs are included in a Commitment Transaction and anchored to the Bitcoin blockchain, providing them with full settlement guarantees and unilateral exit rights.
+Through the settlement process, these preconfirmed VTXOs are included in a Commitment Transaction and anchored to the Bitcoin blockchain, providing them with full settlement guarantees and unilateral exit rights.
 
 ```typescript
 // Get all VTXOs and check their status
 const vtxos = await wallet.getVtxos()
-const pendingVtxos = vtxos.filter(vtxo => vtxo.status === 'pending')
-const settledVtxos = vtxos.filter(vtxo => vtxo.status === 'settled')
+const pendingVtxos = vtxos.filter(vtxo => vtxo.virtualStatus.state === 'preconfirmed')
+const settledVtxos = vtxos.filter(vtxo => vtxo.virtualStatus.state === 'settled')
 
-console.log('Pending VTXOs:', pendingVtxos.length)
+console.log('Preconfirmed VTXOs:', pendingVtxos.length)
 console.log('Settled VTXOs:', settledVtxos.length)
 ```
 

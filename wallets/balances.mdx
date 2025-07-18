@@ -7,10 +7,11 @@ icon: "coins"
 Arkade allows you to easily check your wallet balances, both onchain and offchain. The balance information is structured to provide detailed insights into your funds.
 
 ```typescript
-// Get detailed balance information
 const balance = await wallet.getBalance()
-console.log('Total Onchain:', balance.onchain.total)
-console.log('Total Offchain:', balance.offchain.total)
+// total is spendable in settlement
+console.log('Total :', balance.total)
+// available is spendable in offchain transactions
+console.log('Available :', balance.available)
 ```
 
 ### Balance Object Structure

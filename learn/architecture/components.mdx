@@ -23,9 +23,9 @@ VTXOs operate like Bitcoin UTXOs but with lower latency and cost. Each VTXO carr
 </Info>
 
 
-## Onchain Anchoring via Commitment Transactions
+## Onchain Anchoring via Batch Settlements
 
-Transaction batching is the foundation of Arkade's design. Rather than each user having their own onchain output, Arkade consolidates multiple users' ownership claims into a single output called a **Batch Output** using **Commitment Transactions.**
+Arkade minimizes onchain footprint by batching user activity and anchoring it to Bitcoin through periodic **Batch Settlements**. Instead of each user creating individual onchain outputs, multiple users are aggregated into a single onchain transaction known as a **Commitment Transaction**. This transaction settles the batch onchain by creating a **Batch Output** that represents all users' ownership claims through a virtual transaction tree.
 
 **Commitment Transaction**. A Commitment Transactions is the single onchain footprint that underpins the entire Arkade protocol. When users choose to anchor their offchain activity to Bitcoin, the Arkade Operator coordinates a Bitcoin transaction that creates a Commitment Transaction containing two outputs: a Batch Output enforcing ownership claims through a virtual transaction transaction tree, and a Connector Output that enables atomic batch swaps.
 

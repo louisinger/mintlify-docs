@@ -1,0 +1,69 @@
+---
+title: "Checkpoint Transactions"
+description: "How checkpoint transactions protect the operator from griefing attacks"
+icon: "check-to-slot"
+---
+
+<Tip>
+  Checkpoint transactions protect Arkade operators against double-spend attempts from users.
+</Tip>
+
+<Info>
+Once the server detects a double-spend attempt, it reacts in one of two ways, depending on the [transaction state](/learn/ark/vtxo-lifecycle):
+
+- If settled: broadcast [forfeit transaction](/arkd/server-security/forfeit-protect)
+- If unsettled: broadcast checkpoint transaction
+</Info>
+
+## Warding Off Griefing Attacks 
+
+Checkpoint transactions are a core component of the Arkade protocol to ward off potential griefing attacks. They allow the operator to broadcast said transaction when detecting fraudulent user behaviour. A malicious user could [chain multiple offchain payments](/learn/architecture/arkade-tx#transaction-chains) to itself, ultimately [batch swap](/learn/ark/batch-swaps) the resulting VTXO or exit the Ark entirely, but then broadcast a unilateral exit path from a prior VTXO of the transaction chain. **This attack would force the operator to publish all prior Arkade transactions up to the [batch output](/learn/ark/tx-batching#batch-output) that anchors them** or the unilateral exit, potentially resulting in significant costs.
+
+<Tip>
+  Checkpoint transactions allow the server to only broadcast one transaction to defend itself in case of a griefing attack.
+</Tip>
+*Checkpoint transactions mitigate this attack. They are special transactions that serve as intermediate states in offchain transaction processing.
+
+<Info>[For a deep dive into checkpoint txs, visit Annex A of our Ark Litepaper](https://docs.arklabs.xyz/ark.pdf).</Info>
+
+
+## Checkpoint Transaction Structure 
+
+A checkpoint transaction is essentially a self-send of the user, but removing the exit script path from the VTXO script leaf, transferring it to the server. It uses a Taproot script with two paths:
+
+- A+S (collaborative)
+- S+CSV (server after timeout)
+
+![checkpoint-tx.png](/images/checkpoint-txs/checkpoint-tx.png)
+
+Checkpoints are signed by both the user and the operator before the related VTXO becomes eligible for a batch swap or a unilateral exit. 
+
+<Warning>
+  In the offchain environment no [forfeit transaction](/learn/ark/batch-swaps#forfeit-transactions) is signed, but only once a VTXO is batch swapped. Until then, transactions operate under a [preconfirmation](/learn/security/transaction-finality#preconfirmation) trust model.
+</Warning>
+
+## Potential Attack Scenarios 
+
+### User broadcasts only part of tx chain
+
+One type of attack against the operator could be that a user broadcasts only a part of an [offchain transaction chain](/learn/architecture/arkade-tx#transaction-chains), (orange) forcing the operator to broadcast all transactions of that chain (violet), resulting in high onchain cost:
+
+![tx-chain-attack-nocp.png](/images/checkpoint-txs/tx-chain-attack-nocp.png)
+
+With checkpoint transactions, it suffices for the operator to broadcast one single onchain transaction, reducing the defense cost significantly:
+
+![tx-chain-attack-cp.png](/images/checkpoint-txs/tx-chain-attack-cp.png)
+
+### User broadcasts only 1 input of a 2-input tx
+
+Another way to attack the server would be if a user only broadcasts one input of a two-input offchain transaction, forcing the operator to broadcast the second branch of that [DAG](/learn/architecture/virtual-mempool#dag-structure), resulting in high onchain cost:
+
+![2-input-attack-nocp.png](/images/checkpoint-txs/2-input-attack-nocp.png)
+
+With checkpoint transactions, again, it suffices for the operator to broadcast one single onchain transaction, reducing the defense cost significantly:
+
+![2-input-attack-cp.png](/images/checkpoint-txs/2-input-attack-cp.png)
+
+Overall, checkpoint transactions allow the operator to claim a VTXO, unless the VTXO holder posts the Arkade transaction following this exact checkpoint transaction.
+
+<Tip>Checkpoint transactions provide the operator with a low‑cost mechanism to mitigate attacks, such as partial or selective broadcasting of offchain transaction chains.</Tip>

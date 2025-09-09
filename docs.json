@@ -114,6 +114,44 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "Server & API Reference",
+        "pages": [
+          "arkd/what-is-arkd",
+          {
+            "group": "Arkade Workflows",
+            "pages": [
+              "arkd/txs/boarding",
+              "arkd/txs/offchain-execution",
+              "arkd/txs/onchain-settlement",
+              "arkd/txs/exiting"
+            ]
+          },
+          {
+            "group": "API Layer",
+            "pages": [
+              "arkd/core-services/overview",
+              "arkd/core-services/ark-service",
+              "arkd/core-services/indexer-service"
+            ]
+          },
+          {
+            "group": "Components",
+            "pages": [
+              "arkd/components/intent-system",
+              "arkd/components/intent-delegation",
+              "arkd/components/ark-notes"
+            ]
+          },
+          {
+            "group": "Server Security",
+            "pages": [
+              "arkd/server-security/forfeit-protect",
+              "arkd/server-security/checkpoint-txs"
+            ]
+          }
+        ]
       }
     ]
   },

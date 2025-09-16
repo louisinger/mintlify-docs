@@ -143,13 +143,6 @@
               "arkd/components/intent-delegation",
               "arkd/components/ark-notes"
             ]
-          },
-          {
-            "group": "Server Security",
-            "pages": [
-              "arkd/server-security/forfeit-protect",
-              "arkd/server-security/checkpoint-txs"
-            ]
           }
         ]
       }

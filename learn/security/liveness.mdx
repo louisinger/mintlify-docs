@@ -1,6 +1,6 @@
 ---
 title: "Liveness"
-description: "Discussion of liveness requirements in Arkade, including operator availability and VTXO expiry."
+description: "Discussion of liveness requirements in Arkade, including operator availability and VTXO expiry"
 icon: "heart-pulse"
 ---
 
@@ -12,12 +12,9 @@ Arkade uses a server-client architecture where operator downtime disrupts functi
 
 ## User Liveness (VTXO Expiry)
 
-VTXOs have built-in expiry mechanisms that require periodic user attention. As VTXOs age in the virtual mempool, users must periodically swap them through batch settlement to avoid expiry.
+VTXOs have a built-in [expiry mechanism](/learn/pillars/batch-expiry) that require periodic user attention. As VTXOs age in the virtual mempool, users must periodically renew them through a batch swap to avoid expiry.
 
-Expired VTXOs are swept by the Arkade Operator. While users may recover their funds, they lose the ability to unilaterally enforce ownership claims onchain. This creates natural incentives for users to remain active and settle their preconfirmed VTXOs appropriately.
+Expired VTXOs get swept by the Arkade Operator. While users may recover their funds, they lose the ability to unilaterally enforce ownership claims onchain. This creates natural incentives for users to remain active and settle their preconfirmed VTXOs appropriately.
 
-## Modular Architecture
+<Tip>VTXO renewal can be [delegated](/learn/pillars/batch-expiry#delegation-solutions) to a third party without relinquishing fund sovereignty in the process</Tip>
 
-Arkade's infrastructure is designed with a modular architecture that can be distributed and scaled independently. Core operator functions include validation and transaction cosigning, batch creation, liquidity provisioning, and overall system coordination with user interfaces.
-
-This modular approach creates opportunities to scale Arkade horizontally and build redundancy options. Different functions can be replicated across multiple infrastructure providers, geographic regions, or even operated by different entities, reducing single points of failure and improving system resilience.

@@ -4,12 +4,12 @@ description: "Finalize Arkade transactions on Bitcoin via the Intent System"
 icon: "anchor"
 ---
 
-Offchain Arkade transactions in the [virtual mempool](/learn/architecture/components#offchain-execution-in-the-virtual-mempool) operate under the preconfirmation trust model. If a user wants full [Bitcoin finality](/learn/security/transaction-finality#bitcoin-finality) for their funds, they need to settle them onchain via a [batch swap](/learn/ark/batch-swaps). 
+Offchain Arkade transactions in the [virtual mempool](/learn/pillars/virtual-mempool.mdx) operate under the preconfirmation trust model. If a user wants full [Bitcoin finality](/learn/security/transaction-finality#bitcoin-finality) for their funds, they need to settle them onchain via a [batch swap](/learn/pillars/batch-swaps). 
 
-Users accomplish this by submitting an [intent](/arkd/components/intent-system) that specifies which VTXOs they forfeit and which VTXOs they expect to receive in the upcoming batch. The operator coordinates the settlement process and broadcasts the associated [commitment transaction](learn/ark/tx-batching#commitment-transactions) onchain. The following sections detail this workflow and the respective functions involved.
+Users accomplish this by submitting an [intent](/arkd/components/intent-system) that specifies which VTXOs they forfeit and which VTXOs they expect to receive in the upcoming batch. The operator coordinates the settlement process and broadcasts the associated [commitment transaction](learn/pillars/batch-swaps#commitment-transactions) onchain. The following sections detail this workflow and the respective functions involved.
 
 <Tip>
-  Users can safely sign forfeit transactions because the commitment transaction atomically creates both the new VTXOs and the [connector output](learn/ark/tx-batching#connector-output) that enables the operator to claim forfeited funds.
+  Users can safely sign forfeit transactions because the commitment transaction atomically creates both the new VTXOs and the [connector output](learn/pillars/connectors) that enables the operator to claim forfeited funds.
 </Tip>
 
 ### Client Workflow: Participating in a Batch Swap 
@@ -18,7 +18,22 @@ Users accomplish this by submitting an [intent](/arkd/components/intent-system) 
 
 To participate in a batch swap, users begin their participation by querying the server through the [`GetInfo`](https://github.com/arkade-os/arkd/blob/4cabf95f33b0196c47518425e92efc089636aa20/api-spec/protobuf/ark/v1/service.proto#L10-L13) endpoint to retrieve ([`GetInfoResponse`](https://github.com/arkade-os/arkd/blob/4cabf95f33b0196c47518425e92efc089636aa20/api-spec/protobuf/ark/v1/service.proto#L128-L143)) essential network parameters like round intervals, exit delays, and amount limits that clients need for proper operation.
 
-![sequence-onchain-new.png](/images/sequence-diagrams/sequence-onchain-new.png)
+<div style={{ display: "flex", justifyContent: "center" }}>
+  <img 
+    className="block dark:hidden" 
+    src="/images/ark/sequenceonchainlight.png" 
+    alt="Sequence Diagram Onchain Transaction"
+    style={{ width: "100%", height: "auto" }}
+  />
+</div>
+<div style={{ display: "flex", justifyContent: "center" }}>
+  <img 
+    className="hidden dark:block" 
+    src="/images/ark/sequenceonchaindark.png" 
+    alt="Sequence Diagram Onchain Transaction"
+    style={{ width: "100%", height: "auto" }}
+  />
+</div>
 
 #### Client Workflow: Steb by Step 
 
@@ -33,7 +48,7 @@ To participate in a batch swap, users begin their participation by querying the 
     - Client confirms participation ([`ConfirmRegistration`](https://github.com/arkade-os/arkd/blob/4cabf95f33b0196c47518425e92efc089636aa20/api-spec/protobuf/ark/v1/service.proto#L38-L45)) via the`intent_id`
   </Step>
   <Step title="Tree Signing & Multi-Signature Coordination (MuSig2)" titleSize="h3">
-    - Server builds unsigned VTXO tree, [commitment transaction](/learn/ark/tx-batching#commitment-transactions) and [connector outputs](/learn/ark/tx-batching#connector-output)
+    - Server builds unsigned VTXO tree, [commitment transaction](/learn/pillars/batch-swaps#commitment-transactions) and [connector outputs](/learn/pillars/connectors)
     - Server sends unsigned VTXO tree and commitment transaction to client
     - Client verifies data and creates random nonces for every branch transaction
     - Client submits tree nonces (`SubmitTreeNonces`)
@@ -43,7 +58,7 @@ To participate in a batch swap, users begin their participation by querying the 
     - Client verifies data
   </Step>
   <Step title="Forfeit Transaction Handling" titleSize="h3">
-    - Client creates [forfeit transactions](/learn/ark/batch-swaps#forfeit-transactions) with connector outputs
+    - Client creates [forfeit transactions](/learn/pillars/batch-swaps#forfeit-transactions) with connector outputs
     - Client submits signed forfeit transactions (`SubmitSignedForfeitTxs`)
     - If initial [boarding](/arkd/txs/boarding), users also sign the commitment transaction
   </Step>

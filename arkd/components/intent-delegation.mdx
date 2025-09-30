@@ -6,9 +6,9 @@ icon: "handshake"
 
 ### Intent Construction and Hand-Off 
 
-Since Arkade batches [expire](/learn/ark/tx-batching#batch-expiry), VTXOs need to be renewed regularly to enforce users' unilateral spending rights. To address the associated liveness challenges, VTXO renewal can be delegated without the user relinquishing control over their funds. 
+Since Arkade batches [expire](/learn/pillars/batch-expiry), VTXOs need to be renewed regularly to enforce users' unilateral spending rights. To address the associated liveness challenges, VTXO renewal can be delegated without the user relinquishing control over their funds. 
 
-To delegate VTXO renewal, a user creates an [intent](/arkd/components/intent-system#intent-lifecycle) which defines and locks in the exact inputs and outputs of a future transaction. This signed package includes a BIP322 signature and is bound by a `valid_at` and `expire_at` window, ensuring the delegate can only submit it within a specified timeframe. The user eventually hands this intent to the [delegate](/learn/architecture/delegation), who is responsible for submitting it to the Arkade server just before VTXO expiration. 
+To delegate VTXO renewal, a user creates an [intent](/arkd/components/intent-system#intent-lifecycle) which defines and locks in the exact inputs and outputs of a future transaction. This signed package includes a BIP322 signature and is bound by a `valid_at` and `expire_at` window, ensuring the delegate can only submit it within a specified timeframe. The user eventually hands this intent to the [delegate](/learn/pillars/batch-swaps#delegation-solutions), who is responsible for submitting it to the Arkade server just before VTXO expiration. 
 
 When a user registers an intent, they must inform the delegate and provide it with: 
 
@@ -20,7 +20,7 @@ The delegate then watches all VTXOs owned by the address until the user unsubscr
 
 <Tip>Users can configure multiple delegates or mix delegation with manual renewals.</Tip>
 
-The user also provides a [forfeit transaction](/learn/ark/batch-swaps#forfeit-transactions) signed with the [A\+B\+S delegation path](/learn/architecture/delegation#delegate-vtxo-setup) using `SIGHASH_SINGLE | ANYONECANPAY`, which locks in their input and output while allowing the delegate to append the missing [connector input](/learn/ark/tx-batching#connector-output) and signature.
+The user also provides a [forfeit transaction](/learn/pillars/batch-swaps#forfeit-transactions) signed with the A\+B\+S delegation path using `SIGHASH_SINGLE | ANYONECANPAY`, which locks in their input and output while allowing the delegate to append the missing [connector input](/learn/pillars/connectors) and signature.
 
 The following is an [example for the forfeit construction](https://github.com/arkade-os/ts-sdk/blob/9e501ca9212295936e1522208055aac95984fea9/examples/delegate.js#L170-L186) from the TS-SDK: 
 
@@ -52,7 +52,22 @@ When the activation window (bound by a `valid_at` and `expire_at`) arrives, the 
 
 The diagram illustrates the flow of a VTXO redemption and registration process between Alice, Bob, and the Server.
 
-![sequence-offchain.png](/images/sequence-diagrams/sequence-delegate.png)
+<div style={{ display: "flex", justifyContent: "center" }}>
+  <img 
+    className="block dark:hidden" 
+    src="/images/ark/sequencedelegatelight.png" 
+    alt="Sequence Diagram Delegation"
+    style={{ width: "100%", height: "auto" }}
+  />
+</div>
+<div style={{ display: "flex", justifyContent: "center" }}>
+  <img 
+    className="hidden dark:block" 
+    src="/images/ark/sequencedelegatedark.png" 
+    alt="Sequence Diagram Delegation"
+    style={{ width: "100%", height: "auto" }}
+  />
+</div>
 
 1. **Initial Ownership**. Alice owns a VTXO, which can be spent using a script path such as A\+S or A\+CSV (exit)
 2. **VTXO Transfer.** Alice submits a transaction with the following script paths: A\+S or A\+B\+S or A\+CSV (exit)
@@ -71,4 +86,4 @@ The delegation model is built on the following security principles:  
 - **Tamper-proof:** Intents are presigned and cannot be modified by the delegate
 - **Verifiable:** All parties can validate ownership and authorization using BIP322
 
-<Tip> **Preconfirmation trust model**. Delegated renewals keep your VTXOs in the [preconfirmation state](/learn/security/transaction-finality#preconfirmation) and do not achieve Bitcoin finality. While delegation provides convenience and eliminates liveness requirements, renewed VTXOs rely on the same preconfirmation security of Arkade's [virtual mempool](/learn/architecture/virtual-mempool). For Bitcoin-level security guarantees, users should independently participate in [batch settlement](/arkd/txs/onchain-settlement).</Tip>
+<Tip> **Preconfirmation trust model**. Delegated renewals keep your VTXOs in the [preconfirmation state](/learn/security/transaction-finality#preconfirmation) and do not achieve Bitcoin finality. While delegation provides convenience and eliminates liveness requirements, renewed VTXOs rely on the same preconfirmation security of Arkade's [virtual mempool](/learn/pillars/virtual-mempool). For Bitcoin-level security guarantees, users should independently participate in [batch settlement](/arkd/txs/onchain-settlement).</Tip>

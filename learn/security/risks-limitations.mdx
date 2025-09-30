@@ -1,5 +1,5 @@
 ---
-title: "Risks & Limitations"
+title: "Risk & Limitations"
 description: "Discussion of potential risks and limitations in the Arkade system, such as mass exit scenarios and Signer compromise."
 icon: "triangle-exclamation"
 ---
@@ -14,10 +14,11 @@ Operators face strong incentives to restore service quickly due to lost fee reve
 
 ## Arkade Signer Compromise
 
-Compromise of the Arkade Signer occurs when cryptographic keys are breached, potentially through software vulnerabilities, infrastructure attacks, or other security failures. TEEs provide additional hardware protection, but compromise remains possible through various means. 
+Compromise of the Arkade Signer occurs when cryptographic keys are breached, potentially through software vulnerabilities, infrastructure attacks, or other security failures. TEEs provide additional hardware protection, but compromise remains possible through advanced means. 
 
 In this scenario, a malicious actor could use the Signer keys to unroll certain chains of transactions and sign conflicting ownership claims.
 
 Detection occurs through remote attestation failures and cryptographic evidence of conflicting signatures. The Arkade Operator is expected to halt the system immediately, preventing potential abuse. Users should cease creating new VTXOs and prepare for emergency exits if holding potentially affected VTXOs.
 
 TEE compromise represents a critical failure mode where the hardware isolation protecting Arkade Signer keys is breached through vulnerabilities in TEE hardware, side-channel attacks, or software stack compromise. Unlike operator downtime which affects availability, TEE compromise enables double-signing attacks where the same VTXO could be validly assigned to multiple users, creating irreconcilable ownership disputes.
+

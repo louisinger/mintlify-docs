@@ -4,16 +4,13 @@ description: "The ArkService is the primary API layer for interacting with the A
 icon: "right-left"
 ---
 
-
 The [`ArkService`](https://github.com/arkade-os/arkd/blob/72ea52fed01190a472ecbabffa06911d69a94377/api-spec/protobuf/ark/v1/service.proto) handles the core business logic of the Ark protocol’s batch processing system. Operations encompass [onchain batch coordination and settlement](/arkd/txs/onchain-settlement), including the coordination of multi-party signing sessions using MuSig2, intent management, as well as [offchain VTXO spending operations](/arkd/txs/offchain-execution). It provides a comprehensive set of gRPC and REST endpoints to facilitate client-side coordination.
 
 <Tip>**API references** can be found [here](https://docs.arklabs.xyz/integrate/api#tag/ArkService) and a **set of tools to handle protobuf specifications** can be found [here](https://buf.build/arkade-os/arkd/docs/fcb9f21ef69836e8ddadc2d070deb0c5be139336:ark.v1#ark.v1.ArkService).</Tip>
 
-
 ### API Layer Logic
 
 The `ArkService` abstracts much of the protocol logic, helping builders focus on client experiences. 
-
 
 | **Operation Category** | **Methods**                                | **Purpose**                               |
 | ---------------------- | ------------------------------------------ | ----------------------------------------- |
@@ -59,13 +56,13 @@ The `ArkService` abstracts much of the protocol logic, helping builders focus on
     Both functions require batch ID and the cosigner's public key.
   </Accordion>
   <Accordion title="Forfeit Management">
-    `SubmitSignedForfeitTxs` handles [forfeit transaction](/learn/ark/batch-swaps#forfeit-transactions) submission. The Arkade server verifies and finalizes the transaction as part of the batch settlement process.
-<Note>If a [delegate](/learn/architecture/delegation) is involved, the forfeit transaction is partially signed with `SIGHASH_ALL | ANYONECANPAY` allowing  a [connector output](/learn/ark/tx-batching#connector-output) to be added once the delegate submits the intent.</Note>
+    `SubmitSignedForfeitTxs` handles [forfeit transaction](/learn/pillars/batch-swaps#forfeit-transactions) submission. The Arkade server verifies and finalizes the transaction as part of the batch settlement process.
 
-    
+<Note>If a delegate is involved, the forfeit transaction is partially signed with `SIGHASH_ALL | ANYONECANPAY` allowing a [connector output](/learn/pillars/connectors) to be added once the delegate submits the intent.</Note>
+
   </Accordion>
   <Accordion title="Offchain Execution">
-    Arkade’s [virtual mempool](/learn/architecture/virtual-mempool) tracks the two-phase lifecycle of [offchain transactions that spend VTXOs](/arkd/txs/offchain-execution):
+    Arkade's [virtual mempool](/learn/pillars/virtual-mempool) tracks the two-phase lifecycle of [offchain transactions that spend VTXOs](/arkd/txs/offchain-execution):
 
     - `SubmitTx` initiates offchain spending with the user handing in signed Arkade transactions (`signed_ark_tx`) and unsigned checkpoint transactions (`checkpoint_txs`)
     - `FinalizeTx` completes the process by submitting fully signed [checkpoint transactions](/arkd/server-security/checkpoint-txs)

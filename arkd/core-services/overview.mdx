@@ -5,7 +5,7 @@ icon: "list"
 ---
 
 
-The Arkade API layer is composed of two complementary services through which clients interact with the [Arkade Operator](/learn/architecture/roles#arkade-operator):
+The Arkade API layer is composed of two complementary services through which clients interact with the Arkade Operator:
 
 - [`ArkService`](https://github.com/arkade-os/arkd/blob/72ea52fed01190a472ecbabffa06911d69a94377/api-spec/protobuf/ark/v1/service.proto#L125) – the primary access point for real-time coordination, batch participation, intent management, and transaction submission. It enables clients to register intents, coordinate multi-party batches, sign with MuSig2, and spend VTXOs without relinquishing control of their funds. Event-driven endpoints like `GetEventStream` and `GetTransactionsStream` let clients stay synchronized with network activity.
 

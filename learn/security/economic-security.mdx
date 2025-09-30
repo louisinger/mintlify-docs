@@ -1,20 +1,14 @@
 ---
 title: "Economic Security"
-description: "Exploration of economic security in Arkade, including collateral burn mechanisms and fee incentives."
+description: "Exploration of economic security in Arkade, including collateral burn mechanisms and fee incentives"
 icon: "coins"
 ---
-
-## Slashing
-
-Arkade Operators can stake Bitcoin collateral onchain, locked to the Arkade Signer's public key, creating economic deterrence against misbehavior. If the Signer double-signs conflicting transactions, users can present proof to the TEE along with an unsigned burn transaction, which the verified TEE software will automatically sign to destroy the collateral.
-
-Since TEEs cannot reliably maintain global state, malicious operators might attempt to induce double-signing by feeding incorrect data to the TEE or performing restart cycles. However, such protocol violations produce cryptographic evidence that triggers slashing. The system ensures that potential attack benefits must outweigh the locked collateral value, making attacks economically irrational for operators.
 
 ## Fee Incentives
 
 Arkade operators earn revenue through a dual fee structure that aligns their incentives with reliable execution. 
 
-Execution fees are collected for offchain transactions in the Virtual Mempool, while settlement fees are earned when transactions are batched to Bitcoin. 
+Execution fees are collected for offchain transactions in the virtual mempool, while settlement fees are earned when transactions are batched to Bitcoin. 
 
 Since settlement fees are shared across many users in each batch, operators are incentivized to aggregate transactions efficiently and maintain high throughput.
 

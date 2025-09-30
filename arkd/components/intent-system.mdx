@@ -4,12 +4,12 @@ description: "How Arkade’s intent system coordinates user participation in bat
 icon: "gear"
 ---
 
-When a user wants to settle their funds onchain via a [batch swap](/learn/ark/batch-swaps), they submit an [intent](/learn/architecture/intents) to the operator. Arkade intents are valid-but-unmineable Bitcoin transactions that encode an ownership proof of the inputs a user wants to redeem - whether it's offchain VTXOs, an onchain UTXO or [recoverable coins](/learn/ark/vtxo-lifecycle) (eg. expired coins or in form of an [Arkade Note](/arkd/components/ark-notes)) - and define the outputs they wish to receive.
+When a user wants to settle their funds onchain via a [batch swap](/learn/pillars/batch-swaps), they submit an intent to the operator. Arkade intents are valid-but-unmineable Bitcoin transactions that encode an ownership proof of the inputs a user wants to redeem - whether it's offchain VTXOs, an onchain UTXO or [recoverable coins](/learn/pillars/vtxos#vtxo-states) (eg. expired coins or in form of an [Arkade Note](/arkd/components/ark-notes)) - and define the outputs they wish to receive.
 
 Arkade intents are based on [BIP322](/learn/glossary#bip322), a standardized Bitcoin message signing protocol. The system was introduced with the [v0.7.0 arkd release](https://github.com/arkade-os/arkd/releases/tag/v0.7.0?ref=blog.arklabs.xyz).
 
 <Tip>
-  The usage of BIP322 enables users to choose between renewing their [expiring](/learn/ark/tx-batching#batch-expiry) offchain funds themselves or [delegating](/learn/architecture/delegation) the renewal of such VTXOs. The delegated intent workflow can be found under [Intent Delegation](/arkd/components/intent-delegation#intent-delegation-workflow)
+  The usage of BIP322 enables users to choose between renewing their [expiring](/learn/pillars/batch-expiry) offchain funds themselves or [delegating](/learn/pillars/batch-expiry#delegation-solutions) the renewal of such VTXOs. The delegated intent workflow can be found under [Intent Delegation](/arkd/components/intent-delegation#intent-delegation-workflow)
 </Tip>
 
 ### Intent Structure
@@ -30,11 +30,11 @@ This section defines the intent schema that expresses what is being spent and wh
 
     ```typescript
     type Intent struct {
-    	Id        string
-    	Inputs    []Vtxo
-    	Receivers []Receiver
-    	Proof     string
-    	Message   string
+        Id        string
+        Inputs    []Vtxo
+        Receivers []Receiver
+        Proof     string
+        Message   string
     }
     ```
   </Accordion>
@@ -43,9 +43,9 @@ This section defines the intent schema that expresses what is being spent and wh
 
     ```typescript
     type Receiver struct {
-    	Amount         uint64
-    	OnchainAddress string // onchain
-    	PubKey         string // offchain
+        Amount         uint64
+        OnchainAddress string // onchain
+        PubKey         string // offchain
     }
     ```
   </Accordion>
@@ -61,24 +61,24 @@ This section defines the intent schema that expresses what is being spent and wh
 
     ```typescript
     type IntentMessage struct {
-    	BaseIntentMessage
-    	// InputTapTrees is the list of taproot trees associated with the spent inputs
-    	// the index of the taproot tree in the list corresponds to the index of the input + 1
-    	// (we ignore the first bip322 input, as it is duplicate of the second one)
-    	InputTapTrees []string `json:"input_tap_trees"`
-    	// OnchainOutputIndexes specifies what are the outputs in the proof tx
-    	// that should be considered as onchain by the Ark operator
-    	OnchainOutputIndexes []int `json:"onchain_output_indexes"`
-    	// ValidAt is the timestamp (in seconds) at which the proof should be considered valid
-    	// if set to 0, the proof will be considered valid indefinitely or until ExpireAt is reached
-    	ValidAt int64 `json:"valid_at"`
-    	// ExpireAt is the timestamp (in seconds) at which the proof should be considered invalid
-    	// if set to 0, the proof will be considered valid indefinitely
-    	ExpireAt int64 `json:"expire_at"`
-    	// CosignersPublicKeys contains the public keys of the cosigners
-    	// if the outputs are not registered in the proof or all the outputs are onchain, this field is not required
-    	// it is required only if one of the outputs is offchain
-    	CosignersPublicKeys []string `json:"cosigners_public_keys"`
+        BaseIntentMessage
+        // InputTapTrees is the list of taproot trees associated with the spent inputs
+        // the index of the taproot tree in the list corresponds to the index of the input + 1
+        // (we ignore the first bip322 input, as it is duplicate of the second one)
+        InputTapTrees []string `json:"input_tap_trees"`
+        // OnchainOutputIndexes specifies what are the outputs in the proof tx
+        // that should be considered as onchain by the Ark operator
+        OnchainOutputIndexes []int `json:"onchain_output_indexes"`
+        // ValidAt is the timestamp (in seconds) at which the proof should be considered valid
+        // if set to 0, the proof will be considered valid indefinitely or until ExpireAt is reached
+        ValidAt int64 `json:"valid_at"`
+        // ExpireAt is the timestamp (in seconds) at which the proof should be considered invalid
+        // if set to 0, the proof will be considered valid indefinitely
+        ExpireAt int64 `json:"expire_at"`
+        // CosignersPublicKeys contains the public keys of the cosigners
+        // if the outputs are not registered in the proof or all the outputs are onchain, this field is not required
+        // it is required only if one of the outputs is offchain
+        CosignersPublicKeys []string `json:"cosigners_public_keys"`
     }
     ```
   </Accordion>
@@ -86,7 +86,7 @@ This section defines the intent schema that expresses what is being spent and wh
 
 ### Intent Lifecycle 
 
-The Arkade event stream (`GetEventStream`) is a server-side streaming RPC method in the [`ArkService`](/arkd/core-services/ark-service)) that provides real-time batch processing coordination events to clients including batch start, finalization, and failure notifications. The server uses this stream to indicate the next required action and corresponding API call. The full Intent lifecycle is as follows:
+The Arkade event stream (`GetEventStream`) is a server-side streaming RPC method in the [`ArkService`](/arkd/core-services/ark-service) that provides real-time batch processing coordination events to clients including batch start, finalization, and failure notifications. The server uses this stream to indicate the next required action and corresponding API call. The full Intent lifecycle is as follows:
 
 <Steps>
   <Step title="Create a BIP322 Signature" titleSize="h3">
@@ -179,7 +179,7 @@ The Arkade event stream (`GetEventStream`) is a server-side streaming RPC method
 
 ### **Recovery Mechanisms**
 
-The intent system provides additional options for edge cases like [recoverable VTXOs](/learn/ark/vtxo-lifecycle):
+The intent system provides additional options for edge cases like [recoverable VTXOs](/learn/pillars/vtxos#vtxo-states):
 
 - **Expired VTXOs**: Recover unspent and swept VTXOs ([`recoverVtxos`](https://github.com/arkade-os/arkd/blob/4cabf95f33b0196c47518425e92efc089636aa20/pkg/ark-cli/main.go#L423-L439))
 - **Note Redemption**: Redeem Arkade notes [(`redeemNotes`)](https://github.com/arkade-os/arkd/blob/4cabf95f33b0196c47518425e92efc089636aa20/pkg/ark-cli/main.go#L441-L459)

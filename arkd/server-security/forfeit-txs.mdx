@@ -1,21 +1,18 @@
 ---
-title: "Forfeit Protection"
-description: "How Forfeit Txs prevent against attempted user fraud"
+title: "Forfeit Transactions"
+description: "How forfeit Transactions prevent against attempted user fraud"
 icon: "hand"
 ---
 
-<Tip>
-  Forfeit transactions protect Arkade operators against double-spend attempts from users.
-</Tip>
-
 <Info>
-  Once the server detects a double-spend attempt, it reacts in one of two ways, depending on the [transaction state](/learn/ark/vtxo-lifecycle):
-
-  - If settled: broadcast forfeit transaction
-  - If unsettled: broadcast [checkpoint transaction](/arkd/server-security/checkpoint-txs)
+  Once the server detects a double-spend attempt, it reacts in one of two ways, depending on the [transaction state](/learn/pillars/vtxos#vtxo-states):
+  - VTXO settled: broadcast forfeit transaction
+  - VTXO preconfirmed: broadcast [checkpoint transaction](/arkd/server-security/checkpoint-txs)
 </Info>
 
-[Forfeit transactions](/learn/ark/batch-swaps#forfeit-transactions) are a critical security mechanism in the Arkade protocol that protect the operator from fraud attempts by users. When a user spends a VTXO offchain and then attempts to redeem the same VTXO onchain (fraud), the operator can broadcast the corresponding forfeit transaction to reclaim the funds.
+[Forfeit transactions](/learn/pillars/batch-swaps#forfeit-transactions) are a critical security mechanism for Arkade operators that protect them from fraud attempts by users. When a user attempts to broadcast old pre-signed paths for a VTXO that was already spent in a previous batch, the operator broadcasts the corresponding forfeit transaction to claw back the funds.
+
+The attacker burns their own transaction fees attempting this fraud while gaining no economic advantage - the operator immediately publishes the forfeit transaction to reclaim the onchain funds that belong to the server.
 
 Forfeit transactions are created and managed during the [batch processing lifecycle](/arkd/txs/onchain-settlement#client-workflow%3A-participating-in-a-batch-swap). Clients submit signed forfeit transactions via the [`SubmitSignedForfeitTxs`](https://github.com/arkade-os/arkd/blob/4cabf95f33b0196c47518425e92efc089636aa20/api-spec/protobuf/ark/v1/service.proto#L71-L79) RPC method as part of the batch finalization process.
 
@@ -27,7 +24,22 @@ Forfeit transactions have a specific two-input, two-output structure ([`BuildFor
 - **Two outputs**: Forfeit output (to operator) and anchor output
 - **Timelock support**: Can include CLTV locks for time-based constraints
 
-![forfeit-anchor.png](/images/ark/forfeit-anchor.png)
+<div style={{ display: "flex", justifyContent: "center" }}>
+  <img 
+    className="block dark:hidden" 
+    src="/images/ark/forfeitlight.png" 
+    alt="Forfeit Transaction"
+    style={{ width: "100%", height: "auto" }}
+  />
+</div>
+<div style={{ display: "flex", justifyContent: "center" }}>
+  <img 
+    className="hidden dark:block" 
+    src="/images/ark/forfeitdark.png" 
+    alt="Forfeit Transaction"
+    style={{ width: "100%", height: "auto" }}
+  />
+</div>
 
 The system validates this structure during forfeit transaction verification, ensuring the connector input is properly identified and paired with the corresponding VTXO input.
 
@@ -47,7 +59,7 @@ The system monitors for fraud attempts (`reactToFraud`). When a user spends a VT
 
 ### Security Considerations
 
-1. **Timing**: Forfeit transactions must be submitted within the [batch processing window](/learn/ark/tx-batching#batch-expiry)
+1. **Timing**: Forfeit transactions must be submitted within the [batch processing window](/learn/pillars/batch-expiry)
 2. **Validation**: All signatures and transaction structures are verified before acceptance
 3. **Connector Management**: Proper connector UTXO locking ([`LockConnectorUtxos`](https://github.com/arkade-os/arkd/blob/4cabf95f33b0196c47518425e92efc089636aa20/internal/core/application/fraud.go#L137-L139)) prevents double-spending
 4. **Fee Bumping**: Forfeit transactions support fee bumping for reliable confirmation ([`bumpAnchorTx`](https://github.com/arkade-os/arkd/blob/4cabf95f33b0196c47518425e92efc089636aa20/internal/core/application/fraud.go#L161-L164))

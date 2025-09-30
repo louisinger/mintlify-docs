@@ -1,6 +1,6 @@
 ---
 title: "Welcome to Arkade"
-description: "Arkade is the Virtual Execution Layer for Bitcoin-Native Applications"
+description: "An Operating System For Programmable Money"
 icon: "hand"
 ---
 
@@ -8,52 +8,64 @@ icon: "hand"
   ![Hero](/images/arkade-banner.png)
 </Frame>
 
-Arkade introduces a set of foundational primitives that reimagine Bitcoin transaction execution through [**virtualization**](https://arkadeos.com/vision#virtualize). These components work together to provide instant execution, trust-minimized settlement, and scalable programmability without modifying the Bitcoin protocol.
+## Bitcoin, But Programmable
 
-Arkade is built on top of the [**Ark protocol**](https://docs.arklabs.xyz/ark.pdf), which introduced foundational
-primitives like [**Virtual UTXOs (VTXOs)**](https://docs.arklabs.xyz/ark/deep-dive/vtxos). It extends Ark's capabilities into a full virtual execution environment for complex, scalable financial applications
+Bitcoin's potential as programmable money has remained largely untapped through the years due to its conservative protocol design. Building applications or services has traditionally involved choosing between speed, programmability, and self-custody - until now.
 
-Bitcoin’s base layer is intentionally constrained to preserve decentralization and security. Arkade complements it by enabling complex application logic such as trading, lending, payments, on a scalable offchain layer, while preserving self-custody and settlement finality.
+Arkade is an execution layer for Bitcoin-native applications. It unlocks Bitcoin's programmability without protocol changes, wrapped tokens, or custody compromises. Developers can now build sophisticated financial applications that handle Bitcoin, stablecoins, and other assets instantly, without sacrificing Bitcoin's security model.
 
-Through innovations like the [**Virtual Mempool**](https://docs.arkadeos.com/learn/architecture/components#offchain-execution-in-the-virtual-mempool), **Arkade Script**, and **Dynamic Settlement**, Arkade delivers cloud-like parallelism and composability for Bitcoin-native contracts.
+<Card title="Technical Primer" icon="alien-8bit" href="/primer">
+  Learn the core concepts powering Bitcoin's first virtual execution layer.
+</Card>
+
+## How?
+
+Arkade introduces a set of core components that reimagine Bitcoin transaction execution through [virtualization](https://arkadeos.com/vision#virtualize). These components work together to provide instant execution, trust-minimized settlement, and scalable programmability without modifying the Bitcoin protocol.
+
+Arkade is built on top of the Ark protocol, which introduced foundational
+primitives like [VTXOs](/learn/pillars/vtxos), [transaction batching](/learn/pillars/batch-outputs) and [batch swaps](/learn/pillars/batch-swaps). 
+
+Arkade extends Ark's capabilities into a complete virtual execution layer where transactions flow through a [Virtual Mempool](/learn/pillars/virtual-mempool), providing the environment for advanced, scalable financial applications.
 
 ## What Makes Arkade Different
 
-### Bitcoin-Native Programmability
+<AccordionGroup>
+  <Accordion title="You Control Your Funds">
+    VTXOs grant users [unilateral exit](/learn/security/unilateral-exit) rights, enforced through presigned Bitcoin transactions. All contracts are auditable, and users retain full control over their assets at all times.
+  </Accordion>
+<Accordion title="Smart Contracts on Bitcoin">
+    Arkade makes Bitcoin truly programmable. Developers can write contracts using [Arkade Script](/contracts/overview), a stateful, expressive scripting language that compiles into Bitcoin-compatible execution flows. Contracts are tied directly to Bitcoin outputs, ensuring unilateral enforceability.
+  </Accordion>
+  <Accordion title="Instant Execution">
+    Arkade mirrors Bitcoin's mempool with an offchain [Virtual Mempool](/learn/pillars/virtual-mempool), enabling independent VTXO-based transactions to execute in parallel. This eliminates global contention and unlocks horizontal scalability for Bitcoin applications.
+  </Accordion>
+  <Accordion title="Bitcoin Finality">
+    A large number of Arkade transactions can be compressed into a single batch output as part of a commitment transaction. This enables users to achieve Bitcoin's [onchain finality](/learn/security/transaction-finality) at a fraction of the normal cost, while preserving the onchain enforceability of each VTXO through presigned exit paths.
+  </Accordion>
+  <Accordion title="Don't Trust, Verify">
+    Transactions receive instant offchain preconfirmation by the Arkade Signer, a signing entity running inside a [Trusted Execution Environment (TEE)](/learn/security/advanced-security#verifiable-execution). This environment cryptographically attests to correct execution and provides integrity guarantees. Transaction finality can be achieved by anchoring offchain VTXOs to the Bitcoin blockchain through settlement when desired.
+  </Accordion>
+</AccordionGroup>
 
-Arkade makes Bitcoin truly programmable. Developers can write contracts using **Arkade Script**, a stateful, expressive scripting language that compiles into Bitcoin-compatible execution flows. Contracts are tied directly to Bitcoin outputs, ensuring unilateral enforceability.
+## Use Arkade To Build
 
-### Parallel Execution
-
-Arkade replaces Bitcoin’s linear mempool with an offchain **Virtual Mempool**, enabling independent VTXO-based transactions to execute in parallel. This eliminates global contention and unlocks horizontal scalability for Bitcoin applications.
-
-### Self-Custodial Security
-
-VTXOs grant users unilateral exit rights, enforced through presigned Bitcoin transactions. All contracts are auditable, and users retain full control over their assets at all times.
-
-### Verifiable Trust
-
-Transactions receive instant offchain preconfirmation by **Arkade Signers** which are signing agents running inside **Trusted Execution Environments (TEEs)**. These signers attest to correct execution and provide integrity guarantees. Transaction finality can be achieved by anchoring offchain VTXOs to the Bitcoin blockchain when desired.
-
-### Efficient Batch Settlement
-
-Thousands of Arkade transactions can be compressed into a single Batch Output as part of a Commitment Transaction. This significantly reduces individual settlement costs while preserving the onchain enforceability of each VTXO through presigned exit paths.
-
-## Use Arkade To Build:
-
-- **Smart Wallets** with programmable spending conditions leveraging secure enclaves of modern smartphones and laptops.
-- **Lending Protocols** using natively collateralized BTC with verifiable liquidation rules.
-- **Decentralized Exchanges** with high frequency cross-chain swaps.
+- [**Smart Wallets**](/wallets/setup) with programmable spending conditions, account recovery, and automated payment flows
+- [**Lending Protocols**](/contracts/synthetic-assets) using Bitcoin as native collateral without counterparty risk
+- [**Structured Financial Products**](/contracts/synthetic-assets) with programmable terms, multi-asset strategies, and automated execution
+- [**Trading Platforms**](/contracts/automated-market-makers) with instant cross-chain swaps, no bridges or wrapped tokens required
 - **AI Payments** enabling autonomous machine-to-machine economies and programmable task execution
-- **Margin Trading with Bitcoin** with configurable leverage, without giving up self-custody of the margin collateral.
+- **Margin Trading** with configurable leverage while maintaining self-custody of collateral
 
 Arkade brings cloud-like scale to Bitcoin apps. Programmable money. Instantly executed.
 
 ## Get Started
 
 <CardGroup cols={3}>
-  <Card title="Learn the Basics" icon="book" href="/learn">
+  <Card title="Learn the Basics" icon="book" href="/primer">
     Understand the core concepts behind Arkade and how it enhances Bitcoin
+  </Card>
+    <Card title="Grok Arkade's Architecture" icon="landmark" href="/learn/pillars/vtxos">
+    Learn about the core architecture of Arkade
   </Card>
   <Card title="Set Up a Wallet" icon="wallet" href="/wallets/setup">
     Create your first Arkade wallet and start building
@@ -61,10 +73,10 @@ Arkade brings cloud-like scale to Bitcoin apps. Programmable money. Instantly ex
   <Card title="Send Payments" icon="paper-plane" href="/wallets/sending-payments">
     Learn how to send Bitcoin payments with Arkade
   </Card>
-  <Card title="Receive Payments" icon="download" href="/wallets/receiving-payments">
-    Accept Bitcoin payments instantly with near-zero fees
-  </Card>
   <Card title="Advanced Contracts" icon="code" href="/contracts/overview">
     Build complex financial applications on Arkade
+  </Card>
+    <Card title="API Layer" icon="plug" href="/arkd/what-is-arkd">
+    Get familiar with arkd, Arkade tx workflows and the associated API Layer
   </Card>
 </CardGroup>

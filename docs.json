@@ -39,34 +39,53 @@
         "tab": "Learn",
         "pages": [
           "index",
-          "learn/background",
-          "learn/FAQ",
+          "primer",
           "learn/glossary",
           "roadmap",
           {
-            "group": "Architecture",
+            "group": "Arkade Pillars",
             "pages": [
-              "learn/architecture/roles",
-              "learn/architecture/components",
-              "learn/architecture/lifecycle"
+              {
+                "group": "Transaction Batching",
+                "icon": "layer-group",
+                "pages": [
+                  "learn/pillars/vtxos",
+                  "learn/pillars/batch-outputs",
+                  "learn/pillars/batch-expiry"
+                ]
+              },
+              {
+                "group": "Offchain Execution",
+                "icon": "bolt",
+                "pages": [
+                  "learn/pillars/arkade-tx",
+                  "learn/pillars/virtual-mempool"
+                ]
+              },
+              {
+                "group": "Onchain Settlement",
+                "icon": "circle-down",
+                "pages": [
+                  "learn/pillars/batch-swaps",
+                  "learn/pillars/connectors"
+                ]
+              }
             ]
           },
           {
             "group": "Security",
             "pages": [
-              "learn/security/bitcoin-native-security",
               "learn/security/unilateral-exit",
               "learn/security/transaction-finality",
               "learn/security/liveness",
               "learn/security/advanced-security",
-              "learn/security/economic-security",
               "learn/security/risks-limitations"
             ]
           }
         ]
       },
       {
-        "tab": "Wallet and Payments",
+        "tab": "Wallet & Payments",
         "pages": [
           "wallets/introduction",
           "wallets/setup",
@@ -80,9 +99,10 @@
         ]
       },
       {
-        "tab": "Contracts and Apps (Alpha)",
+        "tab": "Contracts & Apps",
         "pages": [
           "contracts/overview",
+          "contracts/background",
           {
             "group": "Arkade Language",
             "pages": [
@@ -143,7 +163,39 @@
               "arkd/components/intent-delegation",
               "arkd/components/ark-notes"
             ]
+          },
+          {
+            "group": "Server Security",
+            "pages": [
+              "arkd/server-security/forfeit-txs",
+              "arkd/server-security/checkpoint-txs"
+            ]
           }
+        ]
+      },
+      {
+        "tab": "FAQ",
+        "pages": [
+          "learn/faq/what-is-arkade",
+          "learn/faq/what-problem-does-arkade-solve",
+          "learn/faq/is-arkade-a-new-blockchain",
+          "learn/faq/does-arkade-require-changes-to-bitcoin",
+          "learn/faq/does-arkade-require-a-token",
+          "learn/faq/is-arkade-live",
+          "learn/faq/what-are-vtxos",
+          "learn/faq/what-is-the-virtual-mempool",
+          "learn/faq/who-is-the-arkade-operator",
+          "learn/faq/what-is-batch-output-and-onchain-settlement",
+          "learn/faq/what-is-arkade-script",
+          "learn/faq/what-about-the-fees",
+          "learn/faq/how-does-arkade-ensure-self-custody",
+          "learn/faq/what-if-the-operator-disappears-or-acts-maliciously",
+          "learn/faq/whats-a-tee-and-how-does-arkade-use-it",
+          "learn/faq/will-arkade-work-with-existing-bitcoin-infrastructure",
+          "learn/faq/are-arkade-transactions-real-bitcoin-transactions",
+          "learn/faq/how-does-arkade-relate-to-ark-protocol",
+          "learn/faq/what-kind-of-applications-can-be-built-on-arkade",
+          "learn/faq/how-do-i-get-started-with-arkade"
         ]
       }
     ]

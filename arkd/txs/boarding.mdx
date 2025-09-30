@@ -36,8 +36,8 @@ After funding the boarding address, clients participate in the [standard batch p
 1. **Registration**: Client registers an intent through `RegisterIntent()` with boarding inputs and a `BIP322` signature.
 2. **Confirmation**: Client confirms participation via `ConfirmRegistration()`
 3. **Tree Signing**: Client submits nonces and signatures for the Musig2 protocol
-4. **Forfeit Transaction Submission**: Client submits signed [forfeit transactions](/learn/ark/batch-swaps#forfeit-transactions)
-5. **Commitment Transaction Signing**: Client signs [commitment transaction](/learn/ark/tx-batching#commitment-transactions) for boarding inputs
+4. **Forfeit Transaction Submission**: Client submits signed [forfeit transactions](/learn/pillars/batch-swaps#forfeit-transactions)
+5. **Commitment Transaction Signing**: Client signs [commitment transaction](/learn/pillars/batch-swaps#commitment-transactions) for boarding inputs
 
 The server validates boarding inputs during commitment transaction creation via [`validateBoardingInput`](https://github.com/arkade-os/arkd/blob/4cabf95f33b0196c47518425e92efc089636aa20/internal/core/application/service.go#L2211-L2284)
 

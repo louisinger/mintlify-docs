@@ -10,7 +10,7 @@ icon: "hand"
   - VTXO preconfirmed: broadcast [checkpoint transaction](/arkd/server-security/checkpoint-txs)
 </Info>
 
-[Forfeit transactions](/learn/pillars/batch-swaps#forfeit-transactions) are a critical security mechanism for Arkade operators that protect them from fraud attempts by users. When a user attempts to broadcast old pre-signed paths for a VTXO that was already spent in a previous batch, the operator broadcasts the corresponding forfeit transaction to claw back the funds.
+[Forfeit transactions](/learn/pillars/batch-swaps#forfeit-transactions) are a critical security mechanism for Arkade operators that protect them from fraud attempts by users. When a user attempts to broadcast old pre-signed paths for a VTXO that was already spent in a previous batch swap, the operator broadcasts the corresponding forfeit transaction to claw back the funds.
 
 The attacker burns their own transaction fees attempting this fraud while gaining no economic advantage - the operator immediately publishes the forfeit transaction to reclaim the onchain funds that belong to the server.
 

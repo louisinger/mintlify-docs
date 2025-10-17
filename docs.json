@@ -159,6 +159,7 @@
           {
             "group": "Components",
             "pages": [
+              "arkd/components/scheduled-session",
               "arkd/components/intent-system",
               "arkd/components/intent-delegation",
               "arkd/components/ark-notes",

@@ -1,5 +1,5 @@
 ---
-title: "Working with Balances"
+title: "Check Balances"
 description: "Learn how to manage balances, UTXOs, and VTXOs in Arkade"
 icon: "coins"
 ---
@@ -21,26 +21,51 @@ The balance object contains detailed information about both onchain and offchain
 ```typescript
 {
   boarding: {
-    confirmed: 50000,   // confirmed on-chain balance in sats
-    unconfirmed: 50000, // unconfirmed on-chain balance in sats
-    total: 100000;      // total on-chain balance (confirmed + unconfirmed) in sats
+    unconfirmed: 50000, // unconfirmed onchain balance in sats
+    confirmed: 50000,   // confirmed onchain balance in sats
+    total: 100000;      // total onchain balance (confirmed + unconfirmed) in sats
   };
-  settled: 20000;         
   preconfirmed: 0;
+  settled: 20000;         
   available: 20000;     // settled + preconfirmed
-  recoverable: 0;       // subdust and (swept=true & unspent=true)
-  total: 20000;         // total off-chain balance in sats
+  recoverable: 5000;       // subdust and (swept=true & unspent=true)
+  total: 25000;         // total offchain balance (available + recoverable) in sats
 }
 ```
+
+<Tip>
+  **Balance Categories** / [VTXO States](/learn/pillars/vtxos#vtxo-states)
+
+  - Onchain Balances
+    - `unconfirmed`: Unconfirmed UTXO balance 
+    - `confirmed`: Confirmed UTXO balance 
+  - Offchain Balances
+    - `preconfirmed`: Cosigned by the Arkade Signer and the sender
+    - `settled`: VTXO that is Bitcoin-anchored via a [batch swap](/learn/pillars/batch-swaps)
+    - `recoverable`: Offchain balance that is recoverable via an intent in a batch swap. Includes sub-dust VTXOs, expired VTXOs and Arkade Notes
+</Tip>
+
+<Tip>
+  **Balance Categories** / [VTXO States](/learn/pillars/vtxos#vtxo-states)
+
+  - `boarding.confirmed` - Confirmed boarding UTXO balance
+  - `boarding.unconfirmed` - Unconfirmed boarding UTXO balance
+  - `boarding.total` - Total boarding balance
+  - `settled` - Settled VTXO balance
+  - `preconfirmed` - Preconfirmed VTXO balance
+  - `available` - Total spendable balance (settled + preconfirmed)
+  - `recoverable` - Recoverable VTXO balance
+  - `total` - Total balance across all categories
+</Tip>
 
 ## Managing Coins
 
 ### Getting Virtual UTXOs
 
-Virtual UTXOs (VTXOs) are offchain constructs that allow for virtual transactions within Arkade. You can retrieve all your VTXOs with a simple call:
+You can retrieve all your offchain VTXOs with a simple call:
 
 ```typescript
-// Get virtual UTXOs (off-chain)
+// Get virtual UTXOs (offchain)
 const vtxos = await wallet.getVtxos()
 console.log('Number of VTXOs:', vtxos.length)
 
@@ -77,12 +102,6 @@ boardingUtxos.forEach((utxo, index) => {
 
 Now that you understand how to work with balances and coins in Arkade, you can explore more advanced topics:
 
-- [Detecting Payments](/wallets/receiving-payments#monitoring-for-incoming-payments) - Learn how to monitor and detect incoming payments
-- [Payment History](/wallets/payment-history) - Retrieve and work with transaction history
-- [Ramps](/wallets/ramps) - Understand how to move funds in and out of Arkade
-
----
-
-<PreviousButton url="/wallets/setup" text="Setup" />
-
-<NextButton url="/wallets/detecting-payments" text="Detecting Payments" />
+- [Detecting Payments](/wallets/v0.3/receiving-payments#monitoring-for-incoming-payments) - Learn how to monitor and detect incoming payments
+- [Payment History](/wallets/v0.3/payment-history) - Retrieve and work with transaction history
+- [Ramps](/wallets/v0.3/ramps) - Understand how to move funds in and out of Arkade

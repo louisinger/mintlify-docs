@@ -50,7 +50,7 @@ VTXOs are presigned Bitcoin transactions secured by a Taproot script (keypath un
 
 A VTXO can exist in **multiple states**, depending on its origin, use, and confirmation status:
 
-1. **Preconfirmed State (Unsettled)**: The VTXO was created offchain through an Arkade transaction, has been validated and cosigned by the Arkade Signer, but has not yet been settled onchain via a commitment transaction. It can be used for further offchain activity but requires trust in the operator.
+1. **Preconfirmed State**: The VTXO was created offchain through an Arkade transaction, has been validated and cosigned by the Arkade Signer, but has not yet been settled onchain via a commitment transaction. It can be used for further offchain activity but requires trust in the operator.
 2. **Unconfirmed State**: These VTXOs have been included in a commitment transaction batch and are awaiting Bitcoin network confirmation.
 3. **Confirmed / Bitcoin Finality (Settled)**: VTXOs anchored onchain through confirmed commitment transactions inherit full Bitcoin security guarantees with complete unilateral exit rights.
 4. **Recoverable**: These VTXOs are valid within Arkade's offchain protocol but cannot be exited unilaterally. They cannot be reused in offchain transactions, but can be included in Arkade [intents](/learn/pillars/batch-swaps#intents). Sub-dust VTXOs, expired VTXOs and [Arkade Notes](/arkd/components/ark-notes) fall in this category.

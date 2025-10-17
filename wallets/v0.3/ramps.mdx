@@ -1,10 +1,10 @@
 ---
 title: "Ramps: Boarding and Exiting"
-description: "Mechanisms for onboarding and exiting Arkade"
+description: "Mechanisms for boarding onto and exiting from Arkade"
 icon: "bitcoin"
 ---
 
-Ramps are the mechanisms that allow users with Bitcoin to onboard and exit from Arkade with its own built-in mechanisms. They are designed to provide a seamless experience for users, allowing them to move funds in and out of Arkade. There are two types of ramps: Boarding (onboarding) and Exiting (offboarding).
+Ramps are the tools that allow users with Bitcoin to onboard onto and exit from Arkade with its own built-in mechanisms. They are designed to provide a seamless experience for users, allowing them to move funds in and out of Arkade. There are two types of ramps: Boarding (onboarding) and Exiting (offboarding).
 
 ## Boarding
 
@@ -37,11 +37,11 @@ console.log('Commitment transaction ID:', commitmentTxid)
 
 ### 4. Operator includes the UTXO in a Commitment Transaction
 
-The Arkade Operator processes the registration and includes the UTXO in a Commitment Transaction.
+The Arkade Operator processes the registration and includes the UTXO in a [Commitment Transaction](/learn/pillars/batch-swaps#commitment-transactions).
 
 ### 5. Receive a VTXO
 
-Once the Commitment Transaction is confirmed, you now have a VTXO (Virtual UTXO) within a Batch Output that you can spend offchain.
+Once the Commitment Transaction is confirmed, you now have a VTXO within a Batch Output that you can spend offchain.
 
 <Tip>
   Boarding addresses resemble VTXOs but typically use longer timelocks to reduce risk.
@@ -49,7 +49,7 @@ Once the Commitment Transaction is confirmed, you now have a VTXO (Virtual UTXO)
 
 While any UTXO can be used as an input, a boarding address is the preferred way as it removes the risk of a malicious user double-spending the UTXO and replacing or failing the commitment transaction.
 
-## Exiting
+## Exiting (collaboratively)
 
 Exiting is the process of swapping a VTXO (offchain) for a UTXO (onchain). The collaborative exit process is the most efficient way to exit Arkade when the Operator is available.
 
@@ -59,7 +59,7 @@ Specify the destination address and amount for the onchain UTXO.
 
 ```typescript
 // Specify destination address and amount
-const destinationAddress = "bc1q..." // Your on-chain Bitcoin address
+const destinationAddress = "bc1q..." // Your onchain Bitcoin address
 const amount = 50000 // Amount in sats, optional, undefined means exit all
 ```
 
@@ -68,7 +68,7 @@ const amount = 50000 // Amount in sats, optional, undefined means exit all
 Request the Arkade Operator to settle your VTXO to an onchain UTXO.
 
 ```typescript
-// Settle to an on-chain address
+// Settle to an onchain address
 const commitmentTxid = await new Ramps(wallet).offboard(destinationAddress, amount)
 
 console.log('Commitment transaction ID:', commitmentTxid)
@@ -84,13 +84,13 @@ Once confirmed, your funds are available as a standard onchain Bitcoin UTXO.
 
 This method offers immediate withdrawal with lower delay and is operationally simpler than unilateral exits.
 
-## Unilateral Exit
+## Exiting (unilaterally)
 
 Unilateral exit is the process of exiting a VTXO to an onchain address without the Operator's involvement. This is a more complex and expensive process and should only be done if the Operator is not available.
 
 ### 1. Create an onchain wallet and fund it
 
-Unilateral exit requires unrolling a set of transactions leading to your VTXO. Each transaction contains a P2A output letting to pay for the miner fees. So you need onchain funds to pay for them.
+Unilateral exit requires [unrolling a set of transactions](/learn/security/unilateral-exit#exit-requirements) leading to your VTXO. Each transaction includes a P2A output that covers the miner fees. So you need onchain funds to pay for them.
 
 ```typescript
 // Create an onchain wallet to pay for P2A outputs in VTXO branches
@@ -111,7 +111,7 @@ const session = await Unroll.Session.create(
   outpoint,
   onchainWallet, // the onchain wallet paying for miner fees
   onchainWallet.provider, // the onchain explorer
-  wallet.indexerProvider // the ark indexer to fetch virtual transactions
+  wallet.indexerProvider // the [Arkade Indexer](/arkd/core-services/indexer-service) to fetch virtual transactions
 );
 
 // iterates through each step will execute them one by one
@@ -142,7 +142,7 @@ VTXO unilateral exit tapscript is always locked by a relative locktime (CHECKSEQ
 // Try to spend the VTXO exit script
 // completeUnroll fails if the locktime is not reached
 await Unroll.completeUnroll(
-  wallet, // the ark wallet owning the VTXO
+  wallet, // the Arkade wallet owning the VTXO
   [vtxo.txid], // the list of VTXO transaction IDs to complete
   onchainWallet.address // the destination address (onchain) to receive the exit amount
 );

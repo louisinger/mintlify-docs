@@ -86,16 +86,40 @@
       },
       {
         "tab": "Wallet & Payments",
-        "pages": [
-          "wallets/introduction",
-          "wallets/setup",
-          "wallets/ark-addresses",
-          "wallets/receiving-payments",
-          "wallets/balances",
-          "wallets/settlement",
-          "wallets/sending-payments",
-          "wallets/payment-history",
-          "wallets/ramps"
+        "versions": [
+          {
+            "version": "v0.3 (Latest)",
+            "pages": [
+              {
+                "group": "Getting Started",
+                "pages": [
+                  "wallets/v0.3/introduction",
+                  "wallets/v0.3/setup",
+                  "wallets/v0.3/ark-addresses"
+                ]
+              },
+              {
+                "group": "Wallet Operations",
+                "pages": [
+                  "wallets/v0.3/receiving-payments",
+                  "wallets/v0.3/balances",
+                  "wallets/v0.3/sending-payments",
+                  "wallets/v0.3/payment-history",
+                  "wallets/v0.3/settlement",
+                  "wallets/v0.3/ramps"
+                ]
+              },
+              {
+                "group": "Advanced Features",
+                "pages": [
+                  "wallets/v0.3/vtxo-management",
+                  "wallets/v0.3/storage-adapters",
+                  "wallets/v0.3/service-worker",
+                  "wallets/v0.3/expo-react-native"
+                ]
+              }
+            ]
+          }
         ]
       },
       {

@@ -6,24 +6,20 @@ icon: "download"
 
 ## Overview
 
-Receiving payments with Arkade is simple and efficient. Your wallet can generate addresses for both boarding and Arkade payments, allowing your users to send Bitcoin to you through either method.
+Receiving payments with Arkade is designed for instant, low-fee Bitcoin transfers. Your Arkade wallet generates an offchain address that allows anyone to send you Bitcoin instantly within the Arkade network, or through Lightning Network swaps.
 
-## Getting Your Wallet Address
+## Getting Your Arkade Address
 
-To receive payments, you first need to generate an address:
+To receive payments, generate your offchain Arkade address:
 
 ```typescript
 const offchainAddress = await wallet.getAddress()
-const boardingAddress = await wallet.getBoardingAddress()
 
 // The offchain Arkade address for instant payments
-console.log('Ark Address':, offchainAddress)
-
-// The onchain boarding address
-console.log('Bitcoin Address':, boardingAddress)
+console.log('Ark Address:', offchainAddress)
 ```
 
-<Tip>Your offchain address is the default for instant payments. The onchain address is only used for [boarding Arkade](/wallets/v0.3/ramps#boarding).</Tip>
+<Tip>This is your primary receiving address for everyday payments. Share this address to receive instant, near-zero fee Bitcoin payments from other Arkade wallets.</Tip>
 
 ## Arkade Addresses
 
@@ -33,12 +29,19 @@ Arkade addresses start with `ark1` on Bitcoin mainnet or `tark1` on testnet and 
   Learn about the technical structure of Arkade addresses, how they're generated, and the security guarantees they provide.
 </Card>
 
+## Receiving from Lightning Network
+
+Your Arkade wallet can receive payments from the Lightning Network through submarine swaps. This allows Lightning users to pay you instantly, with the funds settling into your Arkade wallet as VTXOs.
+
+<Card title="Lightning Swaps" icon="bolt" horizontal href="/contracts/lightning-swaps">
+  Learn how to integrate Lightning Network payments with your Arkade wallet using submarine swaps.
+</Card>
+
 ## Monitoring for Incoming Payments
 
-To detect when payments are received, you can use `wallet.notifyIncomingFunds()` for incoming transactions in real-time.
+To detect when payments are received, you can use `wallet.notifyIncomingFunds()` for incoming VTXOs in real-time.
 
 ```typescript
-
 // Example function to process incoming funds
 async function processIncomingFunds(notification: IncomingFunds) {
   // Update your application state
@@ -46,25 +49,22 @@ async function processIncomingFunds(notification: IncomingFunds) {
     case 'vtxo':
       for (const vtxo of notification.vtxos) {
         console.log(`Received payment of ${vtxo.amount} sats`);
-        
+
         // You might want to store the VTXO in your database
         await storeVtxoInDatabase(vtxo);
-        
+
         // Notify the user
         showNotification(`Received ${vtxo.amount} sats!`);
-        
+
         // Update the UI
         await refreshBalanceDisplay();
       }
       break;
     case 'utxo':
+      // UTXOs received on boarding addresses (see Ramps documentation)
       for (const utxo of notification.utxos) {
         await storeBoardingUtxoInDatabase(utxo)
-
-        // Notify the user
         showNotification(`Received ${utxo.amount} sats on boarding address!`);
-        
-        // Update the UI
         await refreshBalanceDisplay();
       }
       break;
@@ -74,9 +74,13 @@ async function processIncomingFunds(notification: IncomingFunds) {
 // Start the subscription
 const stop = wallet.notifyIncomingFunds(processIncomingFunds)
 
-// Stop the subscription
+// Stop the subscription when needed
 stop()
 ```
+
+<Note>
+  The `utxo` notification type is only relevant when using [boarding addresses](/wallets/v0.3/ramps#boarding) to onboard Bitcoin into Arkade. For everyday receiving, you'll primarily work with `vtxo` notifications.
+</Note>
 
 ### Best Practices
 
@@ -94,9 +98,9 @@ stop()
 
 ## Next Steps
 
-- [Check Balances](/wallets/v0.3/balances) - Learn how to verify your wallet balance after receiving payments
-- [Send Payments](/wallets/v0.3/sending-payments) - Learn how to send payments to others
-- [Payment History](/wallets/v0.3/payment-history) - Track all your received and sent payments
+- [Check Balances](/wallets/v0.3/balances) - Learn how to verify your wallet balance
+- [Send Payments](/wallets/v0.3/sending-payments) - Learn how to send payments within Arkade and to Lightning
+- [Ramps](/wallets/v0.3/ramps) - Advanced: onboard Bitcoin from the blockchain or offboard to the blockchain
 
 ---
 

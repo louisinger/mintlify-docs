@@ -1,62 +1,60 @@
 ---
 title: "Check Balances"
-description: "Learn how to manage balances, UTXOs, and VTXOs in Arkade"
+description: "Learn how to check your Arkade wallet balance"
 icon: "coins"
 ---
 
-Arkade allows you to easily check your wallet balances, both onchain and offchain. The balance information is structured to provide detailed insights into your funds.
+Your Arkade wallet balance shows how many satoshis you can spend in offchain transactions. This is your primary balance for everyday payments within Arkade.
 
 ```typescript
 const balance = await wallet.getBalance()
-// total is spendable in settlement
-console.log('Total :', balance.total)
-// available is spendable in offchain transactions
-console.log('Available :', balance.available)
+
+// Available balance - spendable in offchain Arkade transactions
+console.log('Available:', balance.available)
+
+// Total balance - includes available + recoverable funds
+console.log('Total:', balance.total)
 ```
 
-### Balance Object Structure
+## Understanding Your Balance
 
-The balance object contains detailed information about both onchain and offchain funds:
+Your Arkade wallet balance is composed of different VTXO states:
 
 ```typescript
 {
+  // Offchain balances (VTXOs)
+  preconfirmed: 0;      // Cosigned by the Arkade operators and sender
+  settled: 20000;       // Bitcoin-anchored via batch swap
+  available: 20000;     // settled + preconfirmed (spendable in transactions)
+  recoverable: 5000;    // Expired VTXOs and subdust. (see VTXO Management)
+  total: 25000;         // available + recoverable
+
+  // Pending onchain deposits. (boarding UTXOs - see Ramps for onboarding)
   boarding: {
-    unconfirmed: 50000, // unconfirmed onchain balance in sats
-    confirmed: 50000,   // confirmed onchain balance in sats
-    total: 100000;      // total onchain balance (confirmed + unconfirmed) in sats
+    unconfirmed: 0,     // Unconfirmed onchain UTXOs
+    confirmed: 0,       // Confirmed onchain UTXOs
+    total: 0            // confirmed + unconfirmed
   };
-  preconfirmed: 0;
-  settled: 20000;         
-  available: 20000;     // settled + preconfirmed
-  recoverable: 5000;       // subdust and (swept=true & unspent=true)
-  total: 25000;         // total offchain balance (available + recoverable) in sats
 }
 ```
 
 <Tip>
-  **Balance Categories** / [VTXO States](/learn/pillars/vtxos#vtxo-states)
+  **Primary Balance Fields:**
 
-  - Onchain Balances
-    - `unconfirmed`: Unconfirmed UTXO balance 
-    - `confirmed`: Confirmed UTXO balance 
-  - Offchain Balances
-    - `preconfirmed`: Cosigned by the Arkade Signer and the sender
-    - `settled`: VTXO that is Bitcoin-anchored via a [batch swap](/learn/pillars/batch-swaps)
-    - `recoverable`: Offchain balance that is recoverable via an intent in a batch swap. Includes sub-dust VTXOs, expired VTXOs and Arkade Notes
+  - `available` - What you can spend right now in Arkade transactions
+  - `total` - Your total offchain balance including funds that need recovery
+
+  For everyday use, focus on the `available` balance.
 </Tip>
 
-<Tip>
-  **Balance Categories** / [VTXO States](/learn/pillars/vtxos#vtxo-states)
+<Note>
+  **Advanced Balance Fields:**
 
-  - `boarding.confirmed` - Confirmed boarding UTXO balance
-  - `boarding.unconfirmed` - Unconfirmed boarding UTXO balance
-  - `boarding.total` - Total boarding balance
-  - `settled` - Settled VTXO balance
-  - `preconfirmed` - Preconfirmed VTXO balance
-  - `available` - Total spendable balance (settled + preconfirmed)
-  - `recoverable` - Recoverable VTXO balance
-  - `total` - Total balance across all categories
-</Tip>
+  - `recoverable` - VTXOs that have been swept by the server or subdust amounts. Use [VTXO Management](/wallets/v0.3/vtxo-management) to recover these funds.
+  - `boarding` - Only relevant when using the [native onboarding process](/wallets/v0.3/ramps#boarding). For most users, this will be zero.
+
+  Learn more about [VTXO States](/learn/pillars/vtxos#vtxo-states).
+</Note>
 
 ## Managing Coins
 
@@ -100,8 +98,10 @@ boardingUtxos.forEach((utxo, index) => {
 
 ## Next Steps
 
-Now that you understand how to work with balances and coins in Arkade, you can explore more advanced topics:
+- [Send Payments](/wallets/v0.3/sending-payments) - Learn how to send payments within Arkade and to Lightning
+- [VTXO Management](/wallets/v0.3/vtxo-management) - Manage VTXO renewal and recovery
+- [Ramps](/wallets/v0.3/ramps) - Advanced: onboard from Bitcoin or offboard to Bitcoin
 
-- [Detecting Payments](/wallets/v0.3/receiving-payments#monitoring-for-incoming-payments) - Learn how to monitor and detect incoming payments
-- [Payment History](/wallets/v0.3/payment-history) - Retrieve and work with transaction history
-- [Ramps](/wallets/v0.3/ramps) - Understand how to move funds in and out of Arkade
+---
+
+<NextButton url="/wallets/v0.3/sending-payments" text="Send Payments" />

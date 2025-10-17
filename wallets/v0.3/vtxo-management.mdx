@@ -13,7 +13,7 @@ icon: "rotate"
 VTXOs can be in [different states](/learn/pillars/vtxos#vtxo-state) and have an expiration time based on the [batch expiry](/learn/pillars/batch-expiry). The `VtxoManager` class provides automated management for:
 
 - **Renewal**: Renew VTXOs before they expire to maintain unilateral control of your funds
-- **Recovery**: Reclaim swept or expired VTXOs back to your wallet
+- **Recovery**: Reclaim expired and swept VTXOs back to your wallet
 
 ## Creating a VTXO Manager
 
@@ -126,7 +126,7 @@ if (balance.recoverable > 0n) {
     ```
   </Accordion>
   <Accordion title="Threshold Configuration">
-    The threshold specifies the remaining portion of a VTXO’s lifetime at which renewal should be triggered. Adjust the threshold percentage based on your needs:
+    The threshold specifies the remaining portion of a VTXO's lifetime at which renewal should be triggered. Adjust the threshold percentage based on your needs:
 
     - **10% (default)**: Good balance between proactive renewal and transaction costs
     - **5%**: More aggressive, suitable for high-value or frequently active wallets
@@ -183,4 +183,3 @@ if (balance.recoverable > 0n) {
 
 - [Service Worker](/wallets/v0.3/service-worker) - Run your wallet in a background service worker
 - [Expo/React Native](/wallets/v0.3/expo-react-native) - Set up Arkade in React Native applications
-

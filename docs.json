@@ -161,7 +161,8 @@
             "pages": [
               "arkd/components/intent-system",
               "arkd/components/intent-delegation",
-              "arkd/components/ark-notes"
+              "arkd/components/ark-notes",
+              "arkd/components/arkade-psbt"
             ]
           },
           {

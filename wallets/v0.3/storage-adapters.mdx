@@ -42,7 +42,7 @@ interface StorageAdapter {
 }
 ```
 
-## Browser: LocalStorage
+## Browser LocalStorage
 
 For browser applications, use `LocalStorageAdapter` for simple persistent storage:
 
@@ -69,7 +69,7 @@ const wallet = await Wallet.create({
 })
 ```
 
-## Browser: IndexedDB
+## Browser IndexedDB
 
 For more advanced browser applications or service workers, use `IndexedDBStorageAdapter`:
 
@@ -94,7 +94,7 @@ const wallet = await Wallet.create({
   IndexedDB is recommended for service workers and applications that need to store large amounts of data.
 </Tip>
 
-## React Native: AsyncStorage
+## React Native AsyncStorage
 
 For React Native applications, use `AsyncStorageAdapter`:
 
@@ -115,7 +115,7 @@ const wallet = await Wallet.create({
 })
 ```
 
-## Node.js: FileSystem
+## Node.js FileSystem
 
 For Node.js applications, use `FileSystemStorageAdapter`:
 

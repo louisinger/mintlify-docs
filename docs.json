@@ -226,6 +226,60 @@
       }
     ]
   },
+  "redirects": [
+    {
+      "source": "/wallets/introduction",
+      "destination": "/wallets/v0.3/introduction"
+    },
+    {
+      "source": "/wallets/setup",
+      "destination": "/wallets/v0.3/setup"
+    },
+    {
+      "source": "/wallets/ark-addresses",
+      "destination": "/wallets/v0.3/ark-addresses"
+    },
+    {
+      "source": "/wallets/receiving-payments",
+      "destination": "/wallets/v0.3/receiving-payments"
+    },
+    {
+      "source": "/wallets/balances",
+      "destination": "/wallets/v0.3/balances"
+    },
+    {
+      "source": "/wallets/sending-payments",
+      "destination": "/wallets/v0.3/sending-payments"
+    },
+    {
+      "source": "/wallets/payment-history",
+      "destination": "/wallets/v0.3/payment-history"
+    },
+    {
+      "source": "/wallets/settlement",
+      "destination": "/wallets/v0.3/settlement"
+    },
+    {
+      "source": "/wallets/ramps",
+      "destination": "/wallets/v0.3/ramps"
+    },
+    {
+      "source": "/wallets/vtxo-management",
+      "destination": "/wallets/v0.3/vtxo-management"
+    },
+    {
+      "source": "/wallets/storage-adapters",
+      "destination": "/wallets/v0.3/storage-adapters"
+    },
+    {
+      "source": "/wallets/service-worker",
+      "destination": "/wallets/v0.3/service-worker"
+    },
+    {
+      "source": "/wallets/expo-react-native",
+      "destination": "/wallets/v0.3/expo-react-native"
+    }
+  ],
   "footer": {
     "socials": {
       "x": "https://x.com/arkade_os",

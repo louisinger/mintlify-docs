@@ -91,18 +91,18 @@ const virtualSpilmanChannel = new VtxoScript([
 ]);
 
 console.log("Spilman Channel Address:", virtualSpilmanChannel.address(networks.regtest.hrp
-
 ```
 
 ### Timelock Ordering and Safety
 
 1. CSV(unilateralUpdate)  \<  CSV(unilateralRefund)
 2. CLTV(refund)                 \>  current height + Δ
-  
+
 This ensures:
-* Updates are always possible before refunds.
-* Alice cannot reclaim funds prematurely.
-* Bob can safely claim his latest payment state.
+
+- Updates are always possible before refunds.
+- Alice cannot reclaim funds prematurely.
+- Bob can safely claim his latest payment state.
 
 ## Integration with Arkade
 

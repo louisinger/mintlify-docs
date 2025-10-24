@@ -20,22 +20,24 @@ To enforce a unilateral exit claim onchain, users must publish a complete transa
 
 Each transaction in this chain must be individually broadcast and confirmed on Bitcoin, with users paying standard Bitcoin network fees for each transaction.
 
-<div style={{ display: "flex", justifyContent: "center" }}>
-  <img 
-    className="block dark:hidden" 
-    src="/images/ark/exitpathlight.png" 
-    alt="Batch Outputs"
-    style={{ width: "100%", height: "auto" }}
-  />
+<div style={{ display:"flex",justifyContent:"center" }}>
+<img
+  className="block dark:hidden"
+  src="/images/ark/exitpathlight.png"
+  alt="Batch Outputs"
+  style={{ width:"100%",height:"auto" }}
+/>
+
 </div>
 
-<div style={{ display: "flex", justifyContent: "center" }}>
-  <img 
-    className="hidden dark:block" 
-    src="/images/ark/exitpathdark.png" 
-    alt="Batch Outputs"
-    style={{ width: "100%", height: "auto" }}
-  />
+<div style={{ display:"flex",justifyContent:"center" }}>
+<img
+  className="hidden dark:block mx-auto"
+  src="/images/ark/exitpathdark.png"
+  alt="Batch Outputs"
+  style={{ width:"100%",height:"auto" }}
+/>
+
 </div>
 
 ## Exit Costs
@@ -49,27 +51,30 @@ Each transaction in this chain must be individually broadcast and confirmed on B
 - Third-level VTXO: 3 Bitcoin transactions required
 - And so on...
 
-<div style={{ display: "flex", justifyContent: "center" }}>
-  <img 
-    className="block dark:hidden" 
-    src="/images/ark/txchainlight.png" 
-    alt="Transaction Chain"
-    style={{ width: "100%", height: "auto" }}
-  />
+<div style={{ display:"flex",justifyContent:"center" }}>
+<img
+  className="block dark:hidden"
+  src="/images/ark/txchainlight.png"
+  alt="Transaction Chain"
+  style={{ width:"75%",height:"auto" }}
+/>
+
 </div>
-<div style={{ display: "flex", justifyContent: "center" }}>
-  <img 
-    className="hidden dark:block" 
-    src="/images/ark/txchaindark.png" 
-    alt="Transaction Chain"
-    style={{ width: "100%", height: "auto" }}
-  />
+
+<div style={{ display:"flex",justifyContent:"center" }}>
+<img
+  className="hidden dark:block mx-auto"
+  src="/images/ark/txchaindark.png"
+  alt="Transaction Chain"
+  style={{ width:"75%",height:"auto" }}
+/>
+
 </div>
 
 For smaller VTXO values, exit costs can become prohibitive. With high Bitcoin fees, the cumulative cost of publishing multiple transactions may exceed the VTXO's balance, effectively stranding smaller holdings until either Bitcoin fees decrease or the VTXO value is enough to cover the expense.
 
 This cost structure creates natural economic incentives for users to periodically refresh their VTXOs through [batch settlement](/learn/pillars/batch-swaps) rather than allowing exit paths to grow indefinitely. Users must balance the convenience of extended offchain activity against the related cost of maintaining unilateral exit optionality.
 
-<Tip>In order for a user to unilaterally exit, they must broadcast a combination of presigned transactions containing their VTXO. Possessing these presigned transactions ensures a user can always spend their allocated funds independently, without requiring coordination with other participants or the operator.</Tip>
-
-
+<Tip>
+  In order for a user to unilaterally exit, they must broadcast a series of presigned transactions containing their VTXO. Possessing these presigned transactions ensures a user can always spend their allocated funds independently, without requiring coordination with other participants or the operator.
+</Tip>

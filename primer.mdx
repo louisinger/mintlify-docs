@@ -10,21 +10,24 @@ Arkade is available on Bitcoin today. It requires no changes to consensus rules 
 
 ## Client-Server Model
 
-<div style={{ display: "flex", justifyContent: "center" }}>
-  <img 
-    className="block dark:hidden" 
-    src="/images/ark/clientserverlight.png" 
-    alt="Batch Outputs"
-    style={{ width: "80%", height: "auto" }}
-  />
+<div style={{ display:"flex",justifyContent:"center" }}>
+<img
+  className="block dark:hidden"
+  src="/images/ark/clientserverlight.png"
+  alt="Batch Outputs"
+  style={{ width:"80%",height:"auto" }}
+/>
+
 </div>
-<div style={{ display: "flex", justifyContent: "center" }}>
-  <img 
-    className="hidden dark:block" 
-    src="/images/ark/clientserverdark.png" 
-    alt="Batch Outputs"
-    style={{ width: "80%", height: "auto" }}
-  />
+
+<div style={{ display:"flex",justifyContent:"center" }}>
+<img
+  className="hidden dark:block"
+  src="/images/ark/clientserverdark.png"
+  alt="Batch Outputs"
+  style={{ width:"80%",height:"auto" }}
+/>
+
 </div>
 
 Arkade implements a client-server architecture where users and applications cooperate through an operator to access a programmable Bitcoin environment. Clients submit transactions while the operator handles execution, validation, and eventual Bitcoin settlement.
@@ -45,41 +48,46 @@ Building upon [Ark protocol](https://docs.arklabs.xyz/ark.pdf) foundations, Arka
 
 Batch outputs partition a single transaction output (UTXO) into multiple Virtual Transaction Outputs (VTXOs). Each VTXO can be independently spent or claimed by its owner without affecting others, backed by presigned Bitcoin transactions that enable [unilateral onchain redemption](/learn/security/unilateral-exit).
 
-<div style={{ display: "flex", justifyContent: "center" }}>
-  <img 
-    className="block dark:hidden" 
-    src="/images/ark/batchoutputlight.png" 
-    alt="Batch Outputs"
-    style={{ width: "60%", height: "auto" }}
-  />
-</div>
-<div style={{ display: "flex", justifyContent: "center" }}>
-  <img 
-    className="hidden dark:block" 
-    src="/images/ark/batchoutputdark.png" 
-    alt="Batch Outputs"
-    style={{ width: "60%", height: "auto" }}
-  />
+<div style={{ display:"flex",justifyContent:"center" }}>
+<img
+  className="block dark:hidden"
+  src="/images/ark/batchoutputlight.png"
+  alt="Batch Outputs"
+  style={{ width:"60%",height:"auto" }}
+/>
+
 </div>
 
-Onchain batch outputs use an n-of-n multisignature arrangement involving all associated VTXO owners and the Arkade operator. During batch creation, participants generate presigned transactions that specify both collaborative and unilateral spend paths. 
+<div style={{ display:"flex",justifyContent:"center" }}>
+<img
+  className="hidden dark:block mx-auto"
+  src="/images/ark/batchoutputdark.png"
+  alt="Batch Outputs"
+  style={{ width:"60%",height:"auto" }}
+/>
 
-<div style={{ display: "flex", justifyContent: "center" }}>
-  <img 
-    className="block dark:hidden" 
-    src="/images/ark/conditionslight.png" 
-    alt="Spending conditions"
-    style={{ width: "80%", height: "auto" }}
-  />
 </div>
 
-<div style={{ display: "flex", justifyContent: "center" }}>
-  <img 
-    className="hidden dark:block" 
-    src="/images/ark/conditionsdark.png" 
-    alt="Spending conditions"
-    style={{ width: "80%", height: "auto" }}
-  />
+Onchain batch outputs use an n-of-n multisignature arrangement involving all associated VTXO owners and the Arkade operator. During batch creation, participants generate presigned transactions that specify both collaborative and unilateral spend paths.
+
+<div style={{ display:"flex",justifyContent:"center" }}>
+<img
+  className="block dark:hidden"
+  src="/images/ark/conditionslight.png"
+  alt="Spending conditions"
+  style={{ width:"80%",height:"auto" }}
+/>
+
+</div>
+
+<div style={{ display:"flex",justifyContent:"center" }}>
+<img
+  className="hidden dark:block"
+  src="/images/ark/conditionsdark.png"
+  alt="Spending conditions"
+  style={{ width:"80%",height:"auto" }}
+/>
+
 </div>
 
 Collaborative spending requires signatures from both the VTXO owner and operator, while unilateral spending allows users to withdraw independently after a predefined delay.
@@ -88,33 +96,37 @@ Collaborative spending requires signatures from both the VTXO owner and operator
 
 Arkade creates an abstraction layer of Bitcoin's base protocol. Transaction logic executes instantly within a virtual processing environment called the [Virtual Mempool](/learn/pillars/virtual-mempool). This approach eliminates blockchain confirmation delays while preserving layer-one security properties.
 
-<div style={{ display: "flex", justifyContent: "center" }}>
-  <img
-    className="block dark:hidden"
-    src="/images/ark/DAGlight.png"
-    alt="Light mode interface"
-    style={{ width: "80%", height: "auto" }}
-  />
+<div style={{ display:"flex",justifyContent:"center" }}>
+<img
+  className="block dark:hidden"
+  src="/images/ark/DAGlight.png"
+  alt="Light mode interface"
+  style={{ width:"80%",height:"auto" }}
+/>
+
 </div>
 
-<div style={{ display: "flex", justifyContent: "center" }}>
-  <img 
-    className="hidden dark:block" 
-    src="/images/ark/dagblack.png" 
-    alt="Dark mode interface"
-    style={{ width: "80%", height: "auto" }}
-  />
+<div style={{ display:"flex",justifyContent:"center" }}>
+<img
+  className="hidden dark:block"
+  src="/images/ark/dagblack.png"
+  alt="Dark mode interface"
+  style={{ width:"80%",height:"auto" }}
+/>
+
 </div>
 
 The Virtual Mempool organizes transactions as a [directed acyclic graph (DAG)](/learn/pillars/virtual-mempool#dag-architecture) rather than Bitcoin's linear confirmation queue. This structure explicitly encodes transaction dependencies, enabling independent transaction branches to execute in parallel without coordination overhead or global state bottlenecks.
 
 ## Dynamic Settlement Architecture
 
-Arkade gives clients complete control over [transaction finality](/learn/security/transaction-finality). 
+Arkade gives clients complete control over [transaction finality](/learn/security/transaction-finality).
 
 Offchain preconfirmations enable instant transaction processing within the Virtual Mempool. Clients then decide if and when to anchor these preconfirmed transactions to Bitcoin via batch settlement. This flexibility allows clients to optimize their preferred tradeoffs between execution speed, settlement costs, and security requirements.
 
 ### Preconfirmations
+
+A preconfirmed transaction is a Bitcoin transaction that is already validly constructed and cryptographically committed to, even though it hasn’t yet been broadcast or confirmed onchain.
 
 When the Arkade Operator cosigns a transaction, it receives a preconfirmation that makes the resulting VTXOs immediately spendable for subsequent offchain transactions. This enables rapid transaction chains within the Virtual Mempool without Bitcoin block confirmations.
 
@@ -124,26 +136,28 @@ When the Arkade Operator cosigns a transaction, it receives a preconfirmation th
 
 Users achieve full Bitcoin security by anchoring their VTXOs onchain through batch settlement. This atomic process exchanges preconfirmed VTXOs for new VTXOs secured by Bitcoin consensus through Commitment Transactions.
 
-**Trust Model**: Once settled onchain, VTXOs inherit Bitcoin's complete security guarantees: immutability, irreversibility, and censorship resistance. 
+**Trust Model**: Once settled onchain, VTXOs inherit Bitcoin's complete security guarantees: immutability, irreversibility, and censorship resistance.
 
 ### Batch Settlement Process
 
-<div style={{ display: "flex", justifyContent: "center" }}>
-  <img 
-    className="block dark:hidden" 
-    src="/images/ark/settlementlight.png" 
-    alt="Spending conditions"
-    style={{ width: "80%", height: "auto" }}
-  />
+<div style={{ display:"flex",justifyContent:"center" }}>
+<img
+  className="block dark:hidden"
+  src="/images/ark/settlementlight.png"
+  alt="Spending conditions"
+  style={{ width:"80%",height:"auto" }}
+/>
+
 </div>
 
-<div style={{ display: "flex", justifyContent: "center" }}>
-  <img 
-    className="hidden dark:block" 
-    src="/images/ark/settlementdark.png" 
-    alt="Spending conditions"
-    style={{ width: "80%", height: "auto" }}
-  />
+<div style={{ display:"flex",justifyContent:"center" }}>
+<img
+  className="hidden dark:block"
+  src="/images/ark/settlementdark.png"
+  alt="Spending conditions"
+  style={{ width:"80%",height:"auto" }}
+/>
+
 </div>
 
 When clients opt for Bitcoin finality, the server coordinates settlement through [batch swaps](/learn/pillars/batch-swaps):
@@ -153,25 +167,27 @@ When clients opt for Bitcoin finality, the server coordinates settlement through
 3. Clients atomically exchange their preconfirmed VTXOs for newly created VTXOs within a hierarchical transaction tree
 4. The entire swap compresses into a single Bitcoin Commitment Transaction, with all new VTXOs secured by the resulting batch output
 
-<div style={{ display: "flex", justifyContent: "center" }}>
-  <img 
-    className="block dark:hidden" 
-    src="/images/ark/commitmentlight.png" 
-    alt="Spending conditions"
-    style={{ width: "80%", height: "auto" }}
-  />
+<div style={{ display:"flex",justifyContent:"center" }}>
+<img
+  className="block dark:hidden"
+  src="/images/ark/commitmentlight.png"
+  alt="Spending conditions"
+  style={{ width:"80%",height:"auto" }}
+/>
+
 </div>
 
-<div style={{ display: "flex", justifyContent: "center" }}>
-  <img 
-    className="hidden dark:block" 
-    src="/images/ark/commitmentdark.png" 
-    alt="Spending conditions"
-    style={{ width: "80%", height: "auto" }}
-  />
+<div style={{ display:"flex",justifyContent:"center" }}>
+<img
+  className="hidden dark:block"
+  src="/images/ark/commitmentdark.png"
+  alt="Spending conditions"
+  style={{ width:"80%",height:"auto" }}
+/>
+
 </div>
 
-This compression delivers extraordinary cost efficiency: thousands of client operations consolidate into a single blockchain entry, sharing settlement fees across participants.
+This compression delivers strong cost efficiency: thousands of client operations can consolidate into a single blockchain entry, sharing settlement fees across participants.
 
 ## User Journey
 
@@ -189,13 +205,14 @@ Users control their security level through two options. Preconfirmations provide
 
 ### Exit
 
-Users have two exit methods. [Unilateral exit](/wallets/v0.3/ramps#unilateral-exit) lets them broadcast presigned transactions without operator cooperation. [Collaborative exit](/wallets/v0.3/ramps#exiting) allows the operator to include UTXO outputs in new transactions for simpler withdrawal.
+Users have two exit methods. [Unilateral exit](/learn/security/unilateral-exit) lets a user leave Arkade without operator cooperation. [Collaborative exit](/wallets/v0.3/ramps#exiting) is the default exit method which requires operator coordination to exit Arkade.
 
 ## Lifecycle Management
 
-VTXOs incorporate [expiration mechanisms](/learn/pillars/batch-expiry) for capital efficiency. Prior to expiration, clients must migrate VTXOs into fresh batches using batch swaps. While introducing a [liveness requirement](/learn/security/liveness), this design optimizes system liquidity and ensures the operator can recycle capital efficiently.
+VTXOs incorporate an [expiration mechanism](/learn/pillars/batch-expiry) which introduces a [liveness requirement](/learn/security/liveness) for users. Before a VTXO is about to expire, a client must migrate the respective VTXO into a new batch via a batch swap. While introducing a liveness requirement, this design optimizes system liquidity and ensures the operator can recycle capital efficiently.
 
 Contemporary wallet software handles client lifecycle management via:
+
 - Automated background renewal
 - Secure third-party delegation services for hands-off management
 - Alert systems for manual oversight when clients prefer direct control

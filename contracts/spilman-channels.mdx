@@ -45,6 +45,8 @@ A virtual Spilman Channel is composed of a Taproot tree with four key spending p
 
 ## Example Implementation
 
+The following code snippet is an excerpt from the ts-sdk repo ([spilman.js](https://github.com/arkade-os/ts-sdk/blob/master/examples/spilman.js)):
+
 ```js
 import {
   SingleKey,
@@ -90,13 +92,12 @@ const virtualSpilmanChannel = new VtxoScript([
   unilateralRefundScript,
 ]);
 
-console.log("Spilman Channel Address:", virtualSpilmanChannel.address(networks.regtest.hrp
 ```
 
 ### Timelock Ordering and Safety
 
-1. CSV(unilateralUpdate)  \<  CSV(unilateralRefund)
-2. CLTV(refund)                 \>  current height + Δ
+1. CSV (unilateralUpdate)  \<  CSV (unilateralRefund)
+2. CLTV (refund)                 \>  current height + Δ
 
 This ensures:
 

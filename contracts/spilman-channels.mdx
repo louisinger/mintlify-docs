@@ -43,56 +43,118 @@ A virtual Spilman Channel is composed of a Taproot tree with four key spending p
   The timelocks are ordered such that: `unilateralUpdateDelay` \< `unilateralRefundDelay`. This ensures that Bob can always close with the latest valid state before Alice’s refund becomes valid.
 </Info>
 
-## Example Implementation
+## Example Implementations
 
-The following code snippet is an excerpt from the ts-sdk repo ([spilman.js](https://github.com/arkade-os/ts-sdk/blob/master/examples/spilman.js)):
+The following code snippets are an excerpt from the ts-sdk repo ([spilman.js](https://github.com/arkade-os/ts-sdk/blob/master/examples/spilman.js)):
 
-```js
-import {
-  SingleKey,
-  Wallet,
-  RestArkProvider,
-  RestIndexerProvider,
-  buildOffchainTx,
-  VtxoScript,
-  MultisigTapscript,
-  CLTVMultisigTapscript,
-  CSVMultisigTapscript,
-  networks,
-} from "../dist/esm/index.js";
+<Accordion title="Constructing a Virtual Spilman Channel with Tapscript Conditions">
+  This snippet sets up a virtual Spilman payment channel between Alice, Bob, and a coordinating server. It defines the Tapscript-based spending conditions—covering cooperative updates, time-locked refunds, and unilateral exits—using multisig and timelocked scripts that together form the channel’s lifecycle logic.
 
-// Spilman Channel construction (simplified)
-const SERVER_PUBLIC_KEY = hex.decode("e35799...dbdb");
-const alice = SingleKey.fromRandomBytes();
-const bob = SingleKey.fromRandomBytes();
+  ```js
+  import {
+    SingleKey,
+    Wallet,
+    RestArkProvider,
+    RestIndexerProvider,
+    buildOffchainTx,
+    VtxoScript,
+    MultisigTapscript,
+    CLTVMultisigTapscript,
+    CSVMultisigTapscript,
+    networks,
+  } from "../dist/esm/index.js";
+  
+  // Spilman Channel construction (simplified)
+  const SERVER_PUBLIC_KEY = hex.decode("e35799...dbdb");
+  const alice = SingleKey.fromRandomBytes();
+  const bob = SingleKey.fromRandomBytes();
+  
+  const updateScript = MultisigTapscript.encode({
+    pubkeys: [await alice.xOnlyPublicKey(), await bob.xOnlyPublicKey(), SERVER_PUBLIC_KEY],
+  }).script;
+  
+  const refundScript = CLTVMultisigTapscript.encode({
+    pubkeys: [await alice.xOnlyPublicKey(), SERVER_PUBLIC_KEY],
+    absoluteTimelock: BigInt(chainTip + 10),
+  }).script;
+  
+  const unilateralUpdateScript = CSVMultisigTapscript.encode({
+    pubkeys: [await alice.xOnlyPublicKey(), await bob.xOnlyPublicKey()],
+    timelock: { type: "blocks", value: 100n },
+  }).script;
+  
+  const unilateralRefundScript = CSVMultisigTapscript.encode({
+    pubkeys: [await alice.xOnlyPublicKey()],
+    timelock: { type: "blocks", value: 102n },
+  }).script;
+  
+  const virtualSpilmanChannel = new VtxoScript([
+    updateScript,
+    refundScript,
+    unilateralUpdateScript,
+    unilateralRefundScript,
+  ]);
+  
+  ```
+</Accordion>
 
-const updateScript = MultisigTapscript.encode({
-  pubkeys: [await alice.xOnlyPublicKey(), await bob.xOnlyPublicKey(), SERVER_PUBLIC_KEY],
-}).script;
+<Accordion title="Offchain Channel State Updates and Signatures">
+  This snippet simulates off-chain channel updates between Alice and Bob.
+Alice first sends 1000 sats, both sign the transaction, then she updates the state by sending 500 more sats, resulting in a new co-signed off-chain transaction reflecting the updated balance.
 
-const refundScript = CLTVMultisigTapscript.encode({
-  pubkeys: [await alice.xOnlyPublicKey(), SERVER_PUBLIC_KEY],
-  absoluteTimelock: BigInt(chainTip + 10),
-}).script;
+  ```js
+    console.log("\nStarting channel updates...");
+    // Alice sends 1000 to bob
+    console.log("Alice sends 1000 sats to Bob");
+    const { arkTx: tx1, checkpoints } = buildOffchainTx(
+        [input],
+        [
+            {
+                amount: BigInt(1000),
+                script: virtualSpilmanChannel.pkScript,
+            },
+            {
+                amount: BigInt(channelCapacity - 1000),
+                script: virtualSpilmanChannel.pkScript,
+            },
+        ],
+        serverUnrollScript
+    );
+    const signedTx1 = await alice.sign(tx1);
+    const signedCheckpointsByAlice = await Promise.all(
+        checkpoints.map(async (c) => {
+            return alice.sign(c, [0]);
+        })
+    );
+    console.log("Alice signed transaction 1");
+    bobChannelStates.push(await bob.sign(signedTx1));
+    console.log("Bob signed transaction 1");
 
-const unilateralUpdateScript = CSVMultisigTapscript.encode({
-  pubkeys: [await alice.xOnlyPublicKey(), await bob.xOnlyPublicKey()],
-  timelock: { type: "blocks", value: 100n },
-}).script;
 
-const unilateralRefundScript = CSVMultisigTapscript.encode({
-  pubkeys: [await alice.xOnlyPublicKey()],
-  timelock: { type: "blocks", value: 102n },
-}).script;
+    // Alice updates the state, sending 500 sats more to Bob
+    console.log("\nAlice sends 500 more sats to Bob");
+    const { arkTx: tx2 } = buildOffchainTx(
+        [input],
+        [
+            {
+                amount: BigInt(1500),
+                script: virtualSpilmanChannel.pkScript,
+            },
+            {
+                amount: BigInt(channelCapacity - 1500),
+                script: virtualSpilmanChannel.pkScript,
+            },
+        ],
+        serverUnrollScript
+    );
+    const signedTx2 = await alice.sign(tx2);
+    console.log("Alice signed transaction 2");
+    bobChannelStates.push(await bob.sign(signedTx2));
+    console.log("Bob signed transaction 2");
+  
+  ```
+</Accordion>
 
-const virtualSpilmanChannel = new VtxoScript([
-  updateScript,
-  refundScript,
-  unilateralUpdateScript,
-  unilateralRefundScript,
-]);
-
-```
 
 ### Timelock Ordering and Safety
 

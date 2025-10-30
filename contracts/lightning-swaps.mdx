@@ -32,13 +32,13 @@ import { ArkadeLightning, BoltzSwapProvider, StorageProvider } from '@arkade-os/
 // Initialize your Arkade wallet
 const wallet = await Wallet.create({
   identity,
-  arkServerUrl: 'https://mutinynet.arkade.sh',
+  arkServerUrl: 'https://arkade.computer',
 });
 
 // Initialize the Lightning swap provider
 const swapProvider = new BoltzSwapProvider({
-  apiUrl: 'https://api.boltz.mutinynet.arkade.sh',
-  network: 'mutinynet',
+  apiUrl: 'https://api.ark.boltz.exchange',
+  network: 'bitcoin',
 });
 
 // Optionally: initialize a storage provider

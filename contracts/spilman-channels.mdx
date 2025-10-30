@@ -35,7 +35,7 @@ A virtual Spilman Channel is composed of a Taproot tree with four key spending p
 | Path                     | Script Type   | Participants         | Description                                            |
 | ------------------------ | ------------- | -------------------- | ------------------------------------------------------ |
 | `updateScript`           | MultiSig      | Alice + Bob + Server | Used for cooperative offchain updates                  |
-| `refundScript`           | CLTV MultiSig | Alice + Server       | Allows refund after an absolute height                 |
+| `refundScript`           | CLTV MultiSig | Alice + Server       | Allows refund after an absolute locktime                 |
 | `unilateralUpdateScript` | CSV MultiSig  | Alice + Bob          | Enables unilateral channel closure after a short delay |
 | `unilateralRefundScript` | CSV SingleSig | Alice                | Fallback refund path after a longer delay              |
 

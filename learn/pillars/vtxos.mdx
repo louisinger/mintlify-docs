@@ -53,10 +53,6 @@ vtxoLockScript = Taproot(
 )
 ```
 
-**Collaborative Path**: Requires both user and operator signatures, enabling instant offchain execution
-
-**Exit Path**: User-only control after timelock, ensuring sovereign ownership regardless of operator status
-
 1. **Exit Path (Unilateral)** This path is exclusively controlled by the VTXO owner. It allows the user to move their offchain funds onchain at any time without requiring permission or cooperation from the operator.
 2. **Collaborative Path** This path is the default path being used for [Arkade transactions](/learn/pillars/arkade-tx) as well as for standard exits of user funds. An Arkade transaction requires a cosignature from the [Arkade Signer](/learn/security/advanced-security#arkade-signer) in addition to the owner's signature. Such design allows for rapid offchain execution within the virtual mempool.
 

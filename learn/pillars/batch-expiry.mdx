@@ -34,7 +34,7 @@ Delegation is implemented at the VTXO level by embedding an additional spending 
 
 The delegation system offers the following benefits: 
 - **User retains control**: All delegation requires presigned intents; funds remain self-custodial with unilateral exit always possible.
-- **Pre-committed inputs and outputs**: Intents define and sign exact inputs and outputs; delegates can't alter those or acces funds, but only hand what has been presigned.
+- **Pre-committed inputs and outputs**: Intents define and sign exact inputs and outputs; delegates can't alter those or access funds, but only hand what has been presigned.
 - **Strict timing constraints**: Intents include time windows, this prevents a delegate to hand in an intent earlier than intended to collect associated fees. 
 
 By leveraging intent delegation, application developers can abstract batch expiry handling, delivering user experiences that feel just like existing self-custodial apps.

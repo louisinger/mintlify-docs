@@ -144,7 +144,7 @@
               "contracts/lightning-swaps",
               "contracts/chain-swaps",
               "contracts/oracle-dlc",
-              "contracts/channels",
+              "contracts/spilman-channels",
               "contracts/escrow"
             ]
           },

@@ -1,40 +1,103 @@
 ---
 title: "Overview"
-description: "Arkade Contracts and Arkade Script"
+description: "Foundations and practical applications built on Arkade’s offchain execution model"
 icon: "file-contract"
 ---
 
-<Warning>
-  **Experimental Technology**
+Arkade extends Bitcoin’s UTXO model with an offchain execution layer based on Virtual Transaction Outputs (VTXOs).\
+This enables instant execution, preconfirmation, and programmable contracts while preserving Bitcoin’s security, settlement finality, and unilateral exit guarantees.
 
-  All code and concepts presented in this documentation are for exploration and proof of concept purposes only. These examples should not be used in production environments. The Arkade Language ecosystem is under active development and subject to significant changes.
-</Warning>
+This section focuses on conceptual foundations and concrete application patterns that are either already usable today or are directly motivated by Arkade’s current execution model.\
+Unlike the [Experimental](/experimental/overview) tab, this section avoids speculative language design and instead builds intuition for _how Arkade works_ and _what you can build with it_.
 
-Arkade Script is a Bitcoin scripting language for the VTXO (Virtual Transaction Output) model. It provides two execution paths:
+## What This Section Is About
 
-1. **Immediate Execution** - Server co-signature for instant finality
-2. **Timelock Unilateral Path** - Onchain redemption fallback
+The goal of this section is to help you build a mental model for:
 
-## Arkade Script
+- How Bitcoin’s UTXO and Script model works
+- Why Bitcoin L1 alone is insufficient for real-time, composable applications
+- How Arkade’s VTXO-based offchain layer overcomes these constraints
+- How common payment and contract patterns can be implemented on Arkade today or in the near term
 
-This documentation outlines the proposed syntax and functionality for Arkade Script contracts.
+It serves as the conceptual bridge between Bitcoin fundamentals and Arkade-based applications.
 
-<Accordion title="Getting Support" icon="headset">
-  For questions or feedback on the prototype:
+## Conceptual Foundations
 
-  - Join the [Arkade Telegram community](https://t.me/arkade_os)
-  - Open an issue on [GitHub](https://github.com/arkade-os/compiler/issues)
-</Accordion>
+These pages explain the underlying execution and contract model Arkade builds upon:
 
-### Development Status
+### **Background (UTXO paradigm)**
 
-The current prototype includes:
+Introduces the core building blocks:
 
-- **Basic Compiler** - Early version that converts Arkade Script to Bitcoin Script
-- **Limited Testing Tools** - Basic verification of contract logic
+- Bitcoin Script and the UTXO model
+- Mempool behavior, fee markets, and latency constraints
+- Why onchain execution is unsuitable for interactive applications
+- How Arkade’s offchain execution layer and batch settlement model work
 
-All tools are in early experimental stages and NOT ready for production use.
+This page establishes _why_ Arkade exists.
 
----
+### **Smart Contracts in the UTXO Model**
 
-<NextButton url="/contracts/lightning-swaps" text="Lightning Swaps" />
+Explains how smart contracts work without global state:
+
+- Commit–reveal patterns and one-time spend semantics
+- Why enforcing state transitions is difficult on Bitcoin L1
+- How transaction introspection, Taproot, and key tweaking enable covenants
+- How Arkade’s VTXO paradigm enables stateful, composable contracts
+
+This page establishes _how_ contracts are expressed in a UTXO-based system.
+
+## Contracts & Applications
+
+The following pages focus on practical contract patterns and integrations built on Arkade’s execution model.
+
+### **Lightning Swaps**
+
+Integrate the Lightning Network with Arkade using submarine swaps:
+
+- Move funds between Lightning and Arkade
+- Receive Lightning payments into Arkade wallets
+- Pay Lightning invoices from Arkade balances
+
+<Card icon="bolt" horizontal href="/contracts/lightning-swaps">
+  Lightning Swaps: Bridge Arkade and Lightning using submarine swaps
+</Card>
+
+### **Spilman Channels**
+
+Build scalable, unidirectional payment channels using VTXOs:
+
+- Offchain incremental payments
+- Cooperative and unilateral close paths
+- Timelock-enforced safety without onchain funding
+
+<Card icon="route" horizontal href="/contracts/spilman-channels">
+  Spilman Channels: Virtual payment channels on Arkade
+</Card>
+
+### **Chain Swaps** _(Coming Soon)_
+
+Trust-minimized cross-chain swaps using Arkade as an execution layer.
+
+### **Oracle DLCs** _(Coming Soon)_
+
+Discreet Log Contracts using external oracles for conditional payouts.
+
+### **Escrow Contracts** _(Coming Soon)_
+
+Programmable Bitcoin escrow patterns for marketplaces and P2P trades.
+
+## How This Relates to the Experimental Section
+
+This section deliberately focuses on execution models and application patterns, not language or opcode design.
+
+If you want to explore future programmability and design space, including:
+
+- Arkade Script (a proposed high-level Bitcoin contract language)
+- Compiler architecture
+- New Tapscript opcode concepts
+- Advanced, research-oriented contracts (AMMs, synthetic assets, prediction markets)
+
+👉 Visit the [**Experimental**](/experimental/overview) section.
+
+That section is forward-looking and not implemented today, while this section builds intuition around Arkade’s real execution model and near-term applications.

@@ -127,34 +127,15 @@
         "pages": [
           "contracts/overview",
           "contracts/background",
-          {
-            "group": "Arkade Language",
-            "pages": [
-              "contracts/smart-contracts-utxo",
-              "contracts/arkade-script",
-              "contracts/arkade-compiler",
-              "contracts/arkade-syntax",
-              "contracts/arkade-types",
-              "contracts/arkade-functions"
-            ]
-          },
+          "contracts/smart-contracts-utxo",
           {
             "group": "Simple Contracts",
             "pages": [
               "contracts/lightning-swaps",
+              "contracts/spilman-channels",
               "contracts/chain-swaps",
               "contracts/oracle-dlc",
-              "contracts/spilman-channels",
               "contracts/escrow"
-            ]
-          },
-          {
-            "group": "Advanced Contracts",
-            "pages": [
-              "contracts/non-interactive-swaps",
-              "contracts/synthetic-assets",
-              "contracts/automated-market-makers",
-              "contracts/prediction-market"
             ]
           }
         ]
@@ -222,6 +203,31 @@
           "learn/faq/how-does-arkade-relate-to-ark-protocol",
           "learn/faq/what-kind-of-applications-can-be-built-on-arkade",
           "learn/faq/how-do-i-get-started-with-arkade"
+        ]
+      }, 
+      {
+        "tab": "Experimental",
+        "pages": [
+          "experimental/overview",
+          {
+            "group": "Arkade Language",
+            "pages": [
+              "experimental/arkade-script",
+              "experimental/arkade-compiler",
+              "experimental/arkade-syntax",
+              "experimental/arkade-types",
+              "experimental/arkade-functions"
+            ]
+          },
+          {
+            "group": "Advanced Contracts",
+            "pages": [
+              "experimental/non-interactive-swaps",
+              "experimental/synthetic-assets",
+              "experimental/automated-market-makers",
+              "experimental/prediction-market"
+            ]
+          }
         ]
       }
     ]

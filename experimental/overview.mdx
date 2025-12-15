@@ -34,42 +34,50 @@ This dual-path model underpins the entire Arkade Script design and all advanced 
 
 The pages that follow are grouped into three conceptual layers: language, tooling, and contract design patterns.
 
-### Language & Execution Layer
+### Language, Tooling & Execution Layer
 
-These pages describe the proposed scripting environment and execution model:
+These pages describe the proposed scripting environment, the tooling and execution model:
 
-- **Arkade Script**\
-  An overview of new Tapscript opcodes, execution limits, and extensions designed for expressive Bitcoin contracts.
-- **Arkade Syntax**\
-  A high-level, Solidity-inspired language syntax adapted to Bitcoin’s UTXO and covenant model.
-- **Arkade Types**\
-  The proposed type system, including integers, cryptographic types, assets, arrays, structs, and transaction primitives.
-- **Arkade Functions**\
-  Built-in functions for signature verification, hashing, timelocks, introspection, script construction, and cryptographic operations.
+<Card icon="code" horizontal href="/experimental/arkade-script">
+  Arkade Script: New Tapscript opcodes, execution limits, and extensions for expressive Bitcoin contracts
+</Card>
 
-### Tooling Layer
+<Card icon="gears" horizontal href="/experimental/arkade-compiler">
+  Arkade Compiler: Transforms Arkade Script into optimized Taproot scripts, handling cooperative vs unilateral paths, script optimization, Taproot tree construction, and debug metadata
+</Card>
 
-These pages describe the planned developer tooling, not production-ready software:
+<Card icon="code" horizontal href="/experimental/arkade-syntax">
+  Arkade Syntax: A high-level, Solidity-inspired language adapted to Bitcoin’s UTXO and covenant model
+</Card>
 
-- **Arkade Compiler**\
-  A conceptual compiler that transforms Arkade Script into optimized Taproot scripts, handling:
-  - Cooperative vs unilateral paths
-  - Script optimization
-  - Taproot tree construction
-  - Debug metadata and source maps
+<Card icon="cube" horizontal href="/experimental/arkade-types">
+  Arkade Types: The proposed type system including integers, cryptographic types, assets, arrays, and structs
+</Card>
+
+<Card icon="function" horizontal href="/experimental/arkade-functions">
+  Arkade Functions: Built-in primitives for signatures, hashing, timelocks, introspection, and script construction
+</Card>
+
 
 ### Advanced Contract Designs
 
 These pages explore what becomes possible once expressive covenants, introspection, and clean arithmetic are available:
 
-- **Non-Interactive Swaps**\
-  One-sided, asynchronous asset swaps without coordination or trusted intermediaries.
-- **Synthetic Assets**\
-  Collateralized, oracle-driven synthetic assets and programmable liquidation logic.
-- **Automated Market Makers (AMMs)**\
-  Recursive covenant designs for liquidity pools, swaps, and invariant-preserving market making.
-- **Prediction Markets**\
-  LMSR-based prediction markets with bounded loss, oracle resolution, and fully onchain state transitions.
+<Card icon="arrows-rotate" horizontal href="/experimental/non-interactive-swaps">
+  Non-Interactive Swaps: One-sided, asynchronous asset swaps without coordination or trusted intermediaries
+</Card>
+
+<Card icon="chart-line" horizontal href="/experimental/synthetic-assets">
+  Synthetic Assets: Collateralized, oracle-driven synthetic assets with programmable liquidation logic
+</Card>
+
+<Card icon="chart-simple" horizontal href="/experimental/automated-market-makers">
+  Automated Market Makers (AMMs): Recursive covenant designs for liquidity pools, swaps, and invariant-preserving market making
+</Card>
+
+<Card icon="dice" horizontal href="/experimental/prediction-markets">
+  Prediction Markets: LMSR-based markets with bounded loss, oracle resolution, and onchain state transitions
+</Card>
 
 <Info>
   These examples are intentionally ambitious and serve as design explorations, not implementation guides.

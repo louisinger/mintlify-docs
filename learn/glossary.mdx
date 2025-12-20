@@ -24,11 +24,11 @@ The Arkade Operator is the coordinator of Arkade's virtual execution environment
 
 ### Arkade Script
 
-[Arkade Script](/contracts/arkade-script) is an enhanced version of Bitcoin Script that enables expressive and stateful transaction flows. It extends Bitcoin's opcodes with additional primitives for introspection, arithmetic, logic, and asset operations, running exclusively in the preconfirmation state.
+[Arkade Script](/experimental/arkade-script) is an enhanced version of Bitcoin Script that enables expressive and stateful transaction flows. It extends Bitcoin's opcodes with additional primitives for introspection, arithmetic, logic, and asset operations, running exclusively in the preconfirmation state.
 
 ### Arkade Script Compiler
 
-The [Arkade Script Compiler](/contracts/arkade-compiler) is a development tool that translates high-level contract logic into executable Arkade Script code. Inspired by Bitcoin scripting languages like Ivy and CashScript, it verifies scripts preserve Ark constraints and unilateral exit guarantees.
+The [Arkade Script Compiler](/experimental/arkade-compiler) is a development tool that translates high-level contract logic into executable Arkade Script code. Inspired by Bitcoin scripting languages like Ivy and CashScript, it verifies scripts preserve Ark constraints and unilateral exit guarantees.
 
 ### Arkade Signer
 
@@ -103,7 +103,7 @@ The [e2ee](/learn/security/advanced-security#end-to-end-encryption) is a privacy
 
 ### Forfeit Transaction
 
-[Forfeit Transactions]/learn/pillars/batch-swaps#forfeit-transactions are special Arkade transactions that protect operators against user fraud by addressing the double-spending problem in the offchain environment. If a user attempts to redeem an already-spent VTXO onchain, the operator can broadcast the presigned forfeit transaction to reclaim the funds and enforce protocol security.
+[Forfeit Transactions](/learn/pillars/batch-swaps#forfeit-transactions) are special Arkade transactions that protect operators against user fraud by addressing the double-spending problem in the offchain environment. If a user attempts to redeem an already-spent VTXO onchain, the operator can broadcast the presigned forfeit transaction to reclaim the funds and enforce protocol security.
 
 
 ## I

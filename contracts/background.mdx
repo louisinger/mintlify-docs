@@ -80,7 +80,7 @@ Arkade’s design directly addresses the core limitations of Bitcoin L1:
 - **Mempool Constraints**: VTXO transfers live outside the Bitcoin mempool—no ancestor limits, pinning attacks, or RBF edge cases.
 - **Composable Contracts**: Arkade enables multi-step execution and coordination via presigned, verifiable offchain commitments, while preserving Bitcoin’s DAG-based transaction model.
 
-VTXOs remain cryptographically tied to real Bitcoin UTXOs through commitment transactions. At any time, users can unilaterally exit to Bitcoin L1 using presigned transactions. The operator cannot steal funds—they can only facilitate execution or delay settlement, with misbehavior being [detectable and punishable](learn/security/economic-security).
+VTXOs remain cryptographically tied to real Bitcoin UTXOs through commitment transactions. At any time, users can unilaterally exit to Bitcoin L1 using presigned transactions. The operator cannot steal funds—they can only facilitate execution or delay settlement, with misbehavior being [detectable and punishable](/learn/security/advanced-security).
 
 <Tip>
   Arkade’s preconfirmation provides speed without Bitcoin-level finality.  

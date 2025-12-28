@@ -1,37 +1,158 @@
 ---
 title: "Advanced Security"
-description: "Overview of advanced security mechanisms in Arkade, such as verifiable execution and end-to-end encryption."
+description: "TEEs, slashing, encryption, and trust minimization"
 icon: "lock-keyhole"
 ---
 
-Rather than asking users to simply trust operators, Arkade implements technical safeguards that transform "trust the operator" into "verify the operator." These mechanisms ensure that misbehavior is cryptographically detectable, honest execution is verifiable, economic incentives are aligned, and communication remains uncensorable. 
+Arkade transforms "trust the operator" into "verify the operator" through multiple technical safeguards.
+
+## Security Mechanisms
+
+| Mechanism | What It Does | Trust Reduction |
+|-----------|--------------|-----------------|
+| **Arkade Signer** | Separates signing from operator control | Operator can't access keys |
+| **TEE Isolation** | Hardware-protected execution | Even operator can't tamper |
+| **Remote Attestation** | Proves correct code is running | Verifiable without trust |
+| **E2E Encryption** | Protects user-signer communication | Operator can't censor |
+| **Slashing** | Burns collateral for misbehavior | Economic penalty for fraud |
 
 ## Arkade Signer
 
-The Arkade Signer represents a critical architectural separation that isolates transaction signing authority from operator control. Rather than allowing the Arkade Operator to directly sign user transactions, this responsibility is delegated to a separate module that operates under verifiable constraints.
+The Arkade Signer is a separate module that holds the cosigning key for all VTXOs. It's architecturally isolated from the operator:
 
-The Signer generates a single signing key that all Arkade addresses require for VTXO cosigning, but this key is protected within a secure hardware environment (TEE) that prevents access even by the operator. Users communicate directly with the Signer through encrypted channels (e2ee), ensuring that signature requests remain confidential and uncensorable. This architectural decision transforms the trust model from strictly relying on operator honesty to relying on cryptographic and hardware guarantees that can be independently verified.
+```
+┌─────────────────┐         ┌─────────────────┐
+│  User Wallet    │◄──E2E──►│  Arkade Signer  │
+└────────┬────────┘         └────────┬────────┘
+         │                           │
+         │                           │ (key never leaves TEE)
+         ▼                           │
+┌─────────────────┐                  │
+│ Arkade Operator │◄─────────────────┘
+│ (coordination)  │   (can't access signing key)
+└─────────────────┘
+```
 
-## Verifiable Execution
+The operator handles coordination (batching, validation, broadcasting) but never touches the signing key. This separation means:
 
-To minimize trust assumptions in the preconfirmation state, Arkade isolates the Arkade Signer within Trusted Execution Environments (TEEs). TEEs create isolated hardware environments that can attest to the software they're running and can provide robust guarantees against external tampering.
+- Operator compromise doesn't expose keys
+- Users communicate directly with Signer
+- Signing decisions are independent of operator
 
-The Arkade Signer operates within this isolated TEE environment to independently manage the cryptographic keys used for signing transactions. This isolation makes key exfiltration or tampering practically infeasible, with the signing key generated and securely maintained internally, inaccessible even to the Arkade Operator. Signing responsibilities remain strictly segregated from broader operational tasks.
+## Trusted Execution Environment (TEE)
 
-Remote, verifiable attestation based on open-source software and reproducible builds can be used to provide cryptographic evidence that the Arkade Signer is running the expected code.
+The Arkade Signer runs inside a TEE (like Intel SGX), which provides:
+
+| Property | What It Means |
+|----------|---------------|
+| **Isolation** | Code runs in sealed enclave, invisible to host OS |
+| **Key protection** | Signing key generated inside TEE, never exported |
+| **Tamper evidence** | Any modification invalidates the enclave |
+| **Attestation** | Remote proof that specific code is running |
+
+<Info>
+TEEs aren't perfect—side-channel attacks exist. But they significantly raise the bar for compromise compared to pure software solutions.
+</Info>
+
+### Remote Attestation
+
+Users can verify the Signer is running expected code:
+
+1. Signer produces attestation report (signed by hardware)
+2. Report contains hash of running code
+3. User compares hash against published open-source build
+4. If match → confidence that Signer follows protocol
+
+```typescript
+// Verify Signer attestation (simplified)
+const attestation = await getSignerAttestation()
+const expectedHash = getExpectedCodeHash('v1.2.3')
+
+if (attestation.codeHash === expectedHash) {
+  console.log('Signer verified: running expected code')
+} else {
+  console.error('Attestation mismatch!')
+}
+```
 
 ## End-to-End Encryption
 
-Arkade is designed to support end-to-end encryption (E2EE) between users and the Arkade Signer, improving confidentiality and protecting against censorship attempts by the operator.
+Communication between users and the Arkade Signer is encrypted:
 
-The E2EE protocol safeguards signature requests and other messages from interception or manipulation, rendering the Arkade Operator incapable of snooping on or censoring specific transactions. Even when the operator serves as the coordinating infrastructure, they cannot:
+| Without E2EE | With E2EE |
+|--------------|-----------|
+| Operator sees all requests | Operator sees encrypted blobs |
+| Operator can censor specific txs | Operator can't identify tx content |
+| User behavior exposed | User privacy preserved |
 
-- See what specific transactions are being processed
-- Block individual transactions based on their content
-- Analyze user behavior patterns for surveillance purposes
+Even though the operator routes messages, they can't:
+- See which addresses are transacting
+- Block individual transactions
+- Build surveillance profiles
 
 ## Slashing
 
-The Arkade Operator can stake Bitcoin collateral onchain, locked to the Arkade Signer's public key, creating economic deterrence against misbehavior. If the Signer double-signs conflicting transactions, users can present proof to the TEE along with an unsigned burn transaction, which the verified TEE software will automatically sign to destroy the collateral.
+Operators can stake Bitcoin collateral locked to the Signer's public key. If the Signer double-signs conflicting transactions:
 
-Since TEEs cannot reliably maintain global state, malicious operators might attempt to induce double-signing by feeding incorrect data to the TEE or performing restart cycles. However, such protocol violations produce cryptographic evidence that triggers slashing. The system ensures that potential attack benefits must outweigh the locked collateral value, making attacks economically irrational for operators.
+1. User obtains cryptographic proof of double-sign
+2. User presents proof to TEE
+3. TEE verifies proof and signs burn transaction
+4. Collateral is destroyed
+
+```
+Double-sign detected
+        ▼
+┌─────────────────────┐
+│  Proof submitted    │
+│  to TEE             │
+└─────────┬───────────┘
+          ▼
+┌─────────────────────┐
+│  TEE verifies       │
+│  & signs burn tx    │
+└─────────┬───────────┘
+          ▼
+┌─────────────────────┐
+│  Collateral burned  │
+│  (irreversible)     │
+└─────────────────────┘
+```
+
+### Economic Security
+
+For slashing to be effective:
+
+```
+Collateral value > Potential gain from fraud
+```
+
+If an operator stakes 1 BTC and could only profit 0.1 BTC from double-signing, fraud is economically irrational.
+
+<Warning>
+TEEs can't maintain global state perfectly—restart cycles could theoretically be exploited. Slashing ensures that even if double-signing occurs, the operator suffers losses.
+</Warning>
+
+## Layered Security
+
+These mechanisms work together:
+
+| Layer | Protects Against |
+|-------|------------------|
+| **Unilateral exit** | Total operator failure |
+| **TEE isolation** | Key theft, tampering |
+| **Attestation** | Malicious code |
+| **E2E encryption** | Censorship, surveillance |
+| **Slashing** | Double-signing attempts |
+
+No single mechanism is foolproof, but combined they create strong guarantees.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Transaction Finality" icon="check-double" href="/learn/security/transaction-finality">
+    Preconfirmation vs Bitcoin security
+  </Card>
+  <Card title="Risks & Limitations" icon="triangle-exclamation" href="/learn/security/risks-limitations">
+    Known attack vectors and mitigations
+  </Card>
+</CardGroup>

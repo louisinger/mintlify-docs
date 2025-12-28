@@ -1,0 +1,202 @@
+---
+title: "BTCPayServer"
+description: "Accept Arkade payments for merchants"
+icon: "store"
+---
+
+[BTCPayServer](https://btcpayserver.org) is a self-hosted, open-source payment processor. With Arkade support, merchants can accept instant Bitcoin payments with lower fees and better user experience.
+
+---
+
+## What BTCPayServer Enables
+
+| Capability | Description |
+|------------|-------------|
+| **Self-hosted** | You control your payment infrastructure |
+| **Multi-method** | Accept onchain, Lightning, and Arkade |
+| **No fees** | BTCPayServer itself is free |
+| **Arkade plugin** | Native Arkade payment support |
+
+---
+
+## Why Arkade for Merchants
+
+| Challenge | Onchain | Lightning | Arkade |
+|-----------|---------|-----------|--------|
+| Confirmation time | 10+ min | Instant | Instant |
+| Setup complexity | Low | High (channels) | Low |
+| Small payments | Expensive | Good | Good |
+| Large payments | Good | Channel limited | Batch optimized |
+| Customer UX | Wait for confirms | May fail routing | Reliable |
+
+---
+
+## Installation
+
+### Prerequisites
+
+- BTCPayServer instance (v1.12+)
+- Arkade server access (public or self-hosted)
+
+### Enable Arkade Plugin
+
+```bash
+# In your BTCPayServer directory
+cd BTCPayServer
+dotnet run -- --plugins "BTCPayServer.Plugins.Arkade"
+```
+
+Or via Docker:
+
+```yaml
+# docker-compose.yml
+services:
+  btcpayserver:
+    image: btcpayserver/btcpayserver:latest
+    environment:
+      BTCPAY_PLUGINS: "BTCPayServer.Plugins.Arkade"
+```
+
+### Configure Arkade Connection
+
+In BTCPayServer admin:
+
+1. Go to **Server Settings → Plugins → Arkade**
+2. Enter your Arkade server URL
+3. Import or generate wallet credentials
+4. Enable for your stores
+
+---
+
+## Checkout Flow
+
+```
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│   Customer   │     │  BTCPayServer │     │   Arkade     │
+│   Wallet     │     │    Checkout   │     │   Server     │
+└──────┬───────┘     └──────┬───────┘     └──────┬───────┘
+       │                    │                    │
+       │  1. View invoice   │                    │
+       │◄───────────────────│                    │
+       │                    │                    │
+       │  (sees Arkade      │                    │
+       │   address option)  │                    │
+       │                    │                    │
+       │  2. Send payment   │                    │
+       │────────────────────┼───────────────────►│
+       │                    │                    │
+       │                    │  3. Preconfirm     │
+       │                    │◄───────────────────│
+       │                    │                    │
+       │  4. Confirmed!     │                    │
+       │◄───────────────────│                    │
+       │                    │                    │
+```
+
+**Customer experience:**
+1. Select "Pay with Arkade" at checkout
+2. Scan QR or copy address
+3. Send from any Arkade-compatible wallet
+4. Instant confirmation (preconfirmation)
+
+---
+
+## Invoice Configuration
+
+```json
+{
+  "currency": "BTC",
+  "amount": 0.001,
+  "paymentMethods": [
+    "BTC-OnChain",
+    "BTC-Lightning", 
+    "BTC-Arkade"      // New!
+  ],
+  "arkadeOptions": {
+    "requireSettlement": false,  // Accept preconfirmations
+    "expiryMinutes": 15
+  }
+}
+```
+
+### Settlement Options
+
+| Option | Risk | Speed | Use Case |
+|--------|------|-------|----------|
+| `requireSettlement: false` | Preconfirmation trust | Instant | Small purchases |
+| `requireSettlement: true` | Bitcoin finality | ~10 min | High-value items |
+
+---
+
+## API Integration
+
+### Create Invoice with Arkade
+
+```bash
+curl -X POST "https://your-btcpay.com/api/v1/stores/{storeId}/invoices" \
+  -H "Authorization: token {apiKey}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": "10.00",
+    "currency": "USD",
+    "checkout": {
+      "paymentMethods": ["BTC-Arkade", "BTC-Lightning"]
+    }
+  }'
+```
+
+### Webhook for Arkade Payments
+
+```json
+{
+  "type": "InvoicePaymentSettled",
+  "invoiceId": "abc123",
+  "paymentMethod": "BTC-Arkade",
+  "payment": {
+    "value": 10000,
+    "status": "preconfirmed",
+    "vtxoId": "vtxo_xyz..."
+  }
+}
+```
+
+---
+
+## Settlement & Accounting
+
+### Automatic Batch Settlement
+
+Configure automatic settlement to Bitcoin:
+
+```yaml
+# BTCPayServer Arkade settings
+arkade:
+  autoSettle:
+    enabled: true
+    threshold: 100000  # sats
+    schedule: "0 0 * * *"  # Daily at midnight
+```
+
+### Export for Accounting
+
+BTCPayServer includes Arkade transactions in:
+- Invoice exports (CSV, JSON)
+- Accounting integrations (QuickBooks, etc.)
+- Tax reporting tools
+
+---
+
+## Resources
+
+- [BTCPayServer Documentation](https://docs.btcpayserver.org)
+- [BTCPayServer GitHub](https://github.com/btcpayserver/btcpayserver)
+- [Arkade Plugin Repository](https://github.com/arkade-os/btcpay-plugin)
+
+<CardGroup cols={2}>
+<Card title="Zero to One" icon="rocket" href="/start/zero-to-one">
+  Build your first Arkade integration
+</Card>
+<Card title="SDK Setup" icon="code" href="/wallets/v0.3/setup">
+  Arkade SDK documentation
+</Card>
+</CardGroup>

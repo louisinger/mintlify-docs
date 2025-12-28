@@ -1,15 +1,125 @@
 ---
 title: "Economic Security"
-description: "Exploration of economic security in Arkade, including collateral burn mechanisms and fee incentives"
+description: "How fees and incentives align operator behavior"
 icon: "coins"
 ---
 
-## Fee Incentives
+Arkade's security relies on both cryptographic guarantees and economic incentives. Operators are financially motivated to behave honestly.
 
-Arkade operators earn revenue through a dual fee structure that aligns their incentives with reliable execution. 
+## Fee Structure
 
-Execution fees are collected for offchain transactions in the virtual mempool, while settlement fees are earned when transactions are batched to Bitcoin. 
+Operators earn from two fee types:
 
-Since settlement fees are shared across many users in each batch, operators are incentivized to aggregate transactions efficiently and maintain high throughput.
+| Fee Type | When Charged | Who Pays |
+|----------|--------------|----------|
+| **Execution fee** | Each offchain transaction | Sender |
+| **Settlement fee** | Batch swap to Bitcoin | Shared by batch participants |
 
-This fee model creates positive economic incentives for operators to remain online, process transactions promptly, and avoid censorship that would drive users to competing operators. The recurring revenue from fees provides sustainable economic motivation for honest behavior. Operators who provide reliable service and efficient batching earn higher transaction volumes and associated fees.
+### Execution Fees
+
+Small fees (fractions of a satoshi) on each Arkade transaction. These add up with volume.
+
+```
+100,000 transactions/day × 0.5 sat/tx = 50,000 sats/day
+```
+
+### Settlement Fees
+
+Charged when users anchor VTXOs to Bitcoin via batch swaps. The onchain transaction cost is shared across all participants.
+
+```
+1 batch = 1 Bitcoin transaction
+100 users in batch = 100-way fee split
+```
+
+## Incentive Alignment
+
+The fee model creates natural incentives:
+
+| Operator Behavior | Economic Effect |
+|-------------------|-----------------|
+| Stay online | Earn execution fees |
+| Process quickly | Users prefer fast operators |
+| Batch efficiently | Lower per-user costs = more users |
+| Don't censor | Censored users go elsewhere |
+| Be honest | Misbehavior triggers slashing |
+
+**Revenue requires reliability.** An offline or misbehaving operator earns nothing.
+
+## Slashing Mechanism
+
+Operators can stake Bitcoin collateral that gets destroyed if they misbehave.
+
+### How It Works
+
+```
+Operator stakes collateral
+        ↓
+Collateral locked to Signer public key
+        ↓
+If double-signing detected:
+  - User presents proof to TEE
+  - TEE signs burn transaction
+  - Collateral destroyed
+```
+
+### Economic Rationality
+
+For an attack to be rational:
+
+```
+Attack profit > Collateral value
+```
+
+If the operator stakes 1 BTC and could only gain 0.1 BTC from fraud, attacking is irrational.
+
+### Slashing Triggers
+
+| Trigger | Evidence |
+|---------|----------|
+| Double-signing | Two valid signatures for conflicting transactions |
+| Protocol violation | TEE attestation shows unauthorized code |
+
+<Info>
+Slashing is a last resort. The primary deterrent is reputation—operators who misbehave lose all their users permanently.
+</Info>
+
+## Competitive Pressure
+
+Arkade supports multiple operators. Users can choose based on:
+
+| Factor | User Preference |
+|--------|-----------------|
+| Fees | Lower is better |
+| Uptime | Higher is better |
+| Reputation | Established operators preferred |
+| Collateral | More stake = more trust |
+| Settlement frequency | More batches = faster finality |
+
+Competition prevents any single operator from exploiting users.
+
+## Operator Economics
+
+A sustainable operator needs:
+
+| Revenue | Cost |
+|---------|------|
+| Execution fees | Server infrastructure |
+| Settlement fees | Liquidity capital |
+| | VTXO tree funding |
+| | Collateral stake |
+
+Operators must provide significant upfront capital to fund VTXO trees, creating economic skin in the game beyond just collateral.
+
+## User Perspective
+
+You benefit from economic security without thinking about it:
+
+- **Low fees** — operators compete for your business
+- **Reliable service** — downtime costs operators money
+- **Honest execution** — fraud triggers slashing
+- **Fast settlement** — efficiency benefits everyone
+
+<Card title="Advanced Security" icon="lock-keyhole" href="/learn/security/advanced-security" horizontal>
+  Technical mechanisms: TEEs, attestation, encryption
+</Card>

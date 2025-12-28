@@ -1,19 +1,18 @@
 ---
 title: "Lightning Swaps"
-description: "Integrate Lightning Network with Arkade using Submarine Swaps"
+description: "Send and receive Lightning payments with your Arkade wallet"
 icon: "bolt"
 ---
 
-Arkade provides seamless integration with the Lightning Network through Boltz submarine swaps, allowing users to move funds between Arkade and Lightning channels.
+Exchange funds between Arkade and Lightning Network using submarine swaps powered by [Boltz](https://boltz.exchange). No channel management required.
 
-## Overview
+## Why Use Lightning Swaps?
 
-The `BoltzSwapProvider` library extends Arkade's functionality by enabling:
-
-1. **Lightning to Arkade swaps** - Receive funds from Lightning payments into your Arkade wallet
-2. **Arkade to Lightning swaps** - Send funds from your Arkade wallet to Lightning invoices
-
-This integration is built on top of the Boltz submarine swap protocol, providing a reliable and secure way to bridge the gap between Arkade and the Lightning Network.
+| Use Case | Method |
+|----------|--------|
+| **Fund your Arkade wallet** | Receive a Lightning payment → get VTXOs |
+| **Pay Lightning invoices** | Spend VTXOs → pay any Lightning invoice |
+| **Onboard new users** | Faster than [native boarding](/wallets/v0.3/ramps) for small amounts |
 
 ## Installation
 
@@ -21,166 +20,168 @@ This integration is built on top of the Boltz submarine swap protocol, providing
 npm install @arkade-os/sdk @arkade-os/boltz-swap
 ```
 
-## Basic Usage
-
-### Initializing the Lightning Swap Provider
+## Quick Start
 
 ```typescript
-import { Wallet } from '@arkade-os/sdk';
-import { ArkadeLightning, BoltzSwapProvider, StorageProvider } from '@arkade-os/boltz-swap';
+import { Wallet, SingleKey } from '@arkade-os/sdk'
+import { ArkadeLightning, BoltzSwapProvider } from '@arkade-os/boltz-swap'
 
-// Initialize your Arkade wallet
+// Create your Arkade wallet
 const wallet = await Wallet.create({
-  identity,
-  arkServerUrl: 'https://arkade.computer',
-});
+  identity: SingleKey.fromHex(privateKey),
+  arkServerUrl: 'https://mutinynet.arkade.sh'
+})
 
-// Initialize the Lightning swap provider
+// Initialize Lightning provider
 const swapProvider = new BoltzSwapProvider({
-  apiUrl: 'https://api.ark.boltz.exchange',
-  network: 'bitcoin',
-});
+  apiUrl: 'https://api.testnet.boltz.exchange',  // Use mainnet URL for production
+  network: 'testnet'
+})
 
-// Optionally: initialize a storage provider
-const storageProvider = await StorageProvider.create();
+const lightning = new ArkadeLightning({ wallet, swapProvider })
 
-// Create the ArkadeLightning instance
-const arkadeLightning = new ArkadeLightning({
+// Receive from Lightning
+const invoice = await lightning.createLightningInvoice({
+  amount: 50000,
+  description: 'Funding my Arkade wallet'
+})
+console.log('Pay this invoice:', invoice.invoice)
+
+// Wait for payment and claim funds
+const result = await lightning.waitAndClaim(invoice.pendingSwap)
+console.log('Received! VTXO:', result.txid)
+```
+
+## Boltz API Endpoints
+
+| Network | API URL |
+|---------|---------|
+| **Mainnet** | `https://api.ark.boltz.exchange` |
+| **Testnet** | `https://api.testnet.boltz.exchange` |
+
+## Receive Lightning Payments
+
+Generate a Lightning invoice that deposits funds to your Arkade wallet:
+
+```typescript
+const invoice = await lightning.createLightningInvoice({
+  amount: 50000,  // satoshis
+  description: 'Payment for services'
+})
+
+console.log('Amount:', invoice.amount, 'sats')
+console.log('Invoice:', invoice.invoice)
+console.log('Expires in:', invoice.expiry, 'seconds')
+```
+
+Share the invoice with the payer. When paid, claim the funds:
+
+```typescript
+const result = await lightning.waitAndClaim(invoice.pendingSwap)
+console.log('Funds received! Transaction:', result.txid)
+```
+
+<Tip>
+`waitAndClaim` blocks until payment is received. For non-blocking flows, poll the swap status or use the storage provider to track pending swaps.
+</Tip>
+
+## Send Lightning Payments
+
+Pay any Lightning invoice from your Arkade balance:
+
+```typescript
+import { decodeInvoice } from '@arkade-os/boltz-swap'
+
+// Optional: decode invoice to inspect details
+const details = decodeInvoice('lnbc500u1pj...')
+console.log('Amount:', details.amountSats, 'sats')
+console.log('Description:', details.description)
+
+// Send the payment
+const payment = await lightning.sendLightningPayment({
+  invoice: 'lnbc500u1pj...',
+  maxFeeSats: 1000  // optional fee limit
+})
+
+console.log('Paid! Preimage:', payment.preimage)
+```
+
+## Persistent Swap Storage
+
+Track pending swaps across application restarts:
+
+```typescript
+import { StorageProvider } from '@arkade-os/boltz-swap'
+
+const storageProvider = await StorageProvider.create({
+  storagePath: './swaps.json'
+})
+
+const lightning = new ArkadeLightning({
   wallet,
   swapProvider,
-  storageProvider, // optional
-});
-```
+  storageProvider
+})
 
-## Storage
+// Retrieve pending swaps on startup
+const pendingReceives = lightning.getPendingReverseSwaps()
+const pendingSends = lightning.getPendingSubmarineSwaps()
 
-By default this library doesn't store pending swaps.
-
-If you need it you must initialize a storageProvider:
-
-```typescript
-const storageProvider = await StorageProvider.create({ storagePath: './storage.json' });
-
-const arkadeLightning = new ArkadeLightning({
-  wallet,
-  swapProvider,
-  storageProvider,
-});
-
-// you now are able to use the following methods
-const pendingPaymentsToLightning = arkadeLightning.getPendingSubmarineSwaps();
-const pendingPaymentsFromLightning = arkadeLightning.getPendingReverseSwaps();
-```
-
-## Receiving Lightning Payments
-
-To receive a Lightning payment into your Arkade wallet:
-
-```typescript
-// Create a Lightning invoice that will deposit funds to your Arkade wallet
-const result = await arkadeLightning.createLightningInvoice({
-  amount: 50000, // 50,000 sats
-  description: 'Payment to my Arkade wallet',
-});
-
-console.log('Receive amount:', result.amount);
-console.log('Expiry (seconds):', result.expiry);
-console.log('Lightning Invoice:', result.invoice);
-console.log('Payment Hash:', result.paymentHash);
-console.log('Pending swap', result.pendingSwap);
-console.log('Preimage', result.preimage);
-
-// The invoice can now be shared with the payer
-// When paid, funds will appear in your Arkade wallet
-```
-
-### Monitoring Incoming Lightning Payments
-
-You must monitor the status of incoming Lightning payments.
-It will automatically claim the payment when it's available.
-
-```typescript
-// Monitor the payment, it will resolve when the payment is received
-const receivalResult = await arkadeLightning.waitAndClaim(result.pendingSwap);
-console.log('Receival successful!');
-console.log('Transaction ID:', receivalResult.txid);
-```
-
-## Sending Lightning Payments
-
-To send a payment from your Arkade wallet to a Lightning invoice:
-
-```typescript
-import { decodeInvoice } from '@arkade-os/boltz-swap';
-
-// Parse a Lightning invoice
-const invoiceDetails = decodeInvoice(
-  'lnbc500u1pj...' // Lightning invoice string
-);
-
-console.log('Invoice amount:', invoiceDetails.amountSats, 'sats');
-console.log('Description:', invoiceDetails.description);
-console.log('Payment Hash:', invoiceDetails.paymentHash);
-
-// Pay the Lightning invoice from your Arkade wallet
-const paymentResult = await arkadeLightning.sendLightningPayment({
-  invoice: 'lnbc500u1pj...', // Lightning invoice string
-  maxFeeSats: 1000, // Optional: Maximum fee you're willing to pay (in sats)
-});
-
-console.log('Payment successful!');
-console.log('Amount:', paymentResult.amount);
-console.log('Preimage:', paymentResult.preimage);
-console.log('Transaction ID:', paymentResult.txid);
-```
-
-## Error Handling
-
-The library provides detailed error types to help you handle different failure scenarios:
-
-```typescript
-import {
-  SwapError,
-  SchemaError,
-  NetworkError,
-  SwapExpiredError,
-  InvoiceExpiredError,
-  InvoiceFailedToPayError,
-  InsufficientFundsError,
-  TransactionFailedError,
-} from '@arkade-os/boltz-swap';
-
-try {
-  await arkadeLightning.sendLightningPayment({
-    invoice: 'lnbc500u1pj...',
-  });
-} catch (error) {
-  if (error instanceof InvoiceExpiredError) {
-    console.error('The invoice has expired. Please request a new one.');
-  } else if (error instanceof InvoiceFailedToPayError) {
-    console.error('The provider failed to pay the invoice. Please request a new one.');
-  } else if (error instanceof InsufficientFundsError) {
-    console.error('Not enough funds available:', error.message);
-  } else if (error instanceof NetworkError) {
-    console.error('Network issue. Please try again later:', error.message);
-  } else if (error instanceof SchemaError) {
-    console.error('Invalid response from API. Please try again later.');
-  } else if (error instanceof SwapExpiredError) {
-    console.error('The swap has expired. Please request a new invoice.');
-  } else if (error instanceof SwapError) {
-    console.error('Swap failed:', error.message);
-  } else if (error instanceof TransactionFailedError) {
-    console.error('Transaction failed. Please try again later');
-  } else {
-    console.error('Unknown error:', error);
-  }
-
-  // You might be able to claim a refund
-  if (error.isRefundable && error.pendingSwap) {
-    const refundResult = await arkadeLightning.refundVHTLC(error.pendingSwap);
-    console.log('Refund claimed:', refundResult.txid);
+// Resume claiming any completed payments
+for (const swap of pendingReceives) {
+  try {
+    await lightning.waitAndClaim(swap)
+  } catch (e) {
+    console.log('Swap not ready or expired:', swap.id)
   }
 }
 ```
 
-<PreviousButton url="/contracts/overview" text="Overview" />
+## Error Handling
+
+```typescript
+import {
+  InsufficientFundsError,
+  InvoiceExpiredError,
+  SwapExpiredError,
+  NetworkError
+} from '@arkade-os/boltz-swap'
+
+try {
+  await lightning.sendLightningPayment({ invoice })
+} catch (error) {
+  if (error instanceof InsufficientFundsError) {
+    console.error('Not enough funds:', error.message)
+  } else if (error instanceof InvoiceExpiredError) {
+    console.error('Invoice expired, request a new one')
+  } else if (error instanceof SwapExpiredError) {
+    // Attempt refund if possible
+    if (error.isRefundable && error.pendingSwap) {
+      const refund = await lightning.refundVHTLC(error.pendingSwap)
+      console.log('Refunded:', refund.txid)
+    }
+  } else if (error instanceof NetworkError) {
+    console.error('Network issue, retry later')
+  } else {
+    throw error
+  }
+}
+```
+
+## How Submarine Swaps Work
+
+1. **Receive (Reverse Swap):** Boltz pays you onchain/Arkade when someone pays your Lightning invoice
+2. **Send (Submarine Swap):** You pay Boltz, they pay the Lightning invoice
+
+Both directions use atomic swaps with hash time-locked contracts (HTLCs), ensuring neither party can steal funds. If a swap fails, funds are automatically refundable after a timeout.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Chain Swaps" icon="link" href="/contracts/chain-swaps">
+    Swap between Bitcoin chains
+  </Card>
+  <Card title="Ramps" icon="bitcoin" href="/wallets/v0.3/ramps">
+    Native onchain boarding for larger amounts
+  </Card>
+</CardGroup>

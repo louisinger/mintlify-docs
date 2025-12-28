@@ -36,14 +36,109 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Learn",
+        "tab": "Get Started",
         "pages": [
           "index",
+          "quickstart",
+          "start/zero-to-one",
+          "use-cases",
+          "roadmap"
+        ]
+      },
+      {
+        "tab": "Developers",
+        "groups": [
+          {
+            "group": "SDK Guides",
+            "pages": [
+              "wallets/v0.3/introduction",
+              "wallets/v0.3/setup",
+              "wallets/v0.3/ark-addresses",
+              "wallets/v0.3/receiving-payments",
+              "wallets/v0.3/balances",
+              "wallets/v0.3/sending-payments",
+              "wallets/v0.3/payment-history",
+              "wallets/v0.3/settlement",
+              "wallets/v0.3/ramps"
+            ]
+          },
+          {
+            "group": "Advanced SDK",
+            "pages": [
+              "wallets/v0.3/vtxo-management",
+              "wallets/v0.3/storage-adapters",
+              "wallets/v0.3/service-worker",
+              "wallets/v0.3/expo-react-native"
+            ]
+          },
+          {
+            "group": "Contracts",
+            "pages": [
+              "contracts/overview",
+              "contracts/background",
+              "contracts/smart-contracts-utxo",
+              "contracts/lightning-swaps",
+              "contracts/spilman-channels",
+              "contracts/chain-swaps",
+              "contracts/oracle-dlc",
+              "contracts/escrow"
+            ]
+          },
+          {
+            "group": "Server & API",
+            "pages": [
+              "arkd/what-is-arkd",
+              {
+                "group": "Workflows",
+                "pages": [
+                  "arkd/txs/boarding",
+                  "arkd/txs/offchain-execution",
+                  "arkd/txs/onchain-settlement",
+                  "arkd/txs/exiting"
+                ]
+              },
+              {
+                "group": "API Reference",
+                "pages": [
+                  "arkd/core-services/overview",
+                  "arkd/core-services/ark-service",
+                  "arkd/core-services/indexer-service"
+                ]
+              },
+              {
+                "group": "Components",
+                "pages": [
+                  "arkd/components/scheduled-session",
+                  "arkd/components/intent-system",
+                  "arkd/components/intent-delegation",
+                  "arkd/components/ark-notes",
+                  "arkd/components/arkade-psbt"
+                ]
+              },
+              {
+                "group": "Server Security",
+                "pages": [
+                  "arkd/server-security/forfeit-txs",
+                  "arkd/server-security/checkpoint-txs"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Tools",
+            "pages": [
+              "developers/tools/index"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Learn",
+        "pages": [
           "primer",
           "learn/glossary",
-          "roadmap",
           {
-            "group": "Arkade Pillars",
+            "group": "Core Concepts",
             "pages": [
               {
                 "group": "Transaction Batching",
@@ -85,126 +180,71 @@
         ]
       },
       {
-        "tab": "Wallet & Payments",
-        "versions": [
-          {
-            "version": "v0.3 (Latest)",
-            "pages": [
-              {
-                "group": "Getting Started",
-                "pages": [
-                  "wallets/v0.3/introduction",
-                  "wallets/v0.3/setup",
-                  "wallets/v0.3/ark-addresses"
-                ]
-              },
-              {
-                "group": "Wallet Operations",
-                "pages": [
-                  "wallets/v0.3/receiving-payments",
-                  "wallets/v0.3/balances",
-                  "wallets/v0.3/sending-payments",
-                  "wallets/v0.3/payment-history",
-                  "wallets/v0.3/settlement",
-                  "wallets/v0.3/ramps"
-                ]
-              },
-              {
-                "group": "Advanced Features",
-                "pages": [
-                  "wallets/v0.3/vtxo-management",
-                  "wallets/v0.3/storage-adapters",
-                  "wallets/v0.3/service-worker",
-                  "wallets/v0.3/expo-react-native"
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Contracts & Apps",
-        "pages": [
-          "contracts/overview",
-          "contracts/background",
-          "contracts/smart-contracts-utxo",
-          {
-            "group": "Simple Contracts",
-            "pages": [
-              "contracts/lightning-swaps",
-              "contracts/spilman-channels",
-              "contracts/chain-swaps",
-              "contracts/oracle-dlc",
-              "contracts/escrow"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Server & API Reference",
-        "pages": [
-          "arkd/what-is-arkd",
-          {
-            "group": "Arkade Workflows",
-            "pages": [
-              "arkd/txs/boarding",
-              "arkd/txs/offchain-execution",
-              "arkd/txs/onchain-settlement",
-              "arkd/txs/exiting"
-            ]
-          },
-          {
-            "group": "API Layer",
-            "pages": [
-              "arkd/core-services/overview",
-              "arkd/core-services/ark-service",
-              "arkd/core-services/indexer-service"
-            ]
-          },
-          {
-            "group": "Components",
-            "pages": [
-              "arkd/components/scheduled-session",
-              "arkd/components/intent-system",
-              "arkd/components/intent-delegation",
-              "arkd/components/ark-notes",
-              "arkd/components/arkade-psbt"
-            ]
-          },
-          {
-            "group": "Server Security",
-            "pages": [
-              "arkd/server-security/forfeit-txs",
-              "arkd/server-security/checkpoint-txs"
-            ]
-          }
-        ]
-      },
-      {
         "tab": "FAQ",
         "pages": [
-          "learn/faq/what-is-arkade",
-          "learn/faq/what-problem-does-arkade-solve",
-          "learn/faq/is-arkade-a-new-blockchain",
-          "learn/faq/does-arkade-require-changes-to-bitcoin",
-          "learn/faq/does-arkade-require-a-token",
-          "learn/faq/is-arkade-live",
-          "learn/faq/what-are-vtxos",
-          "learn/faq/what-is-the-virtual-mempool",
-          "learn/faq/who-is-the-arkade-operator",
-          "learn/faq/what-is-batch-output-and-onchain-settlement",
-          "learn/faq/what-is-arkade-script",
-          "learn/faq/what-about-the-fees",
-          "learn/faq/how-does-arkade-ensure-self-custody",
-          "learn/faq/what-if-the-operator-disappears-or-acts-maliciously",
-          "learn/faq/whats-a-tee-and-how-does-arkade-use-it",
-          "learn/faq/will-arkade-work-with-existing-bitcoin-infrastructure",
-          "learn/faq/are-arkade-transactions-real-bitcoin-transactions",
-          "learn/faq/how-does-arkade-relate-to-ark-protocol",
-          "learn/faq/what-kind-of-applications-can-be-built-on-arkade",
-          "learn/faq/how-do-i-get-started-with-arkade"
+          "learn/faq/index",
+          {
+            "group": "Basics",
+            "pages": [
+              "learn/faq/what-is-arkade",
+              "learn/faq/what-problem-does-arkade-solve",
+              "learn/faq/is-arkade-a-new-blockchain",
+              "learn/faq/does-arkade-require-a-token",
+              "learn/faq/is-arkade-live"
+            ]
+          },
+          {
+            "group": "Technical Concepts",
+            "pages": [
+              "learn/faq/what-are-vtxos",
+              "learn/faq/what-is-the-virtual-mempool",
+              "learn/faq/who-is-the-arkade-operator",
+              "learn/faq/what-is-batch-output-and-onchain-settlement",
+              "learn/faq/are-arkade-transactions-real-bitcoin-transactions",
+              "learn/faq/what-is-arkade-script"
+            ]
+          },
+          {
+            "group": "Security & Trust",
+            "pages": [
+              "learn/faq/how-does-arkade-ensure-self-custody",
+              "learn/faq/what-if-the-operator-disappears-or-acts-maliciously",
+              "learn/faq/whats-a-tee-and-how-does-arkade-use-it"
+            ]
+          },
+          {
+            "group": "Compatibility",
+            "pages": [
+              "learn/faq/does-arkade-require-changes-to-bitcoin",
+              "learn/faq/will-arkade-work-with-existing-bitcoin-infrastructure",
+              "learn/faq/how-does-arkade-relate-to-ark-protocol"
+            ]
+          },
+          {
+            "group": "Building on Arkade",
+            "pages": [
+              "learn/faq/what-about-the-fees",
+              "learn/faq/what-kind-of-applications-can-be-built-on-arkade",
+              "learn/faq/how-do-i-get-started-with-arkade"
+            ]
+          }
         ]
-      }, 
+      },
+      {
+        "tab": "Ecosystem",
+        "pages": [
+          "ecosystem/index",
+          "ecosystem/integration-guide",
+          {
+            "group": "Partners",
+            "pages": [
+              "ecosystem/boltz",
+              "ecosystem/breez",
+              "ecosystem/btcpayserver"
+            ]
+          }
+        ]
+      },
       {
         "tab": "Experimental",
         "pages": [

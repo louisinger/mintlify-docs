@@ -1,0 +1,252 @@
+---
+title: "Developer Tools"
+description: "Testnet, CLI, and development resources"
+icon: "wrench"
+---
+
+Resources for building and testing on Arkade.
+
+---
+
+## Testnet Environment
+
+Arkade runs on **Mutinynet**, a Bitcoin signet optimized for development.
+
+<CardGroup cols={2}>
+<Card title="Mutinynet Faucet" icon="faucet" href="https://faucet.mutinynet.com">
+  Get free testnet Bitcoin
+</Card>
+<Card title="Mempool Explorer" icon="magnifying-glass" href="https://mutinynet.com">
+  View testnet transactions
+</Card>
+</CardGroup>
+
+### Public Testnet Server
+
+```
+Server URL: https://mutinynet.arkade.fun
+Network:    mutinynet (signet)
+```
+
+Connect your SDK:
+
+```typescript
+import { ArkClient, networks } from '@arklabs/wallet-sdk';
+
+const client = await ArkClient.init({
+  network: networks.mutinynet,
+  serverUrl: 'https://mutinynet.arkade.fun',
+  // ... other config
+});
+```
+
+---
+
+## CLI Reference
+
+The `ark-cli` tool provides command-line access to Arkade functionality.
+
+### Installation
+
+```bash
+# Install via Go
+go install github.com/arkade-os/arkd/cmd/ark-cli@latest
+
+# Verify installation
+ark-cli --version
+```
+
+### Quick Start
+
+```bash
+# Initialize wallet (creates config and keys)
+ark-cli init --network mutinynet --server https://mutinynet.arkade.fun
+
+# Check balance
+ark-cli balance
+
+# Get addresses
+ark-cli receive
+
+# Send payment
+ark-cli send --to ark1q... --amount 1000
+```
+
+### Common Commands
+
+| Command | Description |
+|---------|-------------|
+| `ark-cli init` | Initialize wallet configuration |
+| `ark-cli balance` | Show current balance |
+| `ark-cli receive` | Display receive addresses |
+| `ark-cli send` | Send offchain payment |
+| `ark-cli settle` | Settle VTXOs to Bitcoin |
+| `ark-cli redeem` | Exit to onchain Bitcoin |
+| `ark-cli vtxos` | List all VTXOs |
+
+### Wallet Management
+
+```bash
+# Show all VTXOs with status
+ark-cli vtxos --verbose
+
+# Settle pending VTXOs for Bitcoin finality
+ark-cli settle
+
+# Exit to L1 (collaborative)
+ark-cli redeem --address tb1q... --amount 5000
+
+# Force exit (unilateral, if operator unresponsive)
+ark-cli redeem --force
+```
+
+### Configuration
+
+Config file location: `~/.ark-cli/config.json`
+
+```json
+{
+  "network": "mutinynet",
+  "server_url": "https://mutinynet.arkade.fun",
+  "wallet_path": "~/.ark-cli/wallet.db"
+}
+```
+
+---
+
+## SDK Languages
+
+<CardGroup cols={3}>
+<Card title="TypeScript" icon="js" href="https://github.com/arkade-os/ts-sdk">
+  Primary SDK for web and Node.js
+</Card>
+<Card title="Golang" icon="golang" href="https://github.com/arkade-os/ark">
+  Server-side and CLI tools
+</Card>
+<Card title="Rust" icon="rust" href="https://github.com/arkade-os/ark-rust">
+  Native applications (coming soon)
+</Card>
+</CardGroup>
+
+---
+
+## API Endpoints
+
+### REST API
+
+Base URL: `https://mutinynet.arkade.fun/v1`
+
+```bash
+# Get server info
+curl https://mutinynet.arkade.fun/v1/info
+
+# Response
+{
+  "pubkey": "02abc...",
+  "network": "mutinynet",
+  "version": "0.3.0",
+  "round_interval": 10,
+  "vtxo_expiry_blocks": 512
+}
+```
+
+### gRPC API
+
+```bash
+# Using grpcurl
+grpcurl -plaintext mutinynet.arkade.fun:443 ark.v1.ArkService/GetInfo
+```
+
+Full API documentation: [API Reference](/arkd/core-services/overview)
+
+---
+
+## Running Your Own Server
+
+For production or private deployments:
+
+```bash
+# Clone the repository
+git clone https://github.com/arkade-os/arkd
+cd arkd
+
+# Build
+go build -o arkd ./cmd/arkd
+
+# Run with config
+./arkd --config config.yaml
+```
+
+Minimum `config.yaml`:
+
+```yaml
+network: bitcoin  # or mutinynet
+rpc_host: localhost:8332
+rpc_user: your_rpc_user
+rpc_pass: your_rpc_pass
+listen_addr: 0.0.0.0:7070
+```
+
+<Card title="Server Documentation" icon="server" href="/arkd/what-is-arkd">
+  Complete arkd setup and configuration
+</Card>
+
+---
+
+## Development Workflow
+
+### Recommended Setup
+
+1. **Get testnet coins** from [Mutinynet Faucet](https://faucet.mutinynet.com)
+2. **Initialize SDK** pointed at public testnet
+3. **Build and test** your application
+4. **Switch to mainnet** when ready
+
+### Testing Checklist
+
+- [ ] Boarding (L1 → Arkade)
+- [ ] Offchain payments
+- [ ] Settlement (batch swap)
+- [ ] Exit (Arkade → L1)
+- [ ] VTXO expiry handling
+- [ ] Error cases (insufficient balance, etc.)
+
+---
+
+## Debugging
+
+### Enable Verbose Logging
+
+```typescript
+const client = await ArkClient.init({
+  // ... config
+  logLevel: 'debug'
+});
+```
+
+```bash
+# CLI verbose mode
+ark-cli --verbose send --to ark1q... --amount 1000
+```
+
+### Common Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| "No spendable VTXOs" | Haven't boarded | Call `client.board()` after funding |
+| "Insufficient balance" | Fees not accounted | Include fee buffer in amount |
+| "VTXO expired" | Missed renewal | Use delegation or settle regularly |
+| "Connection refused" | Server URL wrong | Check network and URL match |
+
+---
+
+## Support
+
+<CardGroup cols={2}>
+<Card title="GitHub Issues" icon="github" href="https://github.com/arkade-os/arkd/issues">
+  Report bugs and request features
+</Card>
+<Card title="Telegram" icon="telegram" href="https://t.me/arkade_os">
+  Developer community chat
+</Card>
+</CardGroup>

@@ -1,30 +1,31 @@
 ---
 title: "Unilateral Exit"
-description: "Sovereignty & User Control"
+description: "Exit to Bitcoin without anyone's permission"
 icon: "door-open"
 ---
 
-The [VTXO structure](/learn/pillars/vtxos#vtxo-structure) includes a presigned transaction path that enables its owner to exit to Bitcoin independently. When a VTXO is created, it comes with a valid set of Bitcoin transactions that can be broadcast at any time without requiring signatures or cooperation from operators or other users.
+Every VTXO includes a presigned Bitcoin transaction that lets you exit to the base layer without operator cooperation. This is Arkade's core security guarantee: **you can always get your Bitcoin back**.
 
-## Exit Requirements
+## Why This Matters
 
-Arkade's architecture organizes VTXOs in a virtual tree structure rooted into [batch outputs](/learn/pillars/batch-outputs). Each batch output branches into multiple virtual transactions, which can further branch into additional virtual transactions, creating a tree-like structure of spending relationships. Individual VTXOs exist as leaves or intermediate nodes within this virtual tree.
+| Scenario | What Happens | Your Action |
+|----------|--------------|-------------|
+| Operator goes offline | Can't make new Arkade transactions | Broadcast exit tx |
+| Operator refuses to cooperate | Can't do collaborative exit | Broadcast exit tx |
+| Operator acts maliciously | Double-signing detected | Broadcast exit tx |
+| You just want out | Any reason | Broadcast exit tx |
 
-To enforce a unilateral exit claim onchain, users must publish a complete transaction path from the relevant batch output down to their specific VTXO. This requires broadcasting multiple sequential Bitcoin transactions that "unroll" the virtual tree structure, with each transaction in the chain consuming outputs from the previous transaction until the user's VTXO is finally claimed.
+No matter what happens to the operator or the Arkade network, your presigned exit transaction is valid Bitcoin that miners will confirm.
 
-**Example Exit Path:**
+## How Exit Works
 
-1. Batch Output → Virtual Transaction A (first level)
-2. Virtual Transaction A → Virtual Transaction B (second level)
-3. Virtual Transaction B → User's VTXO (final claim)
-
-Each transaction in this chain must be individually broadcast and confirmed on Bitcoin, with users paying standard Bitcoin network fees for each transaction.
+VTXOs exist within a tree structure rooted in [batch outputs](/learn/pillars/batch-outputs). To exit, you broadcast a path of transactions from the batch output down to your VTXO.
 
 <div style={{ display:"flex",justifyContent:"center" }}>
 <img
   className="block dark:hidden"
   src="/images/ark/exitpathlight.png"
-  alt="Batch Outputs"
+  alt="Exit path"
   style={{ width:"100%",height:"auto" }}
 />
 
@@ -34,47 +35,102 @@ Each transaction in this chain must be individually broadcast and confirmed on B
 <img
   className="hidden dark:block mx-auto"
   src="/images/ark/exitpathdark.png"
-  alt="Batch Outputs"
+  alt="Exit path"
   style={{ width:"100%",height:"auto" }}
 />
 
 </div>
 
+**Example path:**
+
+1. Batch Output → Virtual Tx A (unroll first level)
+2. Virtual Tx A → Virtual Tx B (unroll second level)  
+3. Virtual Tx B → Your UTXO (claim your Bitcoin)
+
+Each step is a separate Bitcoin transaction that must be broadcast and confirmed.
+
 ## Exit Costs
 
-**Base Costs:** Every unilateral exit incurs Bitcoin network fees for each required transaction in the path. A VTXO requiring a 3-transaction exit path costs 3x the base Bitcoin transaction fee, regardless of the VTXO's value.
+The deeper your VTXO sits in the tree, the more transactions you need to broadcast:
 
-**Chain Length Impact:** As users engage in more offchain activity, their VTXOs move deeper into the virtual tree structure, creating longer exit paths. Extended offchain [transaction chains](/learn/pillars/arkade-tx#transaction-chains) compound exit costs:
+| Tree Depth | Transactions Required | Est. Cost (at 10 sat/vB) |
+|------------|----------------------|--------------------------|
+| 1 level | 1 tx | ~1,500 sats |
+| 2 levels | 2 txs | ~3,000 sats |
+| 3 levels | 3 txs | ~4,500 sats |
+| 5 levels | 5 txs | ~7,500 sats |
 
-- Direct child of Batch Output: 1 Bitcoin transaction required
-- Second-level VTXO: 2 Bitcoin transactions required
-- Third-level VTXO: 3 Bitcoin transactions required
-- And so on...
+<Warning>
+Deep [transaction chains](/learn/pillars/arkade-tx#transaction-chains) increase exit costs. If you've chained many offchain transactions without settling, your exit path grows longer.
+</Warning>
 
-<div style={{ display:"flex",justifyContent:"center" }}>
-<img
-  className="block dark:hidden"
-  src="/images/ark/txchainlight.png"
-  alt="Transaction Chain"
-  style={{ width:"75%",height:"auto" }}
-/>
+### When Exit Gets Expensive
 
-</div>
+- **High fee environment**: During Bitcoin fee spikes, exit costs multiply
+- **Deep chains**: Many chained offchain transactions = many txs to broadcast
+- **Small VTXOs**: Exit cost may exceed the VTXO value
 
-<div style={{ display:"flex",justifyContent:"center" }}>
-<img
-  className="hidden dark:block mx-auto"
-  src="/images/ark/txchaindark.png"
-  alt="Transaction Chain"
-  style={{ width:"75%",height:"auto" }}
-/>
+This creates an economic incentive to [settle periodically](/learn/pillars/batch-swaps) rather than letting chains grow indefinitely.
 
-</div>
+## Initiating Exit
 
-For smaller VTXO values, exit costs can become prohibitive. With high Bitcoin fees, the cumulative cost of publishing multiple transactions may exceed the VTXO's balance, effectively stranding smaller holdings until either Bitcoin fees decrease or the VTXO value is enough to cover the expense.
+<CodeGroup>
+```typescript TypeScript
+// Force exit - broadcasts presigned transactions
+await wallet.redeem({ force: true })
 
-This cost structure creates natural economic incentives for users to periodically refresh their VTXOs through [batch settlement](/learn/pillars/batch-swaps) rather than allowing exit paths to grow indefinitely. Users must balance the convenience of extended offchain activity against the related cost of maintaining unilateral exit optionality.
+// After CSV timelock expires, complete the exit
+await wallet.redeem({ 
+  complete: true, 
+  address: 'bc1q...'  // Your Bitcoin address
+})
+```
+
+```bash CLI
+# Start unilateral exit
+ark-cli redeem --force --password <pwd>
+
+# After timelock, claim to Bitcoin address
+ark-cli redeem --complete --address <destination> --password <pwd>
+```
+</CodeGroup>
+
+<Info>
+The exit path includes a CSV (CheckSequenceVerify) timelock. You must wait for this delay before the final claim transaction is valid. This prevents double-spending between Arkade and Bitcoin.
+</Info>
+
+## Collaborative vs Unilateral Exit
+
+| Exit Type | Speed | Cost | When to Use |
+|-----------|-------|------|-------------|
+| **Collaborative** | Instant | Lower (batched) | Normal operations, operator online |
+| **Unilateral** | Hours (timelock) | Higher (multiple txs) | Emergency, operator unavailable |
+
+Always try collaborative exit first. Unilateral exit is your backstop when collaboration isn't possible.
+
+## What You Need to Exit
+
+To execute a unilateral exit, your wallet must have:
+
+1. **Presigned exit transactions** for your VTXOs
+2. **Enough Bitcoin** for transaction fees (can be from the VTXO itself)
+3. **Time** to wait for the CSV timelock
 
 <Tip>
-  In order for a user to unilaterally exit, they must broadcast a series of presigned transactions containing their VTXO. Possessing these presigned transactions ensures a user can always spend their allocated funds independently, without requiring coordination with other participants or the operator.
+Your wallet stores presigned exit transactions automatically. As long as you have your wallet backup, you have everything needed to exit.
 </Tip>
+
+## Mass Exit Scenarios
+
+If many users exit simultaneously (e.g., operator shutdown):
+
+- Bitcoin fees may spike from increased demand
+- Smaller VTXOs may become uneconomical to exit
+- Users with larger balances can afford immediate exit
+- Others may wait for fees to decrease
+
+This is a known trade-off. The guarantee is that exit is always *possible*—but not always *cheap*.
+
+<Card title="Risks & Limitations" icon="triangle-exclamation" href="/learn/security/risks-limitations" horizontal>
+  Full analysis of mass exit scenarios and mitigations
+</Card>

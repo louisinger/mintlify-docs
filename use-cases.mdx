@@ -1,0 +1,190 @@
+---
+title: "Use Cases"
+description: "What you can build on Arkade"
+icon: "lightbulb"
+---
+
+Arkade enables Bitcoin applications that were previously impossible without bridges, wrapped tokens, or custodial services. Here's what developers are building.
+
+## Payments
+
+### Instant Wallet-to-Wallet
+
+Send Bitcoin instantly between Arkade wallets with near-zero fees. No block confirmations, no channel management.
+
+```typescript
+await wallet.sendBitcoin({
+  address: 'ark1q...',
+  amount: 50000
+})
+```
+
+**Why Arkade:** Sub-second settlement, fees under 1 sat, works on any device.
+
+### Lightning Interoperability
+
+Accept Lightning payments that settle as Arkade VTXOs. Pay Lightning invoices from your Arkade balance.
+
+```typescript
+// Receive from Lightning
+const invoice = await boltz.createInvoice(10000)
+// ... Lightning sender pays invoice
+await boltz.claimSwap(invoice.id)
+```
+
+**Why Arkade:** Bridge Lightning's reach with Arkade's simplicity. No channel liquidity management.
+
+<Card title="Lightning Swaps Guide" icon="bolt" href="/contracts/lightning-swaps" horizontal>
+  Full integration walkthrough with Boltz submarine swaps
+</Card>
+
+---
+
+## Smart Wallets
+
+### Spending Limits
+
+Enforce daily or per-transaction limits without custodial infrastructure.
+
+```
+// Arkade Script (experimental)
+fn spend(tx, limit: u64) {
+  require(tx.output_sum() <= limit)
+}
+```
+
+**Why Arkade:** Programmable controls run offchain but remain enforceable onchain.
+
+### Social Recovery
+
+Allow trusted contacts to help recover funds if you lose access, without giving them custody.
+
+**Why Arkade:** Recovery paths are encoded in VTXOs. No centralized recovery service needed.
+
+### Multi-Party Approval
+
+Require multiple signatures for high-value transactions while keeping everyday spending simple.
+
+**Why Arkade:** Flexible signing policies per VTXO. Different rules for different amounts.
+
+---
+
+## Trading & Exchange
+
+### Non-Custodial Exchange
+
+Users trade directly from their wallets. The exchange never takes custody.
+
+**Why Arkade:** Atomic swaps happen in the virtual mempool. Settlement is instant.
+
+### Orderbook Matching
+
+Match buy and sell orders offchain, settle atomically when trades execute.
+
+**Why Arkade:** Parallel execution means no bottlenecks. Thousands of trades per second.
+
+<Card title="Experimental: AMMs" icon="chart-line" href="/experimental/automated-market-makers" horizontal>
+  Automated market maker design on Arkade
+</Card>
+
+---
+
+## Lending & Credit
+
+### Bitcoin-Collateralized Loans
+
+Borrow against Bitcoin without surrendering custody. Collateral stays in a VTXO you control.
+
+**Why Arkade:** Loan terms encoded in VTXO scripts. Liquidation is trustless and automatic.
+
+### Yield on Bitcoin
+
+Lend Bitcoin to earn yield. Repayment terms are enforced by the protocol.
+
+**Why Arkade:** No rehypothecation risk. Borrowers can't misuse collateral.
+
+---
+
+## Autonomous Agents
+
+### AI Payment Rails
+
+Let AI agents send and receive Bitcoin programmatically for API calls, compute resources, or services.
+
+```typescript
+// Agent pays for compute
+await agentWallet.sendBitcoin({
+  address: computeProvider,
+  amount: computeCost
+})
+```
+
+**Why Arkade:** Instant, cheap payments enable micro-transactions that don't make sense onchain.
+
+### Scheduled Payments
+
+Automate recurring payments: subscriptions, payroll, or dollar-cost averaging.
+
+**Why Arkade:** [Intent delegation](/arkd/components/intent-delegation) handles execution while you stay in control.
+
+---
+
+## Gaming & Collectibles
+
+### In-Game Economies
+
+Real Bitcoin as in-game currency. Players trade, earn, and spend without leaving the game.
+
+**Why Arkade:** Instant transactions don't interrupt gameplay. Low fees make micro-rewards viable.
+
+### Digital Collectibles
+
+Issue and trade unique assets on Arkade with [Arkade Assets](/roadmap) (coming soon).
+
+**Why Arkade:** Native Bitcoin assets without Ordinals' block space constraints.
+
+---
+
+## Enterprise
+
+### Treasury Operations
+
+Companies hold Bitcoin and need to move it efficiently between subsidiaries, pay vendors, or manage liquidity.
+
+**Why Arkade:** Batch settlement reduces transaction costs. Audit trails via VTXO history.
+
+### Payroll
+
+Pay employees in Bitcoin instantly, regardless of how many recipients.
+
+**Why Arkade:** One batch settles all payments. Recipients get spendable funds immediately.
+
+---
+
+## What Makes These Possible
+
+| Arkade Feature | What It Enables |
+|----------------|-----------------|
+| **Instant settlement** | Real-time payments, trading, gaming |
+| **Low fees** | Micro-transactions, high-frequency operations |
+| **Self-custody** | No counterparty risk, user sovereignty |
+| **Programmable VTXOs** | Smart wallets, conditional payments |
+| **Parallel execution** | High throughput without bottlenecks |
+| **Bitcoin finality** | Exit to L1 anytime, full security |
+
+## Start Building
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Send your first Arkade payment in 5 minutes
+  </Card>
+  <Card title="SDK Reference" icon="book" href="/wallets/v0.3/introduction">
+    Full wallet SDK documentation
+  </Card>
+  <Card title="Contracts" icon="file-contract" href="/contracts/overview">
+    Build programmable Bitcoin applications
+  </Card>
+  <Card title="Server API" icon="server" href="/arkd/what-is-arkd">
+    Run your own Arkade infrastructure
+  </Card>
+</CardGroup>

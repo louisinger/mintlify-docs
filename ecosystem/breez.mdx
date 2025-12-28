@@ -1,0 +1,172 @@
+---
+title: "Breez"
+description: "Lightning SDK with Arkade support"
+icon: "wallet"
+---
+
+[Breez](https://breez.technology) provides a comprehensive Lightning SDK that integrates with Arkade for enhanced payment capabilities. Wallet developers can offer users both Lightning and Arkade functionality through a unified interface.
+
+---
+
+## What Breez Enables
+
+| Capability | Description |
+|------------|-------------|
+| **Unified SDK** | Single integration for Lightning + Arkade |
+| **Non-custodial** | Users control their own keys |
+| **LSP services** | Liquidity service provider for channel management |
+| **Arkade extension** | Arkade payments alongside Lightning |
+
+---
+
+## Architecture
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                    Your Application                       │
+├──────────────────────────────────────────────────────────┤
+│                      Breez SDK                            │
+├─────────────────────────┬────────────────────────────────┤
+│    Lightning Module     │       Arkade Module            │
+│    - Channel mgmt       │       - VTXO management        │
+│    - BOLT11 invoices    │       - Offchain payments      │
+│    - Routing            │       - Batch settlement       │
+└─────────────────────────┴────────────────────────────────┘
+            │                          │
+            ▼                          ▼
+    Lightning Network            Arkade Server
+```
+
+---
+
+## Integration
+
+### Installation
+
+```bash
+# React Native
+npm install @aspect_build/rules_swc
+
+# Or via Breez SDK directly
+npm install @aspect_build/rules_swc
+```
+
+### Initialize with Arkade Support
+
+```typescript
+import { BreezSDK } from 'breez-sdk';
+
+const sdk = await BreezSDK.connect({
+  config: {
+    // Standard Breez config
+    apiKey: 'your-api-key',
+    network: 'bitcoin',
+  },
+  arkadeConfig: {
+    // Arkade extension
+    serverUrl: 'https://mainnet.arkade.fun',
+    enabled: true
+  }
+});
+```
+
+### Send Payment (Auto-routing)
+
+The SDK automatically chooses the best route:
+
+```typescript
+// SDK determines optimal path: Lightning or Arkade
+const result = await sdk.sendPayment({
+  destination: 'lnbc...' // or ark1q...
+});
+
+console.log('Route used:', result.route); // 'lightning' or 'arkade'
+console.log('Fee paid:', result.fee);
+```
+
+### Receive Payment
+
+```typescript
+// Create invoice that can be paid via Lightning or Arkade
+const invoice = await sdk.createInvoice({
+  amountSats: 10000,
+  description: 'Coffee'
+});
+
+// invoice.bolt11 - Lightning invoice
+// invoice.arkadeAddress - Arkade address (if enabled)
+```
+
+---
+
+## Benefits for Wallet Developers
+
+### Simplified Integration
+
+Instead of managing two separate SDKs:
+
+```typescript
+// Without Breez: manage both separately
+const lightningClient = new LightningClient();
+const arkadeClient = new ArkClient();
+
+// With Breez SDK: unified interface
+const sdk = await BreezSDK.connect({ /* config */ });
+```
+
+### Automatic Liquidity Management
+
+Breez handles:
+- Channel opening/closing
+- Inbound liquidity via LSP
+- Arkade VTXO refresh reminders
+- Cross-layer rebalancing
+
+### User Experience
+
+| Feature | Lightning Only | With Arkade |
+|---------|----------------|-------------|
+| Receiving (no setup) | Requires channel | Instant via VTXO |
+| Large payments | Limited by channel | Batch settlement |
+| Offline receiving | Not possible | VTXO awaits claim |
+
+---
+
+## Use Cases
+
+### Mobile Wallets
+
+Build non-custodial mobile wallets with:
+- Instant onboarding (no channel wait)
+- Lightning compatibility for existing ecosystem
+- Arkade for cost-effective batched settlements
+
+### Point of Sale
+
+Accept payments from any Bitcoin wallet:
+- Lightning invoices for existing users
+- Arkade addresses for high-volume merchants
+- Unified settlement and accounting
+
+### Payment Services
+
+Offer payment APIs with:
+- Multi-path routing optimization
+- Automatic failover between layers
+- Consolidated reporting
+
+---
+
+## Resources
+
+- [Breez SDK Documentation](https://sdk-doc.breez.technology)
+- [Breez GitHub](https://github.com/breez/breez-sdk)
+
+<CardGroup cols={2}>
+<Card title="SDK Setup" icon="code" href="/wallets/v0.3/setup">
+  Arkade SDK standalone setup
+</Card>
+<Card title="Lightning Swaps" icon="bolt" href="/contracts/lightning-swaps">
+  How Lightning↔Arkade swaps work
+</Card>
+</CardGroup>

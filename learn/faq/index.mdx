@@ -1,0 +1,158 @@
+---
+title: "FAQ"
+description: "Frequently asked questions about Arkade"
+icon: "circle-question"
+---
+
+## Basics
+
+<AccordionGroup>
+  <Accordion title="What is Arkade?">
+    Arkade is a programmable execution layer for Bitcoin. It enables fast, self-custodial financial applications without requiring changes to the Bitcoin protocol.
+    
+    [Read more →](/learn/faq/what-is-arkade)
+  </Accordion>
+  
+  <Accordion title="What problem does Arkade solve?">
+    Arkade adds financial logic to Bitcoin payments. While Bitcoin excels as a store of value, it lacks the ability to express advanced financial logic without custodial services. Arkade delivers programmability, self-custody, parallel execution, and dynamic settlement.
+    
+    [Read more →](/learn/faq/what-problem-does-arkade-solve)
+  </Accordion>
+  
+  <Accordion title="Is Arkade a new blockchain?">
+    No. Arkade is not a blockchain, sidechain, or rollup. It's an offchain execution layer that operates over native Bitcoin UTXOs using VTXOs, batch settlement, and presigned transaction paths.
+    
+    [Read more →](/learn/faq/is-arkade-a-new-blockchain)
+  </Accordion>
+  
+  <Accordion title="Does Arkade require a token?">
+    No. Arkade is BTC-native with no governance tokens or wrapped assets. All fees are paid in Bitcoin.
+    
+    [Read more →](/learn/faq/does-arkade-require-a-token)
+  </Accordion>
+  
+  <Accordion title="Is Arkade live?">
+    Yes. Arkade is in public beta on Bitcoin mainnet with select launch partners. Developer SDKs are available on GitHub.
+    
+    [Read more →](/learn/faq/is-arkade-live)
+  </Accordion>
+</AccordionGroup>
+
+## Technical Concepts
+
+<AccordionGroup>
+  <Accordion title="What are VTXOs?">
+    Virtual Transaction Outputs (VTXOs) are offchain objects that mirror Bitcoin's UTXO structure. Each VTXO is backed by a presigned Bitcoin transaction, giving users unilateral exit rights at all times.
+    
+    [Read more →](/learn/faq/what-are-vtxos)
+  </Accordion>
+  
+  <Accordion title="What is the virtual mempool?">
+    The virtual mempool is Arkade's offchain execution engine. It processes transactions in real-time using a DAG structure that enables parallel execution without global state bottlenecks.
+    
+    [Read more →](/learn/faq/what-is-the-virtual-mempool)
+  </Accordion>
+  
+  <Accordion title="Who is the Arkade operator?">
+    The Arkade operator coordinates offchain activity: validating transactions, issuing preconfirmations, and posting settlement batches to Bitcoin. The operator cannot control user funds—every VTXO includes presigned exit paths.
+    
+    [Read more →](/learn/faq/who-is-the-arkade-operator)
+  </Accordion>
+  
+  <Accordion title="What is a batch output and how does settlement work?">
+    Arkade batches thousands of offchain operations into a single Bitcoin transaction output. This dramatically reduces per-transaction costs while preserving individual control and Bitcoin security guarantees.
+    
+    [Read more →](/learn/faq/what-is-batch-output-and-onchain-settlement)
+  </Accordion>
+  
+  <Accordion title="Are Arkade transactions real Bitcoin transactions?">
+    Yes and no. Every Arkade transaction is structured like a Bitcoin transaction with valid presigned exit paths. However, they execute instantly offchain and batch settle to Bitcoin later.
+    
+    [Read more →](/learn/faq/are-arkade-transactions-real-bitcoin-transactions)
+  </Accordion>
+  
+  <Accordion title="What is Arkade Script?">
+    Arkade Script is an enhanced scripting environment that extends Bitcoin Script with additional capabilities for programmable applications, including introspection, advanced arithmetic, and complex logic.
+    
+    [Read more →](/learn/faq/what-is-arkade-script)
+  </Accordion>
+</AccordionGroup>
+
+## Security & Trust
+
+<AccordionGroup>
+  <Accordion title="How does Arkade ensure self-custody?">
+    Every VTXO includes a presigned exit path that lets you withdraw to Bitcoin at any time without operator cooperation. Your funds are always under your control.
+    
+    [Read more →](/learn/faq/how-does-arkade-ensure-self-custody)
+  </Accordion>
+  
+  <Accordion title="What if the operator disappears or acts maliciously?">
+    If the operator goes offline, you can exit unilaterally using presigned transactions. If the operator misbehaves, misconduct is cryptographically provable and economic penalties apply.
+    
+    [Read more →](/learn/faq/what-if-the-operator-disappears-or-acts-maliciously)
+  </Accordion>
+  
+  <Accordion title="What's a TEE and how does Arkade use it?">
+    A Trusted Execution Environment (TEE) provides hardware-backed security guarantees. Arkade uses TEEs to protect signing keys and enable verifiable proof that the operator is running expected code.
+    
+    [Read more →](/learn/faq/whats-a-tee-and-how-does-arkade-use-it)
+  </Accordion>
+</AccordionGroup>
+
+## Compatibility
+
+<AccordionGroup>
+  <Accordion title="Does Arkade require changes to Bitcoin?">
+    No. Arkade works with Bitcoin exactly as it exists today—no forks, no new opcodes, and no consensus changes required.
+    
+    [Read more →](/learn/faq/does-arkade-require-changes-to-bitcoin)
+  </Accordion>
+  
+  <Accordion title="Will Arkade work with existing Bitcoin infrastructure?">
+    Yes. Wallets can support Arkade using lightweight SDKs. Nodes remain unchanged. Services connect via APIs. Everything settles as standard Bitcoin transactions.
+    
+    [Read more →](/learn/faq/will-arkade-work-with-existing-bitcoin-infrastructure)
+  </Accordion>
+  
+  <Accordion title="How does Arkade relate to the Ark protocol?">
+    Arkade builds on Ark as a foundational component. Ark provides the anchoring and settlement layer. Arkade extends this into a complete execution environment for programmable Bitcoin applications.
+    
+    [Read more →](/learn/faq/how-does-arkade-relate-to-ark-protocol)
+  </Accordion>
+</AccordionGroup>
+
+## Building on Arkade
+
+<AccordionGroup>
+  <Accordion title="What about the fees?">
+    Arkade uses a batched fee model. Execution fees cover offchain transactions. Settlement fees for anchoring to Bitcoin are shared across all batch participants, dramatically reducing costs.
+    
+    [Read more →](/learn/faq/what-about-the-fees)
+  </Accordion>
+  
+  <Accordion title="What kind of applications can be built on Arkade?">
+    Smart wallets, trustless swaps, programmable payments, BTC-backed lending, decentralized trading, and coordination contracts with threshold access or delegation.
+    
+    [Read more →](/learn/faq/what-kind-of-applications-can-be-built-on-arkade)
+  </Accordion>
+  
+  <Accordion title="How do I get started with Arkade?">
+    Developers can explore the SDK on GitHub and review documentation. Users can wait for public launch or try partner integrations.
+    
+    [Read more →](/learn/faq/how-do-i-get-started-with-arkade)
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Quick Links
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Build your first Arkade app in 5 minutes
+  </Card>
+  <Card title="Technical Primer" icon="book" href="/primer">
+    Deep dive into how Arkade works
+  </Card>
+</CardGroup>

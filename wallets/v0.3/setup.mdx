@@ -1,77 +1,197 @@
 ---
-title: "Create your Wallet"
-description: "Learn how to integrate Arkade wallets into your application"
-icon: "wallet"
+title: "SDK Installation"
+description: "Install the SDK and create your first Arkade wallet"
+icon: "download"
 ---
-
-## Prerequisites
-
-<Tip>
-  Ensure you have the following installed before getting started:
-
-  - Node.js (v22 or higher)
-</Tip>
 
 ## Installation
 
-```bash
+<CodeGroup>
+```bash npm
 npm install @arkade-os/sdk
 ```
 
-## Arkade Operator Instances
+```bash yarn
+yarn add @arkade-os/sdk
+```
 
-To test your integration against a live environment, you can connect to the following live Arkade Operator instances: 
+```bash pnpm
+pnpm add @arkade-os/sdk
+```
 
-| **Network** | **URL**                                                           | **Status**    |
-| :---------- | :---------------------------------------------------------------- | :------------ |
-| Bitcoin   | [<u>https://arkade.computer</u>](https://arkade.computer) | ✅ Active      |
-| Mutinynet   | [<u>https://mutinynet.arkade.sh</u>](https://mutinynet.arkade.sh) | ✅ Active      |
-| Signet      | [<u>https://signet.arkade.sh</u>](https://signet.arkade.sh)       | ✅ Active      |
+```bash Go
+go get github.com/arkade-os/go-sdk
+```
+</CodeGroup>
 
+**Requirements:**
+- Node.js v22+ (TypeScript/JavaScript)
+- Go 1.21+ (Go)
 
-## Basic Setup
+## Create a Wallet
 
-<Note>
-  When creating a wallet, you can use an existing private key or generate a new one. For production applications, always use a secure key management solution rather than hardcoded keys.
-</Note>
+<CodeGroup>
+```typescript TypeScript
+import { Wallet, SingleKey } from '@arkade-os/sdk'
 
-```typescript
-import { SingleKey, Wallet } from '@arkade-os/sdk'
+// Generate a new identity (or use an existing private key)
+const identity = SingleKey.fromRandomBytes()
 
-// use your private key in hex format  
-const identity = SingleKey.fromHex('secret')
-
-// create a wallet instance
+// Connect to an Arkade operator
 const wallet = await Wallet.create({
   identity,
-  arkServerUrl: 'https://arkade.computer',
+  arkServerUrl: 'https://mutinynet.arkade.sh'
 })
 
-// You can receive bitcoin offchain instantly! No inbound liquidity!
+// Get your receiving address
 const address = await wallet.getAddress()
-console.log('Ark Address:', address)
+console.log('Address:', address)
 ```
 
-## Local Arkade Operator
+```go Go
+package main
 
-If you want to run Arkade locally for testing, you can start a Nigiri environment with Arkade support enabled:
+import (
+    "fmt"
+    "log"
+    
+    ark "github.com/arkade-os/go-sdk"
+)
+
+func main() {
+    // Generate a new identity
+    identity, err := ark.NewRandomIdentity()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Connect to an Arkade operator
+    wallet, err := ark.NewWallet(ark.WalletConfig{
+        Identity:     identity,
+        ArkServerURL: "https://mutinynet.arkade.sh",
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Get your receiving address
+    address, err := wallet.GetAddress()
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Println("Address:", address)
+}
+```
+</CodeGroup>
+
+## Arkade Operators
+
+Connect to a public operator or run your own:
+
+| Network | URL | Use Case |
+|---------|-----|----------|
+| **Mainnet** | `https://arkade.computer` | Production |
+| **Mutinynet** | `https://mutinynet.arkade.sh` | Testing (recommended) |
+| **Signet** | `https://signet.arkade.sh` | Testing |
+| **Regtest** | `http://localhost:7070` | Local development |
+
+<Tip>
+Use Mutinynet for development. It's a fast signet with 30-second blocks and a [faucet](https://faucet.mutinynet.com) for test funds.
+</Tip>
+
+## Using an Existing Key
+
+If you have an existing private key (hex-encoded):
+
+<CodeGroup>
+```typescript TypeScript
+import { Wallet, SingleKey } from '@arkade-os/sdk'
+
+// Load from hex-encoded private key
+const identity = SingleKey.fromHex('your-64-character-hex-private-key')
+
+const wallet = await Wallet.create({
+  identity,
+  arkServerUrl: 'https://arkade.computer'
+})
+```
+
+```go Go
+identity, err := ark.IdentityFromHex("your-64-character-hex-private-key")
+if err != nil {
+    log.Fatal(err)
+}
+
+wallet, err := ark.NewWallet(ark.WalletConfig{
+    Identity:     identity,
+    ArkServerURL: "https://arkade.computer",
+})
+```
+</CodeGroup>
+
+<Warning>
+Never hardcode private keys in source code. Use environment variables or a secrets manager in production.
+</Warning>
+
+## Persistent Storage
+
+By default, wallet data is stored in memory and lost on restart. For persistent wallets, add a storage adapter:
+
+```typescript
+import { Wallet, SingleKey } from '@arkade-os/sdk'
+import { FileSystemStorageAdapter } from '@arkade-os/sdk/adapters/fileSystem'
+
+const storage = new FileSystemStorageAdapter('./wallet-data')
+
+const wallet = await Wallet.create({
+  identity: SingleKey.fromHex(process.env.PRIVATE_KEY),
+  arkServerUrl: 'https://arkade.computer',
+  storage  // Persists VTXOs and wallet state
+})
+```
+
+See [Storage Adapters](/wallets/v0.3/storage-adapters) for browser, React Native, and other environments.
+
+## Local Development
+
+Run a local Arkade operator with [Nigiri](https://github.com/vulpemventures/nigiri):
 
 ```bash
-nigiri start --ark 
+# Install Nigiri
+curl https://getnigiri.vulpem.com | bash
+
+# Start with Arkade support
+nigiri start --ark
 ```
 
-Once running, Nigiri will spin up a local Bitcoin regtest network with an Arkade Operator instance. You can connect your SDK to it using the following URL:
+Connect to `http://localhost:7070` for a fully isolated test environment with instant block generation.
 
-| **Network** | **URL**                                                           | **Status**    |
-| :---------- | :---------------------------------------------------------------- | :------------ |
-| Regtest     | [<u>http://localhost:7070</u>](http://localhost:7070)             | Self-deployed |
+## Verify Connection
 
-This lets you test wallet creation, offchain payments, and unilateral exits without touching public test networks.
+Check that your wallet is connected:
+
+```typescript
+const balance = await wallet.getBalance()
+console.log('Connected! Balance:', balance.available, 'sats')
+
+const address = await wallet.getAddress()
+console.log('Address:', address)
+```
 
 ## Next Steps
 
-Now that you have set up your Arkade wallet, you can:
-
-- [Work with Balances and UTXOs](/wallets/v0.3/balances) - Learn how to manage balances and track payments
-- [Use Ramps](/wallets/v0.3/ramps) - Understand how to move funds in and out of Arkade
+<CardGroup cols={2}>
+  <Card title="Receive Payments" icon="download" href="/wallets/v0.3/receiving-payments">
+    Generate addresses and monitor for incoming funds
+  </Card>
+  <Card title="Send Payments" icon="paper-plane" href="/wallets/v0.3/sending-payments">
+    Send instant Bitcoin payments
+  </Card>
+  <Card title="Check Balances" icon="coins" href="/wallets/v0.3/balances">
+    Understand VTXO states and balance types
+  </Card>
+  <Card title="Storage Adapters" icon="database" href="/wallets/v0.3/storage-adapters">
+    Persist wallet data across sessions
+  </Card>
+</CardGroup>
 

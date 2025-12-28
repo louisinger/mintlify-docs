@@ -1,27 +1,138 @@
 ---
 title: "Transaction Finality"
-description: "Understanding transaction finality in Arkade, including preconfirmation and Bitcoin finality"
+description: "Understanding preconfirmation and Bitcoin finality in Arkade"
 icon: "check-double"
 ---
 
-Arkade's architecture introduces two distinct levels of transaction confirmation, a preconfirmation state and full Bitcoin finality. Both states come with different security properties:
+Arkade provides two levels of transaction finality. You choose which level fits your use case.
+
+## Finality Levels
+
+| Level | Speed | Trust Assumption | When to Use |
+|-------|-------|------------------|-------------|
+| **Preconfirmed** | Instant | Operator integrity | Everyday payments, trading |
+| **Bitcoin Finality** | ~10 min | Bitcoin consensus | Large amounts, long-term storage |
 
 ## Preconfirmation
 
-A preconfirmed transaction is a Bitcoin transaction that is already validly constructed and cryptographically committed to, even though it hasn’t yet been broadcast or confirmed onchain. All offchain VTXOs in the [virtual mempool](/learn/pillars/virtual-mempool) operate under the preconfirmation trust model. It indicates that the [Arkade Signer](/learn/security/advanced-security#arkade-signer) has processed and cosigned the transaction, enabling the VTXO owner to use the resulting outputs for subsequent transactions. This mechanism allows for rapid and cost-effective execution within the offchain execution environment.
+When the [Arkade Signer](/learn/security/advanced-security#arkade-signer) cosigns your transaction, it becomes **preconfirmed**. The resulting VTXOs are immediately spendable.
 
-However, preconfirmations rely on the operator's integrity. A malicious operator could double-sign conflicting transactions, creating competing VTXO ownership chains that undermine a user's unilateral control over their assets. Any misbehavior can be cryptographically proven, while [economic incentives](/learn/security/economic-security) and [verifiable execution](/learn/security/advanced-security#verifiable-execution) ensure reliable operation.
+```typescript
+// Send a payment - receives preconfirmation
+await wallet.sendBitcoin({
+  address: 'ark1q...',
+  amount: 10000
+})
+
+// Output VTXOs are instantly spendable
+const balance = await wallet.getBalance()
+console.log(balance.preconfirmed) // Includes your new VTXOs
+```
+
+### What Preconfirmation Gives You
+
+- ✅ Instant spending (milliseconds)
+- ✅ Chain transactions indefinitely
+- ✅ Unilateral exit via presigned transaction
+- ✅ Near-zero fees
+
+### The Trust Trade-off
+
+Preconfirmation relies on operator integrity. A malicious operator could theoretically double-sign conflicting transactions, creating competing ownership claims.
+
+This risk is mitigated by:
+
+| Safeguard | How It Helps |
+|-----------|--------------|
+| [TEE attestation](/learn/security/advanced-security#verifiable-execution) | Proves operator runs expected code |
+| [Slashing](/learn/security/advanced-security#slashing) | Economic penalty for misbehavior |
+| Cryptographic proof | Double-signing is provable |
+
+<Info>
+Even with preconfirmed VTXOs, you always retain your presigned exit transaction. If anything goes wrong, broadcast it to claim your funds onchain.
+</Info>
 
 ## Bitcoin Finality
 
-Arkade Transactions are considered settled once they achieved Bitcoin finality. This happens once a user anchors their preconfirmed VTXO(s) to the Bitcoin blockchain via a [batch swap](/learn/pillars/batch-swaps).
+To achieve full Bitcoin security, participate in a [batch swap](/learn/pillars/batch-swaps). Your preconfirmed VTXOs get exchanged for new VTXOs anchored to an onchain commitment transaction.
 
-Batch swaps function like atomic swaps, enabling users to safely transfer their preconfirmed VTXOs to the operator in exchange for new VTXOs secured by an onchain Bitcoin transaction (ie. [commitment transaction](/learn/pillars/batch-swaps#commitment-transactions).
+```typescript
+// Settle preconfirmed VTXOs to Bitcoin
+await wallet.settle()
 
-<Tip>
-  Users are encouraged to periodically settle their offchain transactions onchain through batch swaps to fully secure their holdings.
-</Tip>
+// After settlement, VTXOs have Bitcoin finality
+const balance = await wallet.getBalance()
+console.log(balance.settled) // Now secured by Bitcoin consensus
+```
+
+### What Bitcoin Finality Gives You
+
+- ✅ Bitcoin's full security guarantees
+- ✅ Immutability after 6 confirmations
+- ✅ No operator trust required
+- ✅ Fresh expiry timer on VTXOs
+
+### The Cost Trade-off
+
+- Settlement fees (shared across batch participants)
+- ~10 minute wait for Bitcoin confirmation
+- Must wait for next batch window
 
 ## Dynamic Settlement
 
-Arkade allows users to dynamically transition between preconfirmation and Bitcoin finality. This flexibility enables participants to operate in the fast, low-cost offchain environment when convenience and speed are paramount, and to anchor their state to Bitcoin via participating in a [batch settlement](/learn/pillars/batch-swaps), when stronger guarantees of immutability and censorship resistance are required. Users can choose the optimal point to settle, striking a balance between efficiency and security based on their needs.
+You control your security posture:
+
+```
+┌─────────────────┐     batch swap     ┌─────────────────┐
+│  Preconfirmed   │ ────────────────▶  │ Bitcoin Finality│
+│                 │                    │                 │
+│ • Instant       │                    │ • Immutable     │
+│ • Cheap         │                    │ • Trustless     │
+│ • Operator trust│                    │ • Settlement fee│
+└─────────────────┘                    └─────────────────┘
+```
+
+### When to Stay Preconfirmed
+
+- Frequent trading or payments
+- Small amounts
+- Short-term holdings
+- Fee-sensitive operations
+
+### When to Settle to Bitcoin
+
+- Large balances
+- Long-term storage
+- Before VTXO expiry
+- Maximum security needed
+
+<Tip>
+A practical pattern: keep working capital preconfirmed for daily use, settle larger amounts periodically for security and to refresh expiry timers.
+</Tip>
+
+## Checking VTXO State
+
+```typescript
+const vtxos = await wallet.getVtxos()
+
+for (const vtxo of vtxos) {
+  const state = vtxo.virtualStatus.state
+  
+  if (state === 'preconfirmed') {
+    console.log('Preconfirmed - operator trust')
+  } else if (state === 'settled') {
+    console.log('Settled - Bitcoin finality')
+  }
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Batch Swaps" icon="rotate" href="/learn/pillars/batch-swaps">
+    How settlement works technically
+  </Card>
+  <Card title="Advanced Security" icon="shield" href="/learn/security/advanced-security">
+    TEEs, slashing, and trust minimization
+  </Card>
+</CardGroup>

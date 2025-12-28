@@ -4,15 +4,40 @@ description: "Ensuring atomic execution across batches"
 icon: "link"
 ---
 
-Connector outputs are dust-amount outputs created in commitment transactions specifically to serve as inputs for [forfeit transactions](/learn/pillars/batch-swaps#forfeit-transactions). They ensure atomicity of the swap procedure.
+Connector outputs make batch swaps atomic. They're dust-value outputs in commitment transactions that link old VTXOs to new ones.
 
-For each VTXO swap in a commitment transaction, the operator creates a connector output.
+## Why Connectors Exist
+
+In a batch swap, you exchange old VTXOs for new ones. The challenge: how do you ensure you only give up old VTXOs *if* you receive new ones?
+
+**Without connectors:**
+```
+Old VTXO ──► Forfeit to operator
+                                    ← No guarantee new VTXOs exist!
+New VTXO ◄── Created in new batch
+```
+
+**With connectors:**
+```
+Old VTXO ──┬──► Forfeit tx ──┬──► Operator gets old VTXO
+           │                 │
+           │    Connector ◄──┘    ← Links to commitment tx
+           │        │
+           │        └─────────────── If commitment tx isn't
+           │                         confirmed, forfeit is invalid
+           │
+New VTXO ◄─┴── Created in commitment tx
+```
+
+The forfeit transaction requires a connector input that only exists if the commitment transaction is confirmed. No commitment = no valid forfeit = you keep your old VTXO.
+
+## How Connectors Work
 
 <div style={{ display:"flex",justifyContent:"center" }}>
 <img
   className="block dark:hidden"
   src="/images/ark/connectorlight.png"
-  alt="Spending conditions"
+  alt="Connector structure"
   style={{ width:"70%",height:"auto" }}
 />
 
@@ -22,16 +47,54 @@ For each VTXO swap in a commitment transaction, the operator creates a connector
 <img
   className="hidden dark:block mx-auto"
   src="/images/ark/connectordark.png"
-  alt="Spending conditions"
+  alt="Connector structure"
   style={{ width:"70%",height:"auto" }}
 />
 
 </div>
 
-The connector output holds a similar tree structure to the batch output, mapping one dust output to each VTXO that requires forfeit protection. It is constructed and owned solely by the Arkade operator.
+Each commitment transaction creates a connector output with a tree structure mirroring the batch output:
 
-The connector output is meant to be spent in a forfeit transaction to ensure that a swap is conditional on the commitment transaction itself being confirmed onchain.
+| Component | Purpose |
+|-----------|---------|
+| **Connector output** | Dust-value UTXO in commitment tx |
+| **Connector tree** | Maps one connector leaf per VTXO in batch |
+| **Forfeit input** | Consumes specific connector leaf |
+
+## Atomicity Guarantee
+
+The forfeit transaction structure:
+
+| Input | Source |
+|-------|--------|
+| Your old VTXO | From previous batch |
+| Connector leaf | From new commitment tx |
+
+| Output | Destination |
+|--------|-------------|
+| Forfeit value | Operator |
+| Anchor | Fee bumping |
+
+Since the forfeit tx requires a connector input, it can only be valid if the commitment transaction is onchain. This creates an atomic dependency:
+
+- Commitment tx confirmed → forfeit tx valid → swap completes
+- Commitment tx not confirmed → forfeit tx invalid → you keep old VTXO
+
+## Uses Beyond Swaps
+
+Connectors also enable atomic exits. When you offboard to onchain Bitcoin, the connector ensures you only forfeit your VTXO if the exit transaction is confirmed.
 
 <Tip>
-  A connector output is not exclusively for the purpose of a batch swap: it is also used to allow VTXOs to be swapped for an onchain UTXO during an exit.
+You never interact with connectors directly—the protocol handles them automatically during batch swaps and exits.
 </Tip>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Batch Swaps" icon="rotate" href="/learn/pillars/batch-swaps">
+    Full swap process including connectors
+  </Card>
+  <Card title="Forfeit Transactions" icon="hand" href="/arkd/server-security/forfeit-txs">
+    Technical details on forfeit structure
+  </Card>
+</CardGroup>

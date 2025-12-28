@@ -1,0 +1,351 @@
+---
+title: "Zero to One"
+description: "Build a working Arkade wallet in 15 minutes"
+icon: "rocket"
+---
+
+Build a complete Arkade workflow: deposit Bitcoin, make offchain payments, and exit back to L1.
+
+<Info>
+This tutorial uses **Mutinynet** (signet). No real Bitcoin required.
+</Info>
+
+---
+
+## What You'll Build
+
+By the end of this tutorial, you'll have:
+
+1. Created an Arkade wallet with VTXOs
+2. Sent an instant offchain payment
+3. Settled transactions to Bitcoin
+4. Exited back to L1
+
+**Time required:** ~15 minutes
+
+---
+
+## Prerequisites
+
+- Node.js 18+ installed
+- Basic TypeScript/JavaScript familiarity
+- A terminal
+
+---
+
+## Step 1: Set Up Your Project
+
+```bash
+# Create a new project
+mkdir arkade-tutorial && cd arkade-tutorial
+npm init -y
+
+# Install the Arkade SDK
+npm install @arklabs/wallet-sdk
+```
+
+Create `index.ts`:
+
+```typescript
+import { 
+  ArkClient, 
+  InMemoryKey, 
+  DefaultStore 
+} from '@arklabs/wallet-sdk';
+
+async function main() {
+  // We'll build this out step by step
+}
+
+main().catch(console.error);
+```
+
+---
+
+## Step 2: Initialize Your Wallet
+
+```typescript
+import { 
+  ArkClient, 
+  InMemoryKey, 
+  DefaultStore,
+  networks 
+} from '@arklabs/wallet-sdk';
+
+async function main() {
+  // Generate a new identity (or use existing mnemonic)
+  const identity = InMemoryKey.fromRandom();
+  
+  // Connect to Mutinynet server
+  const client = await ArkClient.init({
+    identity,
+    store: new DefaultStore(),
+    network: networks.mutinynet,
+    serverUrl: 'https://mutinynet.arkade.fun'
+  });
+
+  console.log('✓ Wallet initialized');
+  console.log('  Offchain address:', client.offchainAddress);
+  console.log('  Boarding address:', client.boardingAddress);
+}
+
+main().catch(console.error);
+```
+
+Run it:
+
+```bash
+npx ts-node index.ts
+```
+
+You should see two addresses:
+- **Offchain address** — For receiving Arkade payments (VTXOs)
+- **Boarding address** — For depositing Bitcoin from L1
+
+---
+
+## Step 3: Get Testnet Bitcoin
+
+Visit the [Mutinynet Faucet](https://faucet.mutinynet.com) and request coins to your **boarding address**.
+
+<Tip>
+Copy the boarding address from the previous step. The faucet will send ~10,000 sats.
+</Tip>
+
+Wait for 1 confirmation (~30 seconds on Mutinynet).
+
+---
+
+## Step 4: Board Arkade
+
+Once your deposit confirms, bring it into Arkade:
+
+```typescript
+async function main() {
+  const identity = InMemoryKey.fromRandom();
+  const client = await ArkClient.init({
+    identity,
+    store: new DefaultStore(),
+    network: networks.mutinynet,
+    serverUrl: 'https://mutinynet.arkade.fun'
+  });
+
+  // Check for pending deposits and board them
+  console.log('Checking for deposits...');
+  await client.board();
+  
+  // Check your balance
+  const balance = await client.getBalance();
+  console.log('✓ Boarded successfully');
+  console.log('  Offchain balance:', balance.offchain, 'sats');
+  console.log('  Pending:', balance.pending, 'sats');
+}
+```
+
+**What just happened?**
+- Your L1 Bitcoin was converted to VTXOs
+- You now have spendable offchain funds
+- The operator cosigned your boarding transaction
+
+---
+
+## Step 5: Send an Offchain Payment
+
+Create a second wallet and send funds between them:
+
+```typescript
+async function main() {
+  // Wallet A (sender)
+  const identityA = InMemoryKey.fromRandom();
+  const walletA = await ArkClient.init({
+    identity: identityA,
+    store: new DefaultStore(),
+    network: networks.mutinynet,
+    serverUrl: 'https://mutinynet.arkade.fun'
+  });
+
+  // Wallet B (receiver)
+  const identityB = InMemoryKey.fromRandom();
+  const walletB = await ArkClient.init({
+    identity: identityB,
+    store: new DefaultStore(),
+    network: networks.mutinynet,
+    serverUrl: 'https://mutinynet.arkade.fun'
+  });
+
+  console.log('Wallet B address:', walletB.offchainAddress);
+
+  // After boarding Wallet A with faucet funds...
+  await walletA.board();
+  
+  // Send 1000 sats from A to B
+  const txid = await walletA.sendOffchain({
+    address: walletB.offchainAddress,
+    amount: 1000
+  });
+
+  console.log('✓ Payment sent');
+  console.log('  Transaction ID:', txid);
+
+  // Check balances
+  const balanceA = await walletA.getBalance();
+  const balanceB = await walletB.getBalance();
+  
+  console.log('  Wallet A:', balanceA.offchain, 'sats');
+  console.log('  Wallet B:', balanceB.offchain, 'sats');
+}
+```
+
+**What just happened?**
+- Wallet A's VTXO was spent, creating new VTXOs for both wallets
+- The operator cosigned the transfer instantly
+- No Bitcoin transaction was broadcast—this was pure offchain
+
+---
+
+## Step 6: Settle to Bitcoin
+
+Convert your preconfirmed VTXOs to Bitcoin-final VTXOs:
+
+```typescript
+// Settle Wallet B's funds for Bitcoin finality
+await walletB.settle();
+
+console.log('✓ Settlement complete');
+console.log('  VTXOs now have Bitcoin finality');
+```
+
+**What just happened?**
+- Your VTXOs were included in a batch swap
+- A commitment transaction was broadcast to Bitcoin
+- Your VTXOs now inherit Bitcoin's security guarantees
+
+---
+
+## Step 7: Exit to L1
+
+Withdraw your Bitcoin back to a standard address:
+
+```typescript
+// Get a fresh L1 address (in practice, use your own wallet)
+const l1Address = 'tb1q...'; // Your Bitcoin testnet address
+
+// Exit via collaborative withdrawal
+const exitTxid = await walletB.sendOnchain({
+  address: l1Address,
+  amount: 500 // sats
+});
+
+console.log('✓ Exit initiated');
+console.log('  Bitcoin txid:', exitTxid);
+```
+
+**What just happened?**
+- The operator included your exit in the next batch
+- A Bitcoin transaction sends funds to your L1 address
+- You're back on the base layer
+
+---
+
+## Complete Example
+
+Here's the full workflow in one script:
+
+```typescript
+import { 
+  ArkClient, 
+  InMemoryKey, 
+  DefaultStore,
+  networks 
+} from '@arklabs/wallet-sdk';
+
+async function main() {
+  console.log('=== Arkade Zero-to-One Tutorial ===\n');
+
+  // 1. Initialize wallet
+  const identity = InMemoryKey.fromRandom();
+  const client = await ArkClient.init({
+    identity,
+    store: new DefaultStore(),
+    network: networks.mutinynet,
+    serverUrl: 'https://mutinynet.arkade.fun'
+  });
+
+  console.log('1. Wallet initialized');
+  console.log('   Boarding address:', client.boardingAddress);
+  console.log('   → Send testnet BTC from faucet.mutinynet.com\n');
+
+  // Wait for user to fund from faucet
+  console.log('   Press Enter after funding...');
+  await new Promise(r => process.stdin.once('data', r));
+
+  // 2. Board
+  console.log('2. Boarding...');
+  await client.board();
+  let balance = await client.getBalance();
+  console.log('   Balance:', balance.offchain, 'sats\n');
+
+  // 3. Create recipient wallet
+  const recipient = await ArkClient.init({
+    identity: InMemoryKey.fromRandom(),
+    store: new DefaultStore(),
+    network: networks.mutinynet,
+    serverUrl: 'https://mutinynet.arkade.fun'
+  });
+
+  // 4. Send offchain
+  console.log('3. Sending 1000 sats offchain...');
+  await client.sendOffchain({
+    address: recipient.offchainAddress,
+    amount: 1000
+  });
+  console.log('   ✓ Instant payment complete\n');
+
+  // 5. Settle
+  console.log('4. Settling to Bitcoin...');
+  await recipient.settle();
+  console.log('   ✓ Bitcoin finality achieved\n');
+
+  // 6. Summary
+  balance = await client.getBalance();
+  const recipientBalance = await recipient.getBalance();
+  
+  console.log('=== Summary ===');
+  console.log('Sender balance:', balance.offchain, 'sats');
+  console.log('Recipient balance:', recipientBalance.offchain, 'sats');
+  console.log('\nYou just completed the full Arkade lifecycle!');
+}
+
+main().catch(console.error);
+```
+
+---
+
+## What You Learned
+
+| Concept | What Happened |
+|---------|---------------|
+| **Boarding** | Converted L1 Bitcoin to VTXOs |
+| **Offchain payment** | Transferred VTXOs instantly without blockchain |
+| **Preconfirmation** | Operator cosigned for immediate spendability |
+| **Settlement** | Batch swap gave VTXOs Bitcoin finality |
+| **Exit** | Converted VTXOs back to L1 Bitcoin |
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+<Card title="Understand VTXOs" icon="cube" href="/learn/pillars/vtxos">
+  How virtual outputs provide self-custody
+</Card>
+<Card title="Security Model" icon="shield" href="/learn/security/transaction-finality">
+  Preconfirmation vs Bitcoin finality
+</Card>
+<Card title="Lightning Swaps" icon="bolt" href="/contracts/lightning-swaps">
+  Exchange between Arkade and Lightning
+</Card>
+<Card title="SDK Reference" icon="code" href="/wallets/v0.3/setup">
+  Full SDK documentation
+</Card>
+</CardGroup>

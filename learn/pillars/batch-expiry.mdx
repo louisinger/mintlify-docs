@@ -1,40 +1,135 @@
 ---
 title: "Batch Expiry"
-description: "Managing VTXO lifecycle for efficient liquidity recovery"
+description: "Managing VTXO lifecycle and renewal"
 icon: "hourglass-end"
 ---
 
-Batch outputs expire after a defined timebound window, at which point the operator gains control of the underlying Bitcoin. Renewal happens through participation in a batch swap, which refreshes the VTXO with a new expiry. 
-The operator typically issues redeemable [Arkade Notes](https://docs.arkadeos.com/arkd/components/ark-notes) as a recovery mechanism, but the user now depends on operator cooperation to access their Bitcoin.
+VTXOs expire. Before expiry, renew them via [batch swap](/learn/pillars/batch-swaps) to maintain unilateral exit rights.
 
-## Liveness Requirements
+## Why Expiry Exists
 
-The batch expiry forces a [liveness requirement](/learn/security/liveness) on users: they need to take action during the specified timebound window to maintain unilateral exit rights. They do so by participating in a batch swap, so VTXOs get renewed with fresh expiry timestamps.
+Expiry serves two purposes:
 
-## Delegation Solutions
+| Purpose | Benefit |
+|---------|---------|
+| **Liquidity recycling** | Operator can reclaim capital from inactive VTXOs |
+| **State cleanup** | Prevents unbounded growth of VTXO trees |
 
-VTXO renewal can be delegated to trusted third parties. Arkade's [Intent system](https://docs.arkadeos.com/arkd/components/intent-system) enables users to appoint delegates to automatically renew VTXOs on their behalf while maintaining complete unilateral control throughout the process.
+Without expiry, operator capital would be locked indefinitely in abandoned VTXOs.
 
-### Delegate VTXO Setup
+## Expiry Timeline
 
-Delegation is implemented at the VTXO level by embedding an additional spending path, the delegate path, into the output script:
+```
+VTXO Created ──────────────────────────────► Expiry
+     │                                          │
+     │  ◄─── Active period (2-4 weeks) ───►    │
+     │                                          │
+     └─ Unilateral exit available ─────────────┘
+                                                │
+                                     Operator sweeps
+                                     You get Arkade Note
+```
 
-- **A\+S (User \+ Server):** Standard cooperative path
-- **A\+CSV (User after timelock):** Unilateral fallback path
-- **A\+B\+S (User \+ Delegate \+ Server):** Delegation path requiring all three parties
+## What Happens at Expiry
 
-<Tip>Find the full intent delegation workflow as part of a batch swap [here](/arkd/components/intent-delegation)</Tip>
+| Before Expiry | After Expiry |
+|---------------|--------------|
+| ✅ Unilateral exit | ❌ No unilateral exit |
+| ✅ Full self-custody | ⚠️ Depends on operator |
+| ✅ Spend freely | ❌ Can't spend directly |
+| — | ✅ Recoverable via batch swap |
 
-**Delegation Options**:
-- **Wallet Providers**: Wallet providers can integrate automatic renewal into the application experience
-- **Third-party Services**: Professional entities can offer renewal services with reliability guarantees  
-- **Self-hosted**: Users can run their own delegate/watchtower to monitor expiries and submit renewal intents automatically (laptop, home node, or server)
+After expiry, the operator can sweep your VTXO. You receive an [Arkade Note](/arkd/components/ark-notes)—a claim redeemable in a future batch swap, but not unilaterally enforceable onchain.
 
-### TL;DR 
+## Renewal Options
 
-The delegation system offers the following benefits: 
-- **User retains control**: All delegation requires presigned intents; funds remain self-custodial with unilateral exit always possible.
-- **Pre-committed inputs and outputs**: Intents define and sign exact inputs and outputs; delegates can't alter those or access funds, but only hand what has been presigned.
-- **Strict timing constraints**: Intents include time windows, this prevents a delegate to hand in an intent earlier than intended to collect associated fees. 
+### Option 1: Manual Renewal
 
-By leveraging intent delegation, application developers can abstract batch expiry handling, delivering user experiences that feel just like existing self-custodial apps.
+Participate in a batch swap before expiry:
+
+```typescript
+// Check for expiring VTXOs
+const vtxos = await wallet.getVtxos()
+const expiringSoon = vtxos.filter(v => {
+  const daysUntilExpiry = (v.expiresAt - Date.now()) / (24 * 60 * 60 * 1000)
+  return daysUntilExpiry < 7
+})
+
+if (expiringSoon.length > 0) {
+  console.log(`${expiringSoon.length} VTXOs expiring soon`)
+  await wallet.settle()  // Renew via batch swap
+}
+```
+
+### Option 2: Delegation
+
+Appoint a third party to renew on your behalf. They can only execute presigned intents—no custody transfer.
+
+**Delegate VTXO structure:**
+
+| Spending Path | Parties Required | Purpose |
+|---------------|------------------|---------|
+| `A+S` | User + Server | Normal spending |
+| `A+CSV` | User (after timelock) | Unilateral exit |
+| `A+B+S` | User + Delegate + Server | Delegated renewal |
+
+The delegate path requires all three signatures, but the user presigns their portion. Delegates can only submit—not modify—the renewal intent.
+
+**Delegation options:**
+
+| Provider | Setup | Best For |
+|----------|-------|----------|
+| **Wallet provider** | Built into app | Seamless UX |
+| **Third-party service** | Connect to provider | Hands-off users |
+| **Self-hosted** | Run your own server | Maximum control |
+
+<Card title="Intent Delegation" icon="handshake" href="/arkd/components/intent-delegation" horizontal>
+  Full technical walkthrough of delegation setup
+</Card>
+
+### Option 3: Settle to Bitcoin
+
+For long-term storage, exit to onchain Bitcoin. No expiry concerns—standard UTXOs don't expire.
+
+```typescript
+await wallet.offboard({ address: 'bc1q...' })
+```
+
+## Delegation Security
+
+Delegation is safe because:
+
+| Property | Guarantee |
+|----------|-----------|
+| **Pre-committed outputs** | Intent specifies exact destination—delegate can't change it |
+| **Time windows** | Intent only valid during specified window |
+| **No key access** | Delegate never holds your keys |
+| **Unilateral exit preserved** | You can still exit via `A+CSV` path |
+
+The worst a malicious delegate can do is *not* renew—in which case you fall back to Arkade Note recovery.
+
+## Checking Expiry Status
+
+```typescript
+const vtxos = await wallet.getVtxos()
+
+for (const vtxo of vtxos) {
+  const expiresAt = new Date(vtxo.expiresAt)
+  const daysLeft = (vtxo.expiresAt - Date.now()) / (24 * 60 * 60 * 1000)
+  
+  console.log(`VTXO ${vtxo.txid}:${vtxo.vout}`)
+  console.log(`  Expires: ${expiresAt.toISOString()}`)
+  console.log(`  Days left: ${daysLeft.toFixed(1)}`)
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Batch Swaps" icon="rotate" href="/learn/pillars/batch-swaps">
+    How renewal works technically
+  </Card>
+  <Card title="Liveness Requirements" icon="heart-pulse" href="/learn/security/liveness">
+    Understanding the liveness trade-off
+  </Card>
+</CardGroup>

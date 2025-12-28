@@ -1,124 +1,107 @@
 ---
 title: "Check Balances"
-description: "Query wallet balances and inspect individual VTXOs"
+description: "Learn how to check your Arkade wallet balance"
 icon: "coins"
 ---
 
-## Quick Balance Check
+Your Arkade wallet balance shows how many satoshis you can spend in offchain transactions. This is your primary balance for everyday payments within Arkade.
 
-<CodeGroup>
-```typescript TypeScript
+```typescript
 const balance = await wallet.getBalance()
 
-console.log('Available:', balance.available, 'sats')  // Spendable now
-console.log('Total:', balance.total, 'sats')          // Including recoverable
+// Available balance - spendable in offchain Arkade transactions
+console.log('Available:', balance.available)
+
+// Total balance - includes available + recoverable funds
+console.log('Total:', balance.total)
 ```
 
-```go Go
-balance, err := wallet.GetBalance()
-if err != nil {
-    log.Fatal(err)
+## Understanding Your Balance
+
+Your Arkade wallet balance is composed of different VTXO states:
+
+```typescript
+{
+  // Offchain balances (VTXOs)
+  preconfirmed: 0;      // Cosigned by the Arkade operators and sender
+  settled: 20000;       // Bitcoin-anchored via batch swap
+  available: 20000;     // settled + preconfirmed (spendable in transactions)
+  recoverable: 5000;    // Expired VTXOs and subdust. (see VTXO Management)
+  total: 25000;         // available + recoverable
+
+  // Pending onchain deposits. (boarding UTXOs - see Ramps for onboarding)
+  boarding: {
+    unconfirmed: 0,     // Unconfirmed onchain UTXOs
+    confirmed: 0,       // Confirmed onchain UTXOs
+    total: 0            // confirmed + unconfirmed
+  };
 }
-
-fmt.Printf("Available: %d sats\n", balance.Available)
-fmt.Printf("Total: %d sats\n", balance.Total)
 ```
-</CodeGroup>
-
-## Balance Fields
-
-| Field | Description | When It Matters |
-|-------|-------------|-----------------|
-| `available` | Spendable right now | **Primary balance** for payments |
-| `total` | Available + recoverable | Full picture of your funds |
-| `preconfirmed` | Received but not yet settled onchain | Instant payments waiting for batch |
-| `settled` | Anchored to Bitcoin via batch swap | Maximum security state |
-| `recoverable` | Expired or sub-dust VTXOs | Needs [recovery action](/wallets/v0.3/vtxo-management) |
 
 <Tip>
-For most use cases, display `available` as the user's balance. It represents what they can spend immediately.
+  **Primary Balance Fields:**
+
+  - `available` - What you can spend right now in Arkade transactions
+  - `total` - Your total offchain balance including funds that need recovery
+
+  For everyday use, focus on the `available` balance.
 </Tip>
 
-### Boarding Balance
+<Note>
+  **Advanced Balance Fields:**
 
-If you use [native onboarding](/wallets/v0.3/ramps#boarding), the `boarding` field tracks onchain deposits waiting to become VTXOs:
+  - `recoverable` - VTXOs that have been swept by the server or subdust amounts. Use [VTXO Management](/wallets/v0.3/vtxo-management) to recover these funds.
+  - `boarding` - Only relevant when using the [native onboarding process](/wallets/v0.3/ramps#boarding). For most users, this will be zero.
+
+  Learn more about [VTXO States](/learn/pillars/vtxos#vtxo-states).
+</Note>
+
+## Managing Coins
+
+### Getting Virtual UTXOs
+
+You can retrieve all your offchain VTXOs with a simple call:
 
 ```typescript
-const { boarding } = await wallet.getBalance()
-
-console.log('Unconfirmed deposits:', boarding.unconfirmed)
-console.log('Confirmed deposits:', boarding.confirmed)
-console.log('Total boarding:', boarding.total)
-```
-
-Boarding funds become `available` after onboarding completes (requires 2 confirmations).
-
-## List VTXOs
-
-Inspect individual VTXOs for debugging or advanced coin selection:
-
-<CodeGroup>
-```typescript TypeScript
+// Get virtual UTXOs (offchain)
 const vtxos = await wallet.getVtxos()
+console.log('Number of VTXOs:', vtxos.length)
 
-for (const vtxo of vtxos) {
-  console.log(`${vtxo.txid}:${vtxo.vout}`)
-  console.log(`  Amount: ${vtxo.value} sats`)
-  console.log(`  State: ${vtxo.virtualStatus.state}`)
-  console.log(`  Batch: ${vtxo.virtualStatus.batchTxID}`)
-}
+// Log important information about each VTXO
+vtxos.forEach((vtxo, index) => {
+  console.log(`VTXO #${index + 1}:`);
+  console.log(`  ID: ${vtxo.txid}:${vtxo.vout}`);
+  console.log(`  Amount: ${vtxo.value} sats`);
+  console.log(`  Batch ID: ${vtxo.virtualStatus.batchTxID}`);
+  console.log(`  Status: ${vtxo.virtualStatus.state}`); // "preconfirmed" | "settled" | "swept" | "spent";
+});
 ```
 
-```go Go
-vtxos, err := wallet.GetVtxos()
-if err != nil {
-    log.Fatal(err)
-}
+### Getting Boarding UTXOs
 
-for _, vtxo := range vtxos {
-    fmt.Printf("%s:%d\n", vtxo.Txid, vtxo.Vout)
-    fmt.Printf("  Amount: %d sats\n", vtxo.Value)
-    fmt.Printf("  State: %s\n", vtxo.VirtualStatus.State)
-}
-```
-</CodeGroup>
-
-### VTXO States
-
-| State | Meaning |
-|-------|---------|
-| `preconfirmed` | Cosigned by operator, spendable instantly |
-| `settled` | Included in onchain batch, full Bitcoin security |
-| `swept` | Expired and claimed by operator (recoverable) |
-| `spent` | Already used as input to another transaction |
-
-<Card title="VTXO Lifecycle" icon="rotate" href="/learn/pillars/vtxos#vtxo-states" horizontal>
-  Deep dive into how VTXOs transition between states
-</Card>
-
-## List Boarding UTXOs
-
-Check pending onchain deposits that haven't been converted to VTXOs yet:
+Boarding UTXOs are onchain UTXOs that have been sent to a boarding address but haven't yet been converted to VTXOs:
 
 ```typescript
+// Get boarding UTXOs
 const boardingUtxos = await wallet.getBoardingUtxos()
+console.log('Number of boarding UTXOs:', boardingUtxos.length)
 
-for (const utxo of boardingUtxos) {
-  console.log(`${utxo.txid}:${utxo.vout}`)
-  console.log(`  Amount: ${utxo.value} sats`)
-  console.log(`  Confirmed: ${utxo.status.confirmed}`)
-}
+// Log important information about each boarding UTXO
+boardingUtxos.forEach((utxo, index) => {
+  console.log(`Boarding UTXO #${index + 1}:`);
+  console.log(`  TXID: ${utxo.txid}`);
+  console.log(`  Output Index: ${utxo.vout}`);
+  console.log(`  Amount: ${utxo.value} sats`);
+  console.log(`  Status: ${utxo.status.confirmed ? 'Confirmed' : 'Unconfirmed'}`);
+});
 ```
-
-Once confirmed, use [Ramps](/wallets/v0.3/ramps#boarding) to convert these to spendable VTXOs.
 
 ## Next Steps
 
-<CardGroup cols={2}>
-  <Card title="Send Payments" icon="paper-plane" href="/wallets/v0.3/sending-payments">
-    Spend your balance on Arkade, Lightning, or onchain
-  </Card>
-  <Card title="VTXO Management" icon="gear" href="/wallets/v0.3/vtxo-management">
-    Renew expiring VTXOs and recover swept funds
-  </Card>
-</CardGroup>
+- [Send Payments](/wallets/v0.3/sending-payments) - Learn how to send payments within Arkade and to Lightning
+- [VTXO Management](/wallets/v0.3/vtxo-management) - Manage VTXO renewal and recovery
+- [Ramps](/wallets/v0.3/ramps) - Advanced: onboard from Bitcoin or offboard to Bitcoin
+
+---
+
+<NextButton url="/wallets/v0.3/sending-payments" text="Send Payments" />

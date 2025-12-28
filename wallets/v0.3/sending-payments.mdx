@@ -1,145 +1,68 @@
 ---
 title: "Sending Payments"
-description: "Send Bitcoin to Arkade, Lightning, and onchain addresses"
+description: "Learn how to send Bitcoin payments within Arkade and to Lightning Network"
 icon: "paper-plane"
 ---
 
-The SDK automatically detects destination type and routes payments appropriately.
+## Overview
 
-## Quick Reference
+Arkade transactions work just like on-chain Bitcoin transactions - you send to addresses without requiring the recipient to be online. The key difference is that Arkade transactions are instant and have near-zero fees when sending to Arkade addresses. You can also send to Lightning invoices and Bitcoin addresses (bc1/tb1).
 
-| Destination | Address Format | Speed | Fees |
-|-------------|---------------|-------|------|
-| **Arkade wallet** | `ark1...` / `tark1...` | Instant | Near-zero |
-| **Lightning** | `lnbc...` / `lntb...` | ~30 seconds | Low (swap fee) |
-| **Bitcoin onchain** | `bc1...` / `tb1...` | ~10 minutes | Network fees |
+## Sending to Arkade Addresses
 
-## Send to Arkade Address
+Use the `sendBitcoin` function to send to another Arkade wallet. Simply provide an Arkade address (starting with `ark1` or `tark1`) and the amount in satoshis. The recipient doesn't need to be online to receive the payment.
 
-<CodeGroup>
-```typescript TypeScript
+```typescript
+// Send to an Arkade address
 const txid = await wallet.sendBitcoin({
-  address: 'ark1q...',
-  amount: 50000  // sats
+  address: 'tark12ld59yglpjkfezzhrr9cpe2ws4n87vs7rzv8234as3ctk9hly0r8w495snjdkk6fnwpwznlg56sutpy55n8a7nmkhumm4g7fckx9k4qrjc22t',
+  amount: 50000,  // in satoshis
 })
 
-console.log('Sent:', txid)
+console.log('Transaction ID:', txid)
 ```
-
-```go Go
-txid, err := wallet.SendBitcoin(SendBitcoinParams{
-    Address: "ark1q...",
-    Amount:  50000,
-})
-if err != nil {
-    log.Fatal(err)
-}
-
-fmt.Println("Sent:", txid)
-```
-</CodeGroup>
-
-Payments to Arkade addresses are instant and cost fractions of a satoshi. The recipient doesn't need to be online.
-
-## Send to Lightning Invoice
-
-<CodeGroup>
-```typescript TypeScript
-const txid = await wallet.sendBitcoin({
-  address: 'lnbc50u1p...',  // Lightning invoice
-  amount: 50000
-})
-```
-
-```go Go
-txid, err := wallet.SendBitcoin(SendBitcoinParams{
-    Address: "lnbc50u1p...",
-    Amount:  50000,
-})
-```
-</CodeGroup>
-
-Lightning payments use [submarine swaps](/contracts/lightning-swaps) under the hood. The SDK handles swap coordination automatically.
-
-<Info>
-For advanced Lightning integration (generating invoices, custom swap handling), see the [Lightning Swaps guide](/contracts/lightning-swaps).
-</Info>
-
-## Send to Bitcoin Address
-
-<CodeGroup>
-```typescript TypeScript
-const txid = await wallet.sendBitcoin({
-  address: 'bc1q...',  // Onchain Bitcoin address
-  amount: 100000
-})
-```
-
-```go Go
-txid, err := wallet.SendBitcoin(SendBitcoinParams{
-    Address: "bc1q...",
-    Amount:  100000,
-})
-```
-</CodeGroup>
-
-Onchain sends trigger a [collaborative exit](/wallets/v0.3/ramps#exiting) that settles in the next batch. Standard Bitcoin network fees apply.
 
 <Tip>
-For larger withdrawals, use `wallet.offboard()` directly for more control over timing and fees.
+  **Like on-chain Bitcoin, but instant:** Payments to Arkade addresses work just like sending to a Bitcoin address - the recipient doesn't need to be online. The difference is that Arkade payments are instant and have near-zero fees, making them ideal for everyday transactions.
 </Tip>
 
-## Fee Comparison
+## Sending to Lightning Network
 
-| Destination | Typical Fee | Notes |
-|-------------|-------------|-------|
-| Arkade | <1 sat | Offchain execution fee |
-| Lightning | ~0.1% | Submarine swap + routing |
-| Bitcoin | 500-5000 sats | Depends on network congestion |
+Send payments from your Arkade wallet to any Lightning invoice using submarine swaps. This allows you to pay Lightning users instantly.
 
-## Error Handling
+<Card title="Lightning Swaps" icon="bolt" horizontal href="/contracts/lightning-swaps">
+  Learn how to integrate the Lightning Network with Arkade using submarine swaps to send and receive Lightning payments.
+</Card>
 
-```typescript
-try {
-  const txid = await wallet.sendBitcoin({
-    address: recipientAddress,
-    amount: 50000
-  })
-  console.log('Success:', txid)
-} catch (error) {
-  if (error.code === 'INSUFFICIENT_BALANCE') {
-    console.error('Not enough funds')
-  } else if (error.code === 'INVALID_ADDRESS') {
-    console.error('Unrecognized address format')
-  } else if (error.code === 'OPERATOR_OFFLINE') {
-    console.error('Operator unavailable - try again later')
-  } else {
-    console.error('Send failed:', error.message)
-  }
-}
-```
+## Sending to Bitcoin Addresses
 
-## Checking Balance Before Send
+You can send directly to Bitcoin onchain addresses (bc1/tb1). This involves an onchain swap where your Arkade balance is converted to Bitcoin and sent to the recipient's address. Like sending to an Arkade address, the recipient doesn't need to be online.
 
 ```typescript
-const balance = await wallet.getBalance()
+// Send to a Bitcoin address (involves onchain swap)
+const txid = await wallet.sendBitcoin({
+  address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',  // Bitcoin address
+  amount: 100000,  // in satoshis
+})
 
-const amount = 50000
-if (balance.available < amount) {
-  console.error(`Insufficient funds: ${balance.available} < ${amount}`)
-  return
-}
-
-await wallet.sendBitcoin({ address, amount })
+console.log('Transaction ID:', txid)
 ```
+
+<Note>
+  **Fee Comparison:**
+  - Arkade addresses (`ark1`/`tark1`): Near-zero fees, instant, no online requirement
+  - Lightning invoices: Low fees, instant via submarine swaps
+  - Bitcoin addresses (`bc1`/`tb1`): Standard network fees apply (onchain swap)
+
+  For regular onchain Bitcoin transactions, consider using the [offboarding process](/wallets/v0.3/ramps#exiting-collaboratively) instead for better control and potentially lower fees through batch processing.
+</Note>
 
 ## Next Steps
 
-<CardGroup cols={2}>
-  <Card title="Payment History" icon="clock-rotate-left" href="/wallets/v0.3/payment-history">
-    Track sent and received transactions
-  </Card>
-  <Card title="VTXO Management" icon="gear" href="/wallets/v0.3/vtxo-management">
-    Manage expiry and settlement
-  </Card>
-</CardGroup>
+- [VTXO Management](/wallets/v0.3/vtxo-management) - Learn how to manage VTXO renewal and recovery
+- [Payment History](/wallets/v0.3/payment-history) - Track your transaction history
+- [Ramps](/wallets/v0.3/ramps) - Advanced: onboard from Bitcoin or offboard to Bitcoin
+
+---
+
+<NextButton url="/wallets/v0.3/vtxo-management" text="VTXO Management" />

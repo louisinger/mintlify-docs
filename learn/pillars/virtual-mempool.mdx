@@ -4,30 +4,17 @@ description: "Arkade's offchain execution engine"
 icon: "chart-scatter"
 ---
 
-The virtual mempool is Arkade's offchain execution engine. It processes transactions instantly using a DAG (directed acyclic graph) structure that enables parallel execution without global state synchronization.
+The Virtual Mempool solves a fundamental problem: Bitcoin's base layer can't support instant, high-throughput execution without sacrificing unilateral exit guarantees. Arkade lets users chain transactions offchain at millisecond latency while preserving their ability to exit to Bitcoin without permission. The virtual mempool uses a directed acyclic graph structure where independent transaction branches execute in parallel, enabling massive throughput without requiring global state synchronization. Nodes represent individual transactions, edges encode VTXO dependencies, and the DAG updates the moment the Arkade Signer cosigns a valid request.
 
-## Virtual Mempool vs Bitcoin Mempool
+### DAG Architecture
 
-| Property | Bitcoin Mempool | Arkade Virtual Mempool |
-|----------|-----------------|------------------------|
-| **Purpose** | Queue for block inclusion | Real-time execution environment |
-| **Processing** | Sequential (one block at a time) | Parallel (independent branches) |
-| **Confirmation** | ~10 minutes (1 block) | Instant (operator cosignature) |
-| **State model** | Global UTXO set | Local VTXO transitions |
-| **Throughput** | ~7 TPS | Thousands of TPS |
-
-## DAG Architecture
-
-Transactions form a directed acyclic graph where:
-
-- **Nodes** = individual transactions
-- **Edges** = VTXO dependencies (which outputs feed which inputs)
+The Virtual Mempool employs a directed acyclic graph (DAG) structure:
 
 <div style={{ display:"flex",justifyContent:"center" }}>
 <img
   className="block dark:hidden"
   src="/images/ark/DAGlight.png"
-  alt="DAG structure"
+  alt="Light mode interface"
   style={{ width:"80%",height:"auto" }}
 />
 
@@ -37,82 +24,37 @@ Transactions form a directed acyclic graph where:
 <img
   className="hidden dark:block mx-auto"
   src="/images/ark/dagblack.png"
-  alt="DAG structure"
+  alt="Dark mode interface"
   style={{ width:"80%",height:"auto" }}
 />
 
 </div>
 
-Independent branches execute in parallel. Transaction A spending VTXO-1 doesn't block Transaction B spending VTXO-2—they process simultaneously.
+- Nodes represent individual transactions
+- Edges encode dependencies between VTXOs (inputs and outputs)
+
+Independent branches execute in parallel, enabling massive throughput
 
 <Tip>
-This eliminates the bottleneck in account-based systems where all transactions compete to update a single global state. In Arkade, transactions only need to respect their local VTXO dependencies.
+  This DAG design eliminates the bottlenecks inherent in account-based systems. Transactions only need to respect their local dependencies rather than competing for updates to a globally serialized state.
 </Tip>
 
-## Transaction Flow
+### How It Works
 
-<Steps>
-  <Step title="Submit">
-    User sends a signed transaction request to the Arkade operator
-  </Step>
-  <Step title="Validate">
-    Operator verifies the transaction against the current VTXO set (correct inputs, valid signatures, sufficient balance)
-  </Step>
-  <Step title="Cosign">
-    If valid, the [Arkade Signer](/learn/security/advanced-security#arkade-signer) cosigns the transaction
-  </Step>
-  <Step title="Update">
-    The DAG updates immediately—output VTXOs become spendable
-  </Step>
-</Steps>
+When users submit transactions to Arkade, the following process occurs:
 
-Total time: milliseconds.
+1. **Validation**: The Arkade Operator verifies the transaction request against the current VTXO set
+2. **Cosigning**: Valid requests are forwarded to the Arkade Signer for cosignature authorization
+3. **Update**: The Virtual Mempool DAG updates immediately, making transaction outputs instantly spendable
 
-## Preconfirmation State
+This creates a real-time execution environment where financial applications can operate without waiting for Bitcoin block confirmations.
 
-VTXOs in the virtual mempool exist in a [preconfirmed state](/learn/security/transaction-finality#preconfirmation):
+### From Preconfirmation to Finality
 
-| Property | Status |
-|----------|--------|
-| Spendable in Arkade | ✅ Immediately |
-| Chainable (use outputs as inputs) | ✅ Yes |
-| Bitcoin finality | ❌ Not yet |
-| Unilateral exit | ✅ Via presigned tx |
+VTXOs in the virtual mempool are..
 
-Preconfirmed VTXOs are real—you can spend them, chain them, and exit with them. They just haven't been anchored to Bitcoin yet.
+- ..instantly valid within Arkade upon cosigning by the [Arkade Signer](/learn/security/advanced-security#arkade-signer)
+- ..chainable and composable for complex offchain operations
+- ..not yet anchored to Bitcoin's blockchain, but exist in a [preconfirmed state](/learn/security/transaction-finality).
 
-## Achieving Bitcoin Finality
-
-To upgrade from preconfirmation to full Bitcoin security:
-
-1. Participate in a [batch swap](/learn/pillars/batch-swaps)
-2. Your VTXOs get included in a commitment transaction
-3. Once confirmed onchain, your VTXOs inherit Bitcoin's immutability
-
-<Info>
-You control when to settle. Keep funds preconfirmed for fast operations, or anchor to Bitcoin when you want maximum security.
-</Info>
-
-## Why It Scales
-
-Traditional blockchains serialize all transactions through a single state machine. As usage grows, everyone competes for the same limited throughput.
-
-Arkade's virtual mempool scales differently:
-
-- **No global state** — each VTXO branch is independent
-- **Parallel by default** — more users = more branches, not more congestion
-- **Local validation** — transactions only check their own inputs
-- **Deterministic** — outcomes known before execution
-
-This is horizontal scaling: add more users without degrading performance for existing ones.
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Arkade Transactions" icon="share-nodes" href="/learn/pillars/arkade-tx">
-    How transactions work in the virtual mempool
-  </Card>
-  <Card title="Batch Swaps" icon="rotate" href="/learn/pillars/batch-swaps">
-    Settle to Bitcoin for full finality
-  </Card>
-</CardGroup>
+Users achieve full Bitcoin finality through batch settlement, where the operator aggregates VTXOs into onchain commitment transactions. This process grants VTXOs Bitcoin's immutability and censorship resistance while preserving offchain programmability.

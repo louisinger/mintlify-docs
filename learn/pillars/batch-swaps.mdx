@@ -1,45 +1,30 @@
 ---
 title: "Batch Swaps"
-description: "How VTXOs achieve Bitcoin finality"
+description: "How VTXOs achieve Bitcoin Finality"
 icon: "rotate"
 ---
 
-Batch swaps let you upgrade VTXOs from preconfirmed state to full Bitcoin security without leaving Arkade.
+Batch swaps let users transition VTXOs from preconfirmed state to Bitcoin finality without exiting Arkade. Three reasons to settle:
 
-## Why Settle?
+1. **Trust Surface**: Preconfirmed VTXOs rely on the operator's integrity. A malicious operator can sign conflicting transactions
+2. **VTXO Chain Depth**: Deeply chained VTXOs have high exit costs, making unilateral exit economically unviable
+3. **VTXO Renewal**: VTXOs must be renewed before batch expiry. If renewal is missed, the operator can claim the respective VTXO upon bacth expiration.
 
-| Reason | Problem | Batch Swap Solves It |
-|--------|---------|---------------------|
-| **Security** | Preconfirmed VTXOs trust the operator | New VTXOs anchored to Bitcoin |
-| **Exit costs** | Deep transaction chains = expensive exit | Resets to 1-level depth |
-| **Expiry** | VTXOs expire if not renewed | Fresh expiry timer |
-
-## How It Works
-
-You exchange old VTXOs for new ones in a single atomic operation:
-
-```
-┌─────────────────┐                    ┌─────────────────┐
-│ Your Old VTXOs  │                    │ Your New VTXOs  │
-│ (preconfirmed)  │ ───batch swap───▶  │ (Bitcoin final) │
-│                 │                    │                 │
-│ • Deep in tree  │                    │ • Fresh depth   │
-│ • Near expiry   │                    │ • New expiry    │
-│ • Operator trust│                    │ • Onchain anchor│
-└─────────────────┘                    └─────────────────┘
-```
-
-The swap is **atomic**: either both sides complete, or neither does. You never lose custody.
+Batch swaps re-anchor virtual funds to Bitcoin via a commitment transaction, inheriting [Bitcoin finality](/learn/security/transaction-finality#bitcoin-finality) and resetting expiry timers. The process is atomic and users keep custody throughout. Atomicity is enforced through connector outputs and forfeit transactions.
 
 ## Commitment Transactions
 
-A commitment transaction is the single onchain footprint that anchors a batch. It contains:
+Commitment Transactions are the single onchain footprint that underpins the Arkade protocol. A commitment transaction is created through a coordinated process where users register their transaction requests to be included in a batch.
+
+The Arkade Operator validates all requests and confirms participant availability before constructing the commitment transaction and initiating the multi-party signing session.
+
+A commitment transaction contains two outputs:
 
 <div style={{ display:"flex",justifyContent:"center" }}>
 <img
   className="block dark:hidden"
   src="/images/ark/commitmenttxlight.png"
-  alt="Commitment transaction"
+  alt="Spending conditions"
   style={{ width:"70%",height:"auto" }}
 />
 
@@ -49,121 +34,110 @@ A commitment transaction is the single onchain footprint that anchors a batch. I
 <img
   className="hidden dark:block mx-auto"
   src="/images/ark/commitmenttxdark.png"
-  alt="Commitment transaction"
+  alt="Spending conditions"
   style={{ width:"70%",height:"auto" }}
 />
-
 </div>
 
-| Output | Purpose |
-|--------|---------|
-| **Batch output** | Contains all participants' new VTXOs in a tree structure |
-| **Connector output** | Enables atomic swap coordination via forfeit transactions |
+- **Batch Output**: Encapsulates multiple users' ownership claims in a tree of presigned virtual transactions
+- **Connector Output**: A [connector output](/learn/pillars/connectors) is a dust-amount output that ensures atomicity during batch swaps and VTXO exits by providing virtual anchors for forfeit transactions.
 
-Once confirmed on Bitcoin, all VTXOs in the batch inherit Bitcoin's security guarantees.
+
+<Info>
+  Find the [detailed client workflow for onchain settlement](https://docs.arkadeos.com/arkd/txs/onchain-settlement#client-workflow%3A-participating-in-a-batch-swap) in the Server & API section
+</Info>
 
 ## Forfeit Transactions
 
-Forfeit transactions make the swap atomic. When you participate in a batch swap, you sign a forfeit transaction that:
+Forfeit transactions are the critical mechanism enabling atomic batch swaps. When users swap VTXOs, they sign a forfeit transaction that relinquishes their old VTXO to the operator, but only if the new batch successfully confirms onchain.
 
-1. Gives the operator your old VTXO
-2. **Only becomes valid** when the new commitment transaction confirms
+Forfeit Transactions serve two main purposes:
 
-This creates mutual dependency:
-- You only forfeit old VTXOs if you receive new ones
-- Operator only gets old VTXOs if they publish the commitment transaction
+  1. Assure the user can forfeit securely on old funds, as those can only be claimed by the operator if new VTXOs are being created via a broadcasted commitment transaction
+  2. [Protect the operator against potential user fraud](/arkd/server-security/forfeit-txs), if the user attempted to double-spend forfeited funds
 
-<Info>
-Forfeit transactions also protect the operator. If you try to double-spend by broadcasting an old exit transaction after a swap, the operator broadcasts the forfeit transaction to claim those funds.
-</Info>
 
-## Step-by-Step Process
+### Transaction Structure
+
+Forfeit transactions follow a specific format ensuring atomicity:
+
+**Inputs:**
+
+- One VTXO input (the position being swapped)
+- One connector input (links to the new commitment transaction)
+
+**Outputs:**
+
+- Forfeit output (transfers value to operator)
+- Anchor output (zero-value output for fee management)
+
+The anchor output in forfeit transactions is a zero-value output with a specific script used for fee bumping through Child-Pays-For-Parent (CPFP) transactions. When a forfeit transaction needs higher fees for confirmation, the system creates a child transaction that spends this anchor output and pays additional fees.
+
+## Intents
+
+When users want to participate in a batch swap for Bitcoin finality, they submit an intent to the operator. The operator validates this transaction declaration and, if valid, includes the user's intent in the next commitment transaction.
+
+Arkade intents provide cryptographic ownership proof via [BIP322](/learn/glossary#bip322) for any inputs a user wishes to redeem, whether offchain VTXOs, onchain UTXOs, or expired coins. The intent also specifies the exact outputs the user expects to receive.
+
+This design separates control from coordination: users maintain complete control of their keys while the operator handles batch settlement logistics and the Arkade Signer provides necessary cosignatures.
+
+<Tip>
+  If a user choses to delegate VTXO renewal and circumvent the corresponding liveness requirement, they never give up keys or fund control in the process, preserving autonomy while reducing operational overhead.
+</Tip>
+
+<Info>Find the [detailed intent system description](/arkd/components/intent-system) in the Server & API section</Info> 
+
+
+## Batch Swaps: Step-by-Step process
 
 <Steps>
-  <Step title="Submit Intent">
-    You tell the operator which VTXOs to swap and what outputs you want:
-    
-    ```typescript
-    // SDK handles this automatically
-    await wallet.settle()
-    ```
-    
-    Your intent includes a BIP322 ownership proof—no funds leave your control.
+  <Step title="Participation Signaling" titleSize="h3">
+    Users initiate batch swaps by submitting an intent to the operator containing:
+    - VTXOs to be swapped
+    - Desired parameters for new VTXOs (scripts, amounts)
+    - Cosigner keys for the new batch's transaction tree
   </Step>
-  
-  <Step title="Operator Builds Batch">
-    The operator collects intents from all participants and constructs:
-    - New commitment transaction
-    - Virtual transaction tree with everyone's new VTXOs
-    - Connector outputs for atomicity
+  <Step title="Commitment Transaction Construction" titleSize="h3">
+    The operator builds a new commitment transaction featuring:
+
+    - [Batch output](/learn/pillars/batch-outputs): Aggregates all participants' new VTXOs
+    - Connector output: Enables atomic coordination between old and new states
   </Step>
-  
-  <Step title="You Verify & Sign">
-    You receive the proposed tree and verify your new VTXOs are correct. Then sign:
-    - Forfeit transaction (releases old VTXOs conditionally)
-    - Tree signatures (MuSig2 for your branch)
+  <Step title="Virtual Transaction Tree Setup" titleSize="h3">
+    The operator constructs the virtual transaction tree for the batch output, defining:
+
+    - Unilateral exit paths for each participant
+    - Collaborative spending conditions and timelocks
+    - Anchor outputs for fee attachment capabilities
+
+    This structure ensures every VTXO maintains enforceable settlement guarantees.
   </Step>
-  
-  <Step title="Operator Broadcasts">
-    Once all signatures are collected, the operator broadcasts the commitment transaction to Bitcoin.
+  <Step title="Forfeit Transaction Construction" titleSize="h3">
+    A forfeit transaction links old and new states by:
+
+    - Spending the user's preconfirmed VTXOs
+    - Consuming the virtual connector output
+    - Transferring value to the operator for liquidity rotation
+
+    The virtual connector ensures the operator can only claim forfeited VTXOs after broadcasting the commitment transaction.
   </Step>
-  
-  <Step title="Confirmation">
-    After Bitcoin confirms the commitment transaction:
-    - Your new VTXOs are valid and spendable
-    - Your old VTXOs are invalidated
-    - Expiry timer resets
+  <Step title="Signing Phase" titleSize="h3">
+    Both parties provide necessary signatures:
+
+    - Users sign forfeit transactions after verifying the virtual tree
+    - The Arkade Signer signs the commitment transaction and new virtual paths
+
+      This mutual dependency ensures atomicity. Neither party can finalize without the other's cooperation.
+  </Step>
+  <Step title="Broadcast and Confirmation" titleSize="h3">
+    The operator broadcasts the commitment transaction to Bitcoin:
+
+    - Upon confirmation, new VTXOs become valid and enforceable
+    - Old VTXOs are invalidated through the forfeit mechanism
+    - System state advances without requiring unilateral exits
   </Step>
 </Steps>
 
-## SDK Usage
-
-```typescript
-// Check which VTXOs need settlement
-const vtxos = await wallet.getVtxos()
-const preconfirmed = vtxos.filter(v => v.virtualStatus.state === 'preconfirmed')
-
-console.log(`${preconfirmed.length} VTXOs to settle`)
-
-// Settle all preconfirmed VTXOs
-await wallet.settle()
-
-// Verify settlement
-const balance = await wallet.getBalance()
-console.log(`Settled: ${balance.settled} sats`)
-```
-
-## When to Settle
-
-| Situation | Action |
-|-----------|--------|
-| Received large payment | Settle for security |
-| Many chained transactions | Settle to reset depth |
-| VTXO nearing expiry | Settle to renew |
-| Want to reduce operator trust | Settle periodically |
-| Small, frequent payments | Stay preconfirmed (faster/cheaper) |
-
-<Tip>
-A practical pattern: settle once per day or when your preconfirmed balance exceeds a threshold you're comfortable with.
-</Tip>
-
-## Delegation
-
-Don't want to manually participate in batch swaps? [Delegate to a third party](/learn/pillars/batch-expiry#delegation-solutions) who submits intents on your behalf. You keep full control—delegates can only renew VTXOs to addresses you specify.
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Batch Outputs" icon="box-open" href="/learn/pillars/batch-outputs">
-    How VTXOs are organized in trees
-  </Card>
-  <Card title="Connectors" icon="link" href="/learn/pillars/connectors">
-    How atomicity is enforced
-  </Card>
-  <Card title="Intent System" icon="gear" href="/arkd/components/intent-system">
-    Technical details of intent coordination
-  </Card>
-  <Card title="Settlement Workflow" icon="server" href="/arkd/txs/onchain-settlement">
-    Full API-level walkthrough
-  </Card>
-</CardGroup>
+<Info>
+  Find the [detailed onchain settlement mechanics](/arkd/txs/onchain-settlement) in the Server & API section
+</Info>

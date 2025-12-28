@@ -1,181 +1,24 @@
 ---
-title: "Risks & Limitations"
-description: "Known attack vectors, failure modes, and mitigations"
+title: "Risk & Limitations"
+description: "Discussion of potential risks and limitations in the Arkade system, such as mass exit scenarios and Signer compromise."
 icon: "triangle-exclamation"
 ---
 
-Arkade has trade-offs. Understanding them helps you use the system appropriately.
-
-## Risk Summary
-
-| Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
-| **Mass exit congestion** | Low | High fees during exit | Settle early, maintain larger VTXOs |
-| **Operator downtime** | Medium | Can't transact (funds safe) | Unilateral exit available |
-| **VTXO expiry** | Medium | Lose unilateral exit | Delegation, active management |
-| **Signer compromise** | Very Low | Double-spend possible | TEE, slashing, exit immediately |
-| **Deep chain costs** | Medium | Expensive unilateral exit | Settle periodically |
-
 ## Mass Exit Scenarios
 
-When many users exit simultaneously, Bitcoin block space becomes contested.
+Mass exit events occur when large numbers of users simultaneously attempt to exit the system, typically triggered by operator infrastructure failures, concerns about operator behavior, regulatory interventions, or system vulnerabilities. When the Arkade Operator goes offline, users lose the ability to initiate new transactions but retain full control over existing VTXOs through presigned unilateral exit paths.
 
-### Triggers
+The critical challenge emerges when high demand for exits coincides with elevated Bitcoin network fees. Exit costs can become prohibitively expensive, particularly for smaller VTXO values where fees may exceed the balance itself. Users with larger holdings can afford immediate exit, while smaller holders must weigh immediate exit costs against waiting for lower Bitcoin fees. The length of VTXO transaction chains directly affects exit costs, as longer chains require more complex Bitcoin transactions to unroll.
 
-- Operator goes permanently offline
-- Security vulnerability discovered
-- Regulatory action
-- Loss of confidence
+Operators face strong incentives to restore service quickly due to lost fee revenue, while the modular architecture may enable rapid migration to alternative infrastructure. Ongoing research and protocol optimization aim to enhance user coordination capabilities and minimize the economic impact of mass exit events.
 
-### What Happens
+## Arkade Signer Compromise
 
-| User Type | Impact |
-|-----------|--------|
-| Large VTXO holders | Can afford exit fees |
-| Small VTXO holders | Exit may cost more than balance |
-| Deep chain users | Many txs to broadcast = high fees |
+Compromise of the Arkade Signer occurs when cryptographic keys are breached, potentially through software vulnerabilities, infrastructure attacks, or other security failures. TEEs provide additional hardware protection, but compromise remains possible through advanced means. 
 
-### Mitigations
+In this scenario, a malicious actor could use the Signer keys to unroll certain chains of transactions and sign conflicting ownership claims.
 
-**For users:**
-- Keep VTXOs above dust threshold (~1000 sats minimum)
-- Settle periodically to reset chain depth
-- Don't wait until expiry to renew
+Detection occurs through remote attestation failures and cryptographic evidence of conflicting signatures. The Arkade Operator is expected to halt the system immediately, preventing potential abuse. Users should cease creating new VTXOs and prepare for emergency exits if holding potentially affected VTXOs.
 
-**System-level:**
-- Operator incentivized to restore service (loses fee revenue)
-- Modular architecture enables migration to backup infrastructure
+TEE compromise represents a critical failure mode where the hardware isolation protecting Arkade Signer keys is breached through vulnerabilities in TEE hardware, side-channel attacks, or software stack compromise. Unlike operator downtime which affects availability, TEE compromise enables double-signing attacks where the same VTXO could be validly assigned to multiple users, creating irreconcilable ownership disputes.
 
-<Warning>
-In extreme cases, small VTXOs may become uneconomical to exit. Wait for fees to decrease, or accept the loss.
-</Warning>
-
-## Operator Downtime
-
-Arkade uses a client-server model. When the operator is offline:
-
-| What Works | What Doesn't |
-|------------|--------------|
-| ✅ Unilateral exit | ❌ New transactions |
-| ✅ Access existing VTXOs | ❌ Batch swaps |
-| ✅ Broadcast presigned txs | ❌ Collaborative exit |
-| | ❌ VTXO renewal |
-
-**Your funds are always safe** via presigned exit transactions. The risk is inconvenience and potential expiry if downtime is extended.
-
-### Extended Downtime Risks
-
-If downtime exceeds your VTXO expiry window:
-1. You must exit unilaterally before expiry, OR
-2. Your VTXOs become recoverable (not unilaterally enforceable)
-
-Delegate to a third party if you can't monitor expiry yourself.
-
-## Signer Compromise
-
-The Arkade Signer holds the cosigning key for all VTXOs. If compromised:
-
-### Attack Vector
-
-```
-Attacker gains Signer key
-        ↓
-Signs conflicting transactions
-        ↓
-Same VTXO "spent" to multiple parties
-        ↓
-Only one can claim onchain
-```
-
-### Detection
-
-| Signal | Meaning |
-|--------|---------|
-| Remote attestation fails | TEE running unexpected code |
-| Conflicting signatures exist | Double-signing occurred |
-| Operator halts system | Breach detected |
-
-### Response
-
-1. **Stop creating new VTXOs** — don't add to exposure
-2. **Exit immediately** — broadcast presigned exit transactions
-3. **Race condition** — first valid exit claims the funds
-
-### Why It's Unlikely
-
-| Protection | Effect |
-|------------|--------|
-| TEE isolation | Key never leaves secure enclave |
-| Remote attestation | Verifiable code execution |
-| Slashing | Economic penalty destroys collateral |
-| Open source | Auditable implementation |
-
-<Info>
-TEE compromise requires sophisticated attacks (side-channels, hardware exploits). It's not impossible, but significantly harder than pure software attacks.
-</Info>
-
-## Deep Transaction Chains
-
-Chaining many offchain transactions increases unilateral exit cost.
-
-### The Problem
-
-```
-VTXO-1 → Tx1 → VTXO-2 → Tx2 → VTXO-3 → Tx3 → VTXO-4
-                                              ↑
-                                    4 txs to exit
-```
-
-Each transaction in the chain must be broadcast separately to exit.
-
-| Chain Depth | Exit Cost (at 10 sat/vB) |
-|-------------|--------------------------|
-| 1 tx | ~1,500 sats |
-| 5 txs | ~7,500 sats |
-| 10 txs | ~15,000 sats |
-| 20 txs | ~30,000 sats |
-
-### Mitigation
-
-[Settle periodically](/learn/pillars/batch-swaps) to reset chain depth to 1.
-
-## VTXO Expiry
-
-VTXOs have a limited lifetime. Missing renewal has consequences.
-
-| Before Expiry | After Expiry |
-|---------------|--------------|
-| ✅ Unilateral exit | ❌ Unilateral exit |
-| ✅ Full self-custody | ⚠️ Recoverable via batch swap |
-| ✅ Spend freely | ❌ Can't spend directly |
-
-### Mitigation Options
-
-| Approach | Effort | Best For |
-|----------|--------|----------|
-| Manual renewal | High | Active users |
-| Delegation | Low | Passive holders |
-| Exit to Bitcoin | One-time | Long-term storage |
-
-## Known Limitations
-
-| Limitation | Workaround |
-|------------|------------|
-| Requires operator online for transactions | Unilateral exit always available |
-| VTXOs expire | Renewal or delegation |
-| Exit costs scale with chain depth | Periodic settlement |
-| Sub-dust VTXOs can't exit unilaterally | Combine via batch swap |
-| Preconfirmation trusts operator | TEE + slashing + settlement |
-
-## Making Informed Decisions
-
-| If You Want | Then |
-|-------------|------|
-| Maximum security | Settle to Bitcoin finality frequently |
-| Lowest fees | Stay preconfirmed, accept operator trust |
-| Passive holding | Use delegation or exit to onchain |
-| Active trading | Preconfirmed is fine, settle periodically |
-
-<Card title="Advanced Security" icon="lock-keyhole" href="/learn/security/advanced-security" horizontal>
-  How TEEs, slashing, and encryption mitigate these risks
-</Card>

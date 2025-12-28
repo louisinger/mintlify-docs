@@ -1,111 +1,20 @@
 ---
 title: "Liveness"
-description: "Understanding liveness requirements for operators and users"
+description: "Discussion of liveness requirements in Arkade, including operator availability and VTXO expiry"
 icon: "heart-pulse"
 ---
 
-Arkade has two liveness requirements: the operator must be online for transactions, and users must renew VTXOs before expiry.
+Arkade's operational model involves two critical liveness requirements: operator availability and user activity management.
 
 ## Operator Liveness
 
-| Operator Status | What Works | What Doesn't |
-|-----------------|------------|--------------|
-| **Online** | Everything | — |
-| **Offline** | Unilateral exits | New transactions, settlements |
-
-When the operator goes offline:
-
-- ✅ Your funds are safe (presigned exit transactions still valid)
-- ✅ You can exit to Bitcoin anytime
-- ❌ Can't send new Arkade payments
-- ❌ Can't participate in batch swaps
-- ❌ Can't renew expiring VTXOs
-
-The operator has strong economic incentives to maintain uptime—they earn fees only while online.
+Arkade uses a server-client architecture where operator downtime disrupts functionality. When the operator goes offline, users cannot initiate new transactions until the operator returns, but existing funds remain completely safe through presigned exit transactions. Users retain the ability to exit unilaterally at any time, regardless of operator status. The duration of any downtime depends entirely on the operator's infrastructure resilience and recovery capabilities.
 
 ## User Liveness (VTXO Expiry)
 
-VTXOs expire. Before expiry, you must renew by participating in a [batch swap](/learn/pillars/batch-swaps).
+VTXOs have a built-in [expiry mechanism](/learn/pillars/batch-expiry) that require periodic user attention. As VTXOs age in the virtual mempool, users must periodically renew them through a batch swap to avoid expiry.
 
-| Status | Unilateral Exit? | Can Spend Offchain? |
-|--------|------------------|---------------------|
-| **Active VTXO** | ✅ Yes | ✅ Yes |
-| **Expired VTXO** | ❌ No | ❌ No (recoverable only) |
+Expired VTXOs get swept by the Arkade Operator. While users may recover their funds, they lose the ability to unilaterally enforce ownership claims onchain. This creates natural incentives for users to remain active and settle their preconfirmed VTXOs appropriately.
 
-### What Happens If You Miss Expiry
+<Tip>VTXO renewal can be [delegated](/learn/pillars/batch-expiry#delegation-solutions) to a third party without relinquishing fund sovereignty in the process</Tip>
 
-1. Operator sweeps the expired batch output
-2. You receive an [Arkade Note](/arkd/components/ark-notes) for your claim
-3. You can recover funds in a future batch swap
-4. You temporarily lose unilateral exit rights
-
-<Warning>
-Expiry is real. If you hold VTXOs and go offline for extended periods without delegation, you risk losing unilateral exit capability.
-</Warning>
-
-### How to Stay Safe
-
-**Option 1: Active Management**
-
-```typescript
-// Check for expiring VTXOs
-const vtxos = await wallet.getVtxos()
-const expiringSoon = vtxos.filter(v => {
-  const expiresIn = v.expiresAt - Date.now()
-  return expiresIn < 7 * 24 * 60 * 60 * 1000 // 7 days
-})
-
-if (expiringSoon.length > 0) {
-  await wallet.settle() // Renew via batch swap
-}
-```
-
-**Option 2: Delegation**
-
-Appoint a third party to renew VTXOs on your behalf. They can only renew to addresses you specify—no custody risk.
-
-<Card title="Delegation Setup" icon="handshake" href="/learn/pillars/batch-expiry#delegation-solutions" horizontal>
-  Configure automatic VTXO renewal without giving up control
-</Card>
-
-**Option 3: Service Workers (Web)**
-
-For web wallets, use a [service worker](/wallets/v0.3/service-worker) to handle renewal in the background.
-
-## Practical Recommendations
-
-| Use Case | Recommended Approach |
-|----------|---------------------|
-| Active daily user | Manual renewal when prompted |
-| Weekly user | Set calendar reminder or use delegation |
-| Long-term holder | Use delegation or settle to Bitcoin |
-| Web wallet | Implement service worker |
-| Mobile wallet | Silent push notifications for renewal |
-
-## Expiry Timing
-
-Batch expiry periods are set by the operator. Typical values:
-
-| Network | Typical Expiry |
-|---------|---------------|
-| Mainnet | 2-4 weeks |
-| Testnet | 1 week |
-| Regtest | Hours (for testing) |
-
-Check your operator's configuration:
-
-```typescript
-const info = await wallet.getInfo()
-console.log('Expiry period:', info.vtxoExpiryBlocks, 'blocks')
-```
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Batch Expiry" icon="hourglass-end" href="/learn/pillars/batch-expiry">
-    Technical details on expiry mechanism
-  </Card>
-  <Card title="VTXO Management" icon="gear" href="/wallets/v0.3/vtxo-management">
-    SDK methods for renewal
-  </Card>
-</CardGroup>

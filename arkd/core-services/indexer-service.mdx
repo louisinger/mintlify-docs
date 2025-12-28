@@ -49,7 +49,7 @@ Client applications use the `IndexerService` to:
     Offchain transaction chain analysis tools in the [virtual mempool](/learn/pillars/virtual-mempool) enable tracing of VTXO spending flows and virtual transaction data
 
     - [`GetVirtualTxs`](https://github.com/arkade-os/arkd/blob/4cabf95f33b0196c47518425e92efc089636aa20/api-spec/protobuf/ark/v1/indexer.proto#L70-L76) returns the raw virtual transactions (in hex) for a given set of Arkade transaction IDs
-    - [`GetVtxoChain`](https://github.com/arkade-os/arkd/blob/4cabf95f33b0196c47518425e92efc089636aa20/api-spec/protobuf/ark/v1/indexer.proto#L61-L68) traces the lineage of [Arkade transactions](/learn/pillars/arkade-tx) from any VTXO leaf spending through to the creation of a specified VTXO outpoint (ie. [tx chain](/learn/pillars/arkade-tx#transactionchains)), enabling full transaction history reconstruction
+    - [`GetVtxoChain`](https://github.com/arkade-os/arkd/blob/4cabf95f33b0196c47518425e92efc089636aa20/api-spec/protobuf/ark/v1/indexer.proto#L61-L68) traces the lineage of [Arkade transactions](/learn/pillars/arkade-tx) from any VTXO leaf spending through to the creation of a specified VTXO outpoint (ie. [tx chain](/learn/pillars/arkade-tx#transaction-chains)), enabling full transaction history reconstruction
   </Accordion>
   <Accordion title="Batch Operations">
     [Batch settlement](/learn/pillars/batch-swaps) tracking provides visibility into the sweep transactions that claim batch outputs back to the operator.

@@ -1,120 +1,107 @@
 ---
 title: "Receiving Payments"
-description: "Generate addresses and monitor for incoming Bitcoin payments"
+description: "Learn how to receive Bitcoin payments with your Arkade wallet"
 icon: "download"
 ---
 
-## Get Your Address
+## Overview
 
-<CodeGroup>
-```typescript TypeScript
-const address = await wallet.getAddress()
-console.log('Address:', address)
-// ark1q... (mainnet) or tark1q... (testnet)
-```
+Receiving payments with Arkade is designed for instant, low-fee Bitcoin transfers. Your Arkade wallet generates an offchain address that allows anyone to send you Bitcoin instantly within the Arkade network, or through Lightning Network swaps.
 
-```go Go
-address, err := wallet.GetAddress()
-if err != nil {
-    log.Fatal(err)
-}
-fmt.Println("Address:", address)
-```
-</CodeGroup>
+## Getting Your Arkade Address
 
-Share this address to receive instant payments from other Arkade wallets.
-
-## Receiving Methods
-
-| Source | How It Works | Speed |
-|--------|--------------|-------|
-| **Arkade wallet** | Sender pays your `ark1`/`tark1` address directly | Instant |
-| **Lightning** | [Submarine swap](/contracts/lightning-swaps) via Boltz | ~30 seconds |
-| **Onchain Bitcoin** | [Boarding flow](/wallets/v0.3/ramps#boarding) (2 confirmations) | ~20 minutes |
-
-## Monitor Incoming Payments
-
-Subscribe to real-time notifications when funds arrive:
+To receive payments, generate your offchain Arkade address:
 
 ```typescript
-const stop = wallet.notifyIncomingFunds((notification) => {
-  if (notification.type === 'vtxo') {
-    for (const vtxo of notification.vtxos) {
-      console.log(`Received ${vtxo.amount} sats`)
-    }
-  }
-})
+const offchainAddress = await wallet.getAddress()
 
-// Later: stop listening
+// The offchain Arkade address for instant payments
+console.log('Ark Address:', offchainAddress)
+```
+
+<Tip>This is your primary receiving address for everyday payments. Share this address to receive instant, near-zero fee Bitcoin payments from other Arkade wallets.</Tip>
+
+## Arkade Addresses
+
+Arkade addresses start with `ark1` on Bitcoin mainnet or `tark1` on testnet and regtest.
+
+<Card title="Understanding Arkade Addresses" icon="address-card" href="/wallets/v0.3/ark-addresses" horizontal>
+  Learn about the technical structure of Arkade addresses, how they're generated, and the security guarantees they provide.
+</Card>
+
+## Receiving from Lightning Network
+
+Your Arkade wallet can receive payments from the Lightning Network through submarine swaps. This allows Lightning users to pay you instantly, with the funds settling into your Arkade wallet as VTXOs.
+
+<Card title="Lightning Swaps" icon="bolt" horizontal href="/contracts/lightning-swaps">
+  Learn how to integrate Lightning Network payments with your Arkade wallet using submarine swaps.
+</Card>
+
+## Monitoring for Incoming Payments
+
+To detect when payments are received, you can use `wallet.notifyIncomingFunds()` for incoming VTXOs in real-time.
+
+```typescript
+// Example function to process incoming funds
+async function processIncomingFunds(notification: IncomingFunds) {
+  // Update your application state
+  switch (notification.type) {
+    case 'vtxo':
+      for (const vtxo of notification.vtxos) {
+        console.log(`Received payment of ${vtxo.amount} sats`);
+
+        // You might want to store the VTXO in your database
+        await storeVtxoInDatabase(vtxo);
+
+        // Notify the user
+        showNotification(`Received ${vtxo.amount} sats!`);
+
+        // Update the UI
+        await refreshBalanceDisplay();
+      }
+      break;
+    case 'utxo':
+      // UTXOs received on boarding addresses (see Ramps documentation)
+      for (const utxo of notification.utxos) {
+        await storeBoardingUtxoInDatabase(utxo)
+        showNotification(`Received ${utxo.amount} sats on boarding address!`);
+        await refreshBalanceDisplay();
+      }
+      break;
+  }
+}
+
+// Start the subscription
+const stop = wallet.notifyIncomingFunds(processIncomingFunds)
+
+// Stop the subscription when needed
 stop()
 ```
 
-The callback fires whenever new VTXOs arrive at your address.
+<Note>
+  The `utxo` notification type is only relevant when using [boarding addresses](/wallets/v0.3/ramps#boarding) to onboard Bitcoin into Arkade. For everyday receiving, you'll primarily work with `vtxo` notifications.
+</Note>
 
-### Notification Types
+### Best Practices
 
-| Type | When | Use Case |
-|------|------|----------|
-| `vtxo` | Offchain payment received | Standard Arkade payments |
-| `utxo` | Onchain deposit to boarding address | [Native onboarding](/wallets/v0.3/ramps#boarding) |
+<Accordion title="Error Handling" icon="shield-check">
+  Always implement proper error handling for your subscription to ensure your application remains stable even if there are network issues.
+</Accordion>
 
-### Complete Example
+<Accordion title="Reconnection Logic" icon="repeat">
+  Consider implementing reconnection logic if the subscription is interrupted due to network issues.
+</Accordion>
 
-```typescript
-import { Wallet, SingleKey, IncomingFunds } from '@arkade-os/sdk'
-
-async function startPaymentMonitor(wallet: Wallet) {
-  const stop = wallet.notifyIncomingFunds(async (notification: IncomingFunds) => {
-    switch (notification.type) {
-      case 'vtxo':
-        for (const vtxo of notification.vtxos) {
-          console.log(`Received ${vtxo.amount} sats`)
-          console.log(`VTXO ID: ${vtxo.txid}:${vtxo.vout}`)
-          
-          // Update your application state
-          await updateBalance()
-        }
-        break
-        
-      case 'utxo':
-        // Boarding address deposit (needs onboarding to become spendable)
-        for (const utxo of notification.utxos) {
-          console.log(`Boarding deposit: ${utxo.amount} sats`)
-          console.log(`Confirmations needed before onboarding`)
-        }
-        break
-    }
-  })
-  
-  return stop
-}
-
-// Usage
-const stopMonitor = await startPaymentMonitor(wallet)
-
-// When shutting down
-stopMonitor()
-```
-
-<Tip>
-For web apps, run the payment monitor in a [service worker](/wallets/v0.3/service-worker) so it continues running even when the user closes the tab.
-</Tip>
-
-## Address Reuse
-
-Arkade addresses are safe to reuse. Each payment creates a new VTXO, and your address doesn't reveal transaction history to senders.
-
-<Card title="How Arkade Addresses Work" icon="address-card" href="/wallets/v0.3/ark-addresses" horizontal>
-  Technical details on address structure and security guarantees
-</Card>
+<Accordion title="Deduplication" icon="filter">
+  Implement deduplication logic to ensure you don't process the same payment multiple times, especially if your application restarts.
+</Accordion>
 
 ## Next Steps
 
-<CardGroup cols={2}>
-  <Card title="Check Balances" icon="coins" href="/wallets/v0.3/balances">
-    View your available funds and VTXO states
-  </Card>
-  <Card title="Send Payments" icon="paper-plane" href="/wallets/v0.3/sending-payments">
-    Send Bitcoin to Arkade, Lightning, or onchain addresses
-  </Card>
-</CardGroup>
+- [Check Balances](/wallets/v0.3/balances) - Learn how to verify your wallet balance
+- [Send Payments](/wallets/v0.3/sending-payments) - Learn how to send payments within Arkade and to Lightning
+- [Ramps](/wallets/v0.3/ramps) - Advanced: onboard Bitcoin from the blockchain or offboard to the blockchain
+
+---
+
+<NextButton url="/wallets/v0.3/balances" text="Check Balances" />

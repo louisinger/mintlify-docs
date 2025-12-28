@@ -4,33 +4,22 @@ description: "Aggregating multiple transactions into coordinated Bitcoin outputs
 icon: "box-open"
 ---
 
-A batch output is a single Bitcoin UTXO that contains multiple users' VTXOs. Instead of each user having their own onchain output, Arkade packs many ownership claims into one—dramatically reducing onchain footprint.
+Transaction batching is the foundation of Arkade's efficiency. Rather than each user having their own onchain UTXO, Arkade consolidates multiple users' ownership claims into a single output called a batch output which gets anchored onchain through a commitment transaction.
 
-## Why Batching Matters
+## Batch Output
 
-| Without Batching | With Batching |
-|------------------|---------------|
-| 100 users = 100 UTXOs | 100 users = 1 UTXO |
-| 100 onchain transactions | 1 onchain transaction |
-| Each pays full tx fee | Fee shared 100 ways |
+### Technical Implementation
 
-This is how Arkade achieves low-cost settlement while maintaining individual exit rights.
+A batch output is a transaction output which is locked by a taproot script with an n-of-n Musig2 internal key, and all associated VTXO owners as cosigners. A batch output consists of an unspendable key path and exactly two script paths:
 
-## Batch Output Structure
+1. A **sweep path** that allows the operator to spend the entire output after a timeout, the so-called batch expiry
+2. An **unroll path** that enables to split the single batch output into separate VTXO branches of the virtual transaction tree
 
-A batch output is a Taproot output with:
+### Virtual Transaction Tree Structure
 
-| Component | Purpose |
-|-----------|---------|
-| **n-of-n MuSig2 key** | All VTXO owners + operator must sign for collaborative spend |
-| **Unroll path** | Lets users split the batch into individual VTXO branches |
-| **Sweep path** | Lets operator reclaim after [batch expiry](/learn/pillars/batch-expiry) |
+A batch output encapsulates multiple users’ ownership claims (VTXOs) through a tree of presigned virtual transactions while still allowing, in the worst case, every VTXO holder to exit unilaterally.
 
-The key path is unspendable—all spending goes through script paths.
-
-## Virtual Transaction Tree
-
-Inside a batch output, VTXOs are organized in a binary tree of presigned transactions:
+The leaves of the virtual transaction tree (A, B, C, D) created by the batch output are the VTXOs, ie. the offchain ownership claims of users.
 
 <div style={{ display:"flex",justifyContent:"center" }}>
 <img
@@ -52,13 +41,7 @@ Inside a batch output, VTXOs are organized in a binary tree of presigned transac
 
 </div>
 
-- **Root**: The batch output itself
-- **Branches**: Intermediate virtual transactions
-- **Leaves**: Individual VTXOs (A, B, C, D)
-
-Each level can be "unrolled" by broadcasting the appropriate presigned transaction.
-
-## Spending Paths
+The diagram below illustrates a spending template for a batch output. It begins with a single shared output controlled by all participants plus the operator, with a fallback sweep path after expiry. This output can be deterministically unrolled into separate branches (e.g. A+B+S and C+D+S), each further decomposing into individual VTXO paths with unilateral exit options.
 
 <div style={{ display:"flex",justifyContent:"center" }}>
 <img
@@ -80,42 +63,8 @@ Each level can be "unrolled" by broadcasting the appropriate presigned transacti
 
 </div>
 
-**Collaborative path**: All parties sign together. Used for normal batch swaps.
+**Selective Unrolling**: When a user exits unilaterally, they only need to broadcast the transactions along their specific path to their VTXO. This selective unrolling ensures other users' VTXOs remain in the batch, maintaining efficiency for the remaining participants.
 
-**Unroll path**: Any VTXO owner can broadcast their branch to extract their specific VTXO. Other users' VTXOs remain in the batch.
-
-**Sweep path**: After expiry, operator can claim the entire output. Used to recycle liquidity from inactive VTXOs.
-
-## Selective Unrolling
-
-When you need to exit unilaterally, you only broadcast transactions along *your* path:
-
-```
-Batch Output
-    └── Unroll to Branch A+B
-            └── Unroll to VTXO A  ← Only these txs needed
-```
-
-Users C and D are unaffected—their VTXOs stay in the batch. This keeps costs low for everyone.
-
-<Tip>
-MuSig2 signature aggregation makes each virtual transaction appear as a single signature onchain, minimizing the size (and cost) of unroll transactions.
-</Tip>
-
-## Batch Lifecycle
-
-1. **Created**: Operator constructs commitment transaction with batch output
-2. **Active**: VTXOs are spendable offchain; users can exit via unroll path
-3. **Expiring**: Users must [renew VTXOs](/learn/pillars/batch-expiry) before timeout
-4. **Expired**: Operator sweeps remaining funds via sweep path
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Batch Expiry" icon="hourglass-end" href="/learn/pillars/batch-expiry">
-    Managing VTXO lifecycle and renewal
-  </Card>
-  <Card title="Batch Swaps" icon="rotate" href="/learn/pillars/batch-swaps">
-    How to settle VTXOs into new batches
-  </Card>
-</CardGroup>
+<Info>
+  MuSig2, an advanced Schnorr multi-signature scheme enables efficient collaborative signing. This allows the virtual transaction tree to appear as a single signature onchain, significantly reducing the footprint when users need to perform unilateral exits.
+</Info>

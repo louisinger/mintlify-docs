@@ -19,6 +19,9 @@
     "default": "light",
     "strict": false
   },
+  "seo": {
+    "indexing": "all"
+  },
   "fonts": {
     "body": {
       "family": "Geist",

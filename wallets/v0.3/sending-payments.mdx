@@ -36,17 +36,11 @@ Send payments from your Arkade wallet to any Lightning invoice using submarine s
 
 ## Sending to Bitcoin Addresses
 
-You can send directly to Bitcoin onchain addresses (bc1/tb1). This involves an onchain swap where your Arkade balance is converted to Bitcoin and sent to the recipient's address. Like sending to an Arkade address, the recipient doesn't need to be online.
+To send Bitcoin to onchain addresses (bc1/tb1), use the Ramps class for offboarding. This converts your Arkade VTXOs back to onchain Bitcoin.
 
-```typescript
-// Send to a Bitcoin address (involves onchain swap)
-const txid = await wallet.sendBitcoin({
-  address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',  // Bitcoin address
-  amount: 100000,  // in satoshis
-})
-
-console.log('Transaction ID:', txid)
-```
+<Card title="Offboarding (Collaborative Exit)" icon="bitcoin" horizontal href="/wallets/ramps#offboarding-collaborative-exit">
+  Learn how to convert your Arkade balance to onchain Bitcoin using the Ramps class for efficient, batched offboarding.
+</Card>
 
 <Note>
   **Fee Comparison:**

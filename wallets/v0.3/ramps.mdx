@@ -104,8 +104,13 @@ Offboarding converts your offchain VTXOs back into onchain Bitcoin UTXOs. The co
     Request the Arkade server to convert your VTXOs to an onchain UTXO:
 
     ```typescript
-    const commitmentTxid = await new Ramps(wallet).offboard(destinationAddress, amount)
-    console.log('Commitment transaction ID:', commitmentTxid)
+    const info = await wallet.arkProvider.getInfo();
+    const exitTxid = await new Ramps(wallet).offboard(
+      onchainAddress,
+      info.fees,
+      amount // optional, if not provided the total amount of vtxos will be offboarded.
+    );
+    console.log('Exit transaction ID:', exitTxid)
     ```
   </Step>
 

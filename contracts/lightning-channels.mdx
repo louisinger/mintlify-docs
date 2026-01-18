@@ -1,0 +1,145 @@
+---
+title: "Lightning Channels"
+description: "Build bidirectional payment channels (Dryja-Poon) on Arkade"
+icon: "circle-nodes"
+---
+
+<Warning>
+  **Experimental Technology**
+
+  Lightning Channels on Arkade are experimental and under active development.
+  The examples and scripts presented here are for research and proof-of-concept use only.
+  Do not deploy in production environments.
+</Warning>
+
+<Card title="Lightning Channel Example" icon="github" horizontal href="https://github.com/vincenzopalazzo/lampo.rs/blob/63027fea90e7292d32a4e5c9465848b06339aa38/lampo-ark-wallet/src/lib.rs#L173">
+  Reference implementation of Lightning Channels on Arkade by Vincenzo Palazzo
+</Card>
+
+Arkade can serve as a **channel factory** for [Lightning Network](https://lightning.network/) channels. The **Arkade Server** participates in channel lifecycle operations (funding, renewing, resizing, closing) but does not participate in payment forwarding. **HTLCs** (Hash Time-Locked Contracts) route over standard Lightning rails between Alice and Bob. The Server never touches payment traffic.
+
+## Design Principles
+
+The Server coordinates liquidity. It does not intermediate payments.
+
+Channel funding can happen immediately via **[preconfirmation](/learn/security/transaction-finality#preconfirmation)**. Users who find the preconfirmation trust assumption acceptable (typical for smaller channels or trusted counterparties) can begin using channels right away. Users requiring **Bitcoin finality** wait for the next signing session that creates a **[Batch](/learn/pillars/batch-outputs)**.
+
+Arkade compresses many previously preconfirmed operations from the **[Virtual Mempool](/learn/pillars/virtual-mempool) DAG** into a single **[onchain settlement](/learn/pillars/batch-swaps)**. Channel opens, closes, and resizes all collapse into a **[Commitment Transaction](/learn/pillars/batch-swaps#commitment-transactions)** containing **[Batch Outputs](/learn/pillars/batch-outputs)**. The onchain footprint is minimal and constant regardless of how many channel operations the DAG contains. This is **[Dynamic Settlement](/learn/security/transaction-finality#dynamic-settlement)** in action.
+
+Once a channel exists, Alice and Bob operate it as a standard Lightning channel. **Lightning commitment transactions**, **revocation**, and **HTLC forwarding** follow [BOLT specifications](https://github.com/lightning/bolts). The Server is not involved in these operations.
+
+The Server re-enters the picture only when the channel's underlying **[VTXO](/learn/pillars/vtxos)** approaches Batch expiry or when the parties want to resize, close, or migrate the channel.
+
+## Script Structure
+
+Every output in the channel uses a dual-path **[Taproot](https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki)** structure:
+
+```
+Taproot tree:
+├── <standard lightning script>
+└── <standard lightning script> + <CSV timeout for Ark unilateral exit>
+```
+
+The first leaf is the normal Lightning spending path. Lightning commitment transactions, **HTLC-success**, **HTLC-timeout**, and revocation all execute here using standard Lightning semantics.
+
+The second leaf adds a **[CSV](https://github.com/bitcoin/bips/blob/master/bip-0112.mediawiki) delay** (matching the Batch expiry window) that enables **unilateral exit** if the Server becomes unavailable. This preserves the Ark escape hatch without polluting the payment forwarding path.
+
+Note what is absent: the Server's key does not appear in Lightning commitment transactions or HTLC scripts. The Server participates only in the funding output that creates the channel VTXO and in subsequent lifecycle operations.
+
+## Channel Lifecycle
+
+### Funding
+
+Alice and Bob create a channel by submitting an Arkade transaction that produces a VTXO whose script is a **2-of-2 multisig** between them, plus the Ark timeout path. This VTXO is the **funding output**. With preconfirmation, the channel is usable immediately. For Bitcoin finality, wait for the next Batch settlement. Alice and Bob exchange initial Lightning commitment transactions following standard channel establishment.
+
+### Normal Operation
+
+Once funded, the channel operates as a standard Lightning channel. Alice and Bob exchange Lightning commitment transactions, rotate **revocation secrets**, and forward HTLCs. The Server has no role here. Latency and trust properties match vanilla Lightning.
+
+### Renewal
+
+VTXOs expire at Batch expiry. Before expiry, the channel must migrate into a new Batch output.
+
+The simple path: either party submits an Arkade transaction attaching the channel VTXO to a new output. This is **non-interactive** between channel participants. Each party can settle independently with the Server. No **[quiescence](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#channel-quiescence)** required for basic renewal.
+
+<AccordionGroup>
+  <Accordion title="Renewal with Bitcoin Finality (Advanced)">
+    For users requiring Bitcoin finality throughout the renewal process. This flow assumes one channel party is an **LSP** (typical for mobile clients).
+
+    1. User and LSP quiesce the channel (pause HTLC forwarding).
+    2. They request a new VTXO in the upcoming Batch with identical capacity allocation.
+    3. The Batch settles onchain.
+    4. User and LSP create Lightning commitment transactions spending the new funding output with the same balance distribution.
+    5. They sign a **forfeit transaction** on the old VTXO, revoking the old channel state.
+    6. User and LSP unquiesce and resume operation on the new VTXO.
+
+    The **forfeit mechanism** ensures the old and new VTXOs cannot both be spent, preventing double-spend exposure for the Server.
+  </Accordion>
+</AccordionGroup>
+
+### Resize
+
+Resize follows the renewal pattern with a modified **balance allocation**. If Alice wants more **inbound capacity**, the new VTXO reflects that. If Bob wants to withdraw funds, the new VTXO is smaller and Bob receives a separate VTXO for the withdrawn amount.
+
+### Cooperative Close
+
+Alice and Bob sign a settlement transaction spending the channel VTXO directly to their respective destinations. Each party can send an Arkade transaction to their own Ark address, eventually obtaining Bitcoin finality with onchain settlement.
+
+### Force Close
+
+If one channel party becomes uncooperative, the other party cooperates with the Server to create an Arkade transaction that executes a **force close**. The party broadcasts their latest Lightning commitment transaction, and resolution proceeds via standard Lightning semantics (**to_local delay**, HTLC resolution).
+
+**Unilateral exit** (waiting for the Ark CSV timeout to bypass the Server entirely) is reserved for the case where the Server disappears. This is the fallback of last resort, not the primary force close mechanism.
+
+## VTXO Expiry and HTLC Coordination
+
+This is the **critical constraint**. If an HTLC's **[CLTV](https://github.com/bitcoin/bips/blob/master/bip-0065.mediawiki) timeout** extends past the VTXO's Batch expiry, you have a problem. The VTXO becomes unilaterally spendable via the timeout path before the HTLC resolves. This creates a **race condition**.
+
+**Rule**: Never accept an HTLC whose CLTV timeout exceeds (Batch expiry minus safety margin). The **safety margin** must account for onchain confirmation time and force close resolution.
+
+Implementations must enforce this at the channel level. When an `update_add_htlc` arrives, check: `htlc.cltv_expiry < batch_expiry - SAFETY_MARGIN`. Reject if violated.
+
+This constraint tightens as the VTXO approaches expiry. A channel with 12 hours remaining until Batch expiry cannot accept HTLCs with 24-hour timeouts. This is why timely renewal matters.
+
+## Lightning Commitment Transaction Structure
+
+Each Lightning commitment transaction contains:
+
+**To-local output**: Funds belonging to the broadcaster. Encumbered by: (a) **revocation path** allowing counterparty to claim if old state is published, and (b) CSV delay for normal claim.
+
+**To-remote output**: Funds belonging to the counterparty. Immediately spendable by counterparty's key.
+
+**HTLC outputs**: Pending payments. Each HTLC output has **success** and **timeout paths** per [BOLT 3](https://github.com/lightning/bolts/blob/master/03-transactions.md).
+
+All outputs use the dual-path Taproot structure. The Ark timeout path is present but should never be needed during normal Lightning operation. It exists only as fallback if the Server becomes unavailable.
+
+## Implementation Notes
+
+The **script adaptation pattern**: for every Lightning script, create two Taproot leaves. The first leaf is the unmodified Lightning script. The second leaf is the same script with an additional CSV check matching the Batch expiry.
+
+This applies to: **funding output**, **commitment to_local**, **commitment to_remote**, **offered HTLC**, **received HTLC**, **[anchor outputs](https://github.com/lightning/bolts/blob/master/03-transactions.md#to_local_anchor-and-to_remote_anchor-output-option_anchors)** (if used).
+
+The funding transaction is created via Arkade. All other transactions (Lightning commitments, **HTLC-success**, **HTLC-timeout**, **penalty**) are created and signed by Alice and Bob alone, following standard Lightning flows.
+
+## Further Reading
+
+<CardGroup cols={2}>
+  <Card title="Spilman Channels" icon="route" href="/contracts/spilman-channels">
+    Simpler unidirectional payment channels on Arkade
+  </Card>
+  <Card title="Lightning Swaps" icon="bolt" href="/contracts/lightning-swaps">
+    Bridge between Arkade VTXOs and external Lightning Network
+  </Card>
+  <Card title="Virtual Mempool" icon="diagram-project" href="/learn/pillars/virtual-mempool#dag-architecture">
+    DAG architecture for parallel offchain execution
+  </Card>
+  <Card title="Dynamic Settlement" icon="scale-balanced" href="/learn/security/transaction-finality#dynamic-settlement">
+    Flexible finality model between preconfirmation and Bitcoin finality
+  </Card>
+  <Card title="Batch Expiry" icon="clock" href="/learn/pillars/batch-expiry">
+    VTXO lifecycle and timeout mechanisms
+  </Card>
+  <Card title="VTXOs" icon="money-bill" href="/learn/pillars/vtxos">
+    Virtual Transaction Outputs powering Arkade
+  </Card>
+</CardGroup>

@@ -137,6 +137,7 @@
             "pages": [
               "contracts/lightning-swaps",
               "contracts/spilman-channels",
+              "contracts/lightning-channels",
               "contracts/chain-swaps",
               "contracts/oracle-dlc",
               "contracts/escrow"

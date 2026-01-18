@@ -18,17 +18,6 @@ icon: "wallet"
 npm install @arkade-os/sdk
 ```
 
-## Arkade Operator Instances
-
-To test your integration against a live environment, you can connect to the following live Arkade Operator instances: 
-
-| **Network** | **URL**                                                           | **Status**    |
-| :---------- | :---------------------------------------------------------------- | :------------ |
-| Bitcoin   | [<u>https://arkade.computer</u>](https://arkade.computer) | ✅ Active      |
-| Mutinynet   | [<u>https://mutinynet.arkade.sh</u>](https://mutinynet.arkade.sh) | ✅ Active      |
-| Signet      | [<u>https://signet.arkade.sh</u>](https://signet.arkade.sh)       | ✅ Active      |
-
-
 ## Basic Setup
 
 <Note>
@@ -51,22 +40,6 @@ const wallet = await Wallet.create({
 const address = await wallet.getAddress()
 console.log('Ark Address:', address)
 ```
-
-## Local Arkade Operator
-
-If you want to run Arkade locally for testing, you can start a Nigiri environment with Arkade support enabled:
-
-```bash
-nigiri start --ark 
-```
-
-Once running, Nigiri will spin up a local Bitcoin regtest network with an Arkade Operator instance. You can connect your SDK to it using the following URL:
-
-| **Network** | **URL**                                                           | **Status**    |
-| :---------- | :---------------------------------------------------------------- | :------------ |
-| Regtest     | [<u>http://localhost:7070</u>](http://localhost:7070)             | Self-deployed |
-
-This lets you test wallet creation, offchain payments, and unilateral exits without touching public test networks.
 
 ## Next Steps
 

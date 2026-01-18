@@ -97,6 +97,7 @@
                 "group": "Getting Started",
                 "pages": [
                   "wallets/v0.3/introduction",
+                  "wallets/v0.3/resources",
                   "wallets/v0.3/setup",
                   "wallets/v0.3/ark-addresses"
                 ]

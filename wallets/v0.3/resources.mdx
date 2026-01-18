@@ -1,0 +1,47 @@
+---
+title: "Developer Resources"
+description: "Arkade Operator instances, explorers, and local development setup"
+icon: "link"
+---
+
+## Arkade Operator Instances
+
+Connect to live Arkade Operator instances for testing and development:
+
+| **Network** | **URL**                                                           | **Status**    |
+| :---------- | :---------------------------------------------------------------- | :------------ |
+| Bitcoin   | [<u>https://arkade.computer</u>](https://arkade.computer) | ✅ Active      |
+| Mutinynet   | [<u>https://mutinynet.arkade.sh</u>](https://mutinynet.arkade.sh) | ✅ Active      |
+| Signet      | [<u>https://signet.arkade.sh</u>](https://signet.arkade.sh)       | ✅ Active      |
+
+## Arkade Explorers
+
+Use the Arkade Explorer to inspect transactions, VTXOs, and rounds:
+
+<CardGroup cols={3}>
+  <Card title="Bitcoin Explorer" icon="bitcoin" href="https://arkade.space">
+    Browse and inspect Arkade transactions on Bitcoin mainnet
+  </Card>
+  <Card title="Mutinynet Explorer" icon="magnifying-glass" href="https://explorer.mutinynet.arkade.sh/">
+    Browse and inspect Arkade transactions on Mutinynet
+  </Card>
+  <Card title="Signet Explorer" icon="magnifying-glass" href="https://explorer.signet.arkade.sh/">
+    Browse and inspect Arkade transactions on Signet
+  </Card>
+</CardGroup>
+
+## Local Arkade Operator
+
+If you want to run Arkade locally for testing, you can start a Nigiri environment with Arkade support enabled:
+
+```bash
+nigiri start --ark 
+```
+
+Once running, Nigiri will spin up a local Bitcoin regtest network with an Arkade Operator instance. You can connect your SDK to it using the following URL:
+
+| **Network** | **URL**                                                           | **Status**    |
+| :---------- | :---------------------------------------------------------------- | :------------ |
+| Regtest     | [<u>http://localhost:7070</u>](http://localhost:7070)             | Self-deployed |
+
+This lets you test wallet creation, offchain payments, and unilateral exits without touching public test networks.

@@ -1,74 +1,45 @@
 ---
 title: "Introduction"
-description: "Arkade Wallets and Payments"
+description: "Build self-custodial Bitcoin wallets with Arkade SDKs. Integrate directly with the Ark protocol—no external daemons required."
 icon: "play"
 ---
 
-Arkade wallets are simple to integrate and use. Arkade integrates directly without external daemons by design. Developers can interact with the protocol using standard Bitcoin-compatible infrastructure and purpose-built native SDKs in various languages.
-Whether you're building for your own custody or shipping self-custodial wallets for your users, the SDK is flexible by design. If you want to go deeper, the lower-level APIs give you everything you need to build custom integrations from scratch.
-
-
-## Reference Wallet Implementation
-
-Arkade provides a reference wallet implementation that demonstrates best practices and serves as a practical example for developers:
-
-<Card title="Arkade Wallet" icon="github" href="https://github.com/arkade-os/wallet" horizontal>
-  Reference implementation with best practices for wallet integration
-</Card>
-
-The reference wallet showcases how to implement key features such as:
-
-- Creating and managing self-custodial wallets
-- Sending Bitcoin transactions in Arkade
-- Balance and Payment detection
-- Transaction history
-- Service worker for background processing
-
-Exploring this implementation can help you understand how to effectively integrate Arkade into your own applications.
-
+<Note>
+All code examples in this guide use **TypeScript**. Concepts apply to all SDKs.
+</Note>
 
 ## TypeScript SDK
 
-<Card title="TypeScript SDK" icon="github" href="https://github.com/arkade-os/ts-sdk" horizontal>
-  Official TypeScript SDK for integrating Arkade into your applications
+<Card title="TypeScript SDK" icon="js" href="https://github.com/arkade-os/ts-sdk">
+  **Recommended for getting started.** Works in Browser, React Native, and Node.js environments.
 </Card>
 
-In the following developer guides, we'll primarily use JavaScript/TypeScript for examples, but the concepts apply to all SDKs.
-
-<Accordion title="Supported Platforms" icon="laptop-code" defaultOpen={true}>
-  Our TypeScript SDK supports multiple platforms:
-
-  - **Browser** - For web applications
-  - **React Native** - For mobile applications
-  - **Node.js** - For server-side applications
-</Accordion>
-
-<Accordion title="Getting Support" icon="headset">
-  If you need help with the SDK or have feature requests:
-  
-  - Join the [Arkade Telegram community](https://t.me/arkade_os)
-  - Open an issue on [GitHub](https://github.com/arkade-os/ts-sdk/issues)
-  - Learn more about [Arkade architecture](/primer)
-  
-  This is just the beginning. If there's something you wish the SDK did — tell us. We're listening.
-</Accordion>
-
-For complete API documentation and usage examples, see the [TypeScript SDK documentation](https://arkade-os.github.io/ts-sdk/).
-
-## Other Languages
+## Other SDKs
 
 <CardGroup cols={2}>
   <Card title="Rust SDK" icon="github" href="https://github.com/arkade-os/rust-sdk">
-    High-performance Rust implementation for systems programming
+    High-performance systems
   </Card>
   <Card title="Go SDK" icon="github" href="https://github.com/arkade-os/go-sdk">
-    Go implementation for server-side applications
+    Server-side applications
+  </Card>
+  <Card title="C# SDK" icon="github" href="https://github.com/ArkLabsHQ/nark">
+    .NET applications (experimental)
+  </Card>
+  <Card title="Reference Wallet" icon="github" href="https://github.com/arkade-os/wallet">
+    Full implementation example
   </Card>
 </CardGroup>
 
-Refer to the respective GitHub repositories for detailed usage instructions.
-
+For feedback and questions about the SDKs use the [Arkade Telegram Community group](https://t.me/arkade_os)
 
 ---
 
-<NextButton url="/wallets/v0.3/setup" text="Getting Started" />
+<CardGroup cols={2}>
+  <Card title="Developer Resources" icon="link" href="/wallets/v0.3/resources">
+    Operator instances, explorers, and local dev setup
+  </Card>
+  <Card title="Setup Your Wallet" icon="rocket" href="/wallets/v0.3/setup">
+    Create your first Arkade wallet
+  </Card>
+</CardGroup>

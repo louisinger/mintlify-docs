@@ -135,10 +135,10 @@
             "group": "Working with Tapscript",
             "pages": [
               "contracts/setup",
-              "contracts/escrow-example",
-              "contracts/vhtlc-example",
-              "contracts/spilman-example",
-              "contracts/dryja-poon-example"
+              "contracts/escrow",
+              "contracts/hashlock",
+              "contracts/spilman-channel",
+              "contracts/dryja-poon-channel"
             ]
           },
           {
@@ -296,6 +296,22 @@
     {
       "source": "/wallets/expo-react-native",
       "destination": "/wallets/v0.3/expo-react-native"
+    },
+    {
+      "source": "/contracts/escrow-example",
+      "destination": "/contracts/escrow"
+    },
+    {
+      "source": "/contracts/vhtlc-example",
+      "destination": "/contracts/hashlock"
+    },
+    {
+      "source": "/contracts/spilman-example",
+      "destination": "/contracts/spilman-channel"
+    },
+    {
+      "source": "/contracts/dryja-poon-example",
+      "destination": "/contracts/dryja-poon-channel"
     }
   ],
   "footer": {

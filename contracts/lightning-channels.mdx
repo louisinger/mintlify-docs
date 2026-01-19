@@ -18,7 +18,7 @@ icon: "circle-nodes"
 
 Arkade can serve as a **channel factory** for [Lightning Network](https://lightning.network/) channels. The Arkade Server participates in channel lifecycle operations (funding, renewing, resizing, closing) but **never touches payment traffic**. HTLCs route over standard Lightning rails between Alice and Bob.
 
-This use case builds on the [Dryja-Poon contract](/contracts/dryja-poon-example) channel construction.
+This use case builds on the [Dryja-Poon contract](/contracts/dryja-poon-channel) channel construction.
 
 ## Design principles
 
@@ -36,7 +36,7 @@ The Server re-enters the picture only when the channel's underlying **[VTXO](/le
 
 ### Funding
 
-Alice and Bob submit an Arkade transaction producing a VTXO with the [funding output](/contracts/dryja-poon-example#funding-output) script. With preconfirmation, the channel is usable immediately. They exchange initial commitment transactions following standard channel establishment.
+Alice and Bob submit an Arkade transaction producing a VTXO with the [funding output](/contracts/dryja-poon-channel#funding-output) script. With preconfirmation, the channel is usable immediately. They exchange initial commitment transactions following standard channel establishment.
 
 ### Normal operation
 
@@ -95,9 +95,9 @@ Each commitment transaction contains:
 
 | Output | Script | Purpose |
 |--------|--------|---------|
-| **to_local** | [Revocation + CSV](/contracts/dryja-poon-example#to-local-output-commitment-transaction) | Broadcaster's balance |
-| **to_remote** | [Immediate](/contracts/dryja-poon-example#to-remote-output-commitment-transaction) | Counterparty's balance |
-| **HTLCs** | [Hashlock + timelock](/contracts/vhtlc-example) | Pending payments |
+| **to_local** | [Revocation + CSV](/contracts/dryja-poon-channel#to-local-output-commitment-transaction) | Broadcaster's balance |
+| **to_remote** | [Immediate](/contracts/dryja-poon-channel#to-remote-output-commitment-transaction) | Counterparty's balance |
+| **HTLCs** | [Hashlock + timelock](/contracts/hashlock) | Pending payments |
 
 All outputs use the dual-path Taproot structure. The Ark timeout path exists only as fallback if the Server becomes unavailable.
 
@@ -113,7 +113,7 @@ The funding transaction is created via Arkade. All other transactions (Lightning
 ## Further Reading
 
 <CardGroup cols={2}>
-  <Card title="Dryja-Poon Contract" icon="arrows-left-right" href="/contracts/dryja-poon-example">
+  <Card title="Dryja-Poon Contract" icon="arrows-left-right" href="/contracts/dryja-poon-channel">
     Raw opcodes for channel primitives
   </Card>
   <Card title="Lightning Swaps" icon="bolt" href="/contracts/lightning-swaps">

@@ -1,0 +1,161 @@
+---
+title: "Escrow Contract"
+description: "Build your escrow contract with three spending paths using the TypeScript SDK"
+icon: "handshake"
+---
+
+An escrow with three spending paths: cooperative release, arbiter resolution, and buyer refund after timeout.
+
+| Path | Condition | When to use |
+|------|-----------|-------------|
+| **Collaborative** | Buyer + seller + server signatures | Both parties agree on release |
+| **Arbiter** | Arbiter + server signatures | Dispute resolution |
+| **Refund** | Buyer + server signatures (after 30 days) | Seller unresponsive |
+
+## Build the Tapscript
+
+```typescript
+import {
+  RestArkProvider,
+  RestIndexerProvider,
+  SingleKey,
+  VtxoScript,
+  Transaction,
+  MultisigTapscript,
+  CLTVMultisigTapscript,
+  buildOffchainTx,
+  CSVMultisigTapscript,
+  networks
+} from '@arkade-os/sdk';
+import { hex, base64 } from '@scure/base';
+
+// Setup (use same URL for both on mutinynet)
+const arkProvider = new RestArkProvider('https://mutinynet.arkade.sh');
+const indexerProvider = new RestIndexerProvider('https://mutinynet.arkade.sh');
+const info = await arkProvider.getInfo();
+// Convert 33-byte compressed pubkey to 32-byte x-only
+const serverPubkey = hex.decode(info.signerPubkey).slice(1);
+
+// Identities
+const buyer = SingleKey.fromRandomBytes();
+const seller = SingleKey.fromRandomBytes();
+const arbiter = SingleKey.fromRandomBytes();
+
+// Build escrow script with 3 paths
+const buyerPubkey = await buyer.xOnlyPublicKey();
+const sellerPubkey = await seller.xOnlyPublicKey();
+const arbiterPubkey = await arbiter.xOnlyPublicKey();
+
+// Path 1: Buyer and seller both agree
+const collaborativePath = MultisigTapscript.encode({ 
+  pubkeys: [buyerPubkey, sellerPubkey, serverPubkey] 
+}).script;
+
+// Path 2: Arbiter resolves dispute
+const arbiterPath = MultisigTapscript.encode({ 
+  pubkeys: [arbiterPubkey, serverPubkey] 
+}).script;
+
+// Path 3: Refund to buyer after 30 days
+const startTime = BigInt(Math.floor(Date.now() / 1000));
+const refundPath = CLTVMultisigTapscript.encode({ 
+  pubkeys: [buyerPubkey, serverPubkey],
+  absoluteTimelock: startTime + (86400n * 30n) // 30 days
+}).script;
+
+// Assemble VtxoScript
+const escrowScript = new VtxoScript([collaborativePath, arbiterPath, refundPath]);
+const escrowAddress = escrowScript.address(networks.mutinynet.hrp, serverPubkey).encode();
+
+console.log('Escrow address:', escrowAddress);
+
+// Query VTXOs at escrow address
+const result = await indexerProvider.getVtxos({
+  scripts: [hex.encode(escrowScript.pkScript)],
+  spendableOnly: true,
+});
+
+if (result.vtxos.length === 0) {
+  console.log('No VTXOs found at escrow address');
+  process.exit(0);
+}
+
+const vtxo = result.vtxos[0];
+
+// Build transaction to release funds (cooperative path)
+const serverUnrollScript = CSVMultisigTapscript.decode(
+  hex.decode(info.checkpointTapscript)
+);
+
+const input = {
+  txid: vtxo.txid,
+  vout: vtxo.vout,
+  value: vtxo.value,
+  tapLeafScript: escrowScript.findLeaf(hex.encode(collaborativePath)),
+  tapTree: escrowScript.encode(),
+};
+
+const outputs = [
+  {
+    amount: vtxo.value, // Input amount must equal output amount
+    script: recipientScript.pkScript
+  },
+];
+
+const { arkTx, checkpoints } = buildOffchainTx(
+  [input],
+  outputs,
+  serverUnrollScript
+);
+
+// Sign with buyer and seller
+const psbt = arkTx.toPSBT();
+const txBuyer = Transaction.fromPSBT(psbt);
+const signedByBuyer = await buyer.sign(txBuyer);
+
+const txSeller = Transaction.fromPSBT(signedByBuyer.toPSBT());
+const signedByBoth = await seller.sign(txSeller);
+
+// Submit
+const checkpointPsbts = checkpoints.map(c => c.toPSBT());
+const { arkTxid, signedCheckpointTxs } = await arkProvider.submitTx(
+  base64.encode(signedByBoth.toPSBT()),
+  checkpointPsbts.map(c => base64.encode(c))
+);
+
+// Finalize - checkpoint needs all parties from the spending path
+const finalCheckpoints = await Promise.all(
+  signedCheckpointTxs.map(async (cpB64) => {
+    const cpTx = Transaction.fromPSBT(base64.decode(cpB64));
+    const signedByBuyer = await buyer.sign(cpTx, [0]);
+    const signedByBoth = await seller.sign(
+      Transaction.fromPSBT(signedByBuyer.toPSBT()),
+      [0]
+    );
+    return base64.encode(signedByBoth.toPSBT());
+  })
+);
+
+await arkProvider.finalizeTx(arkTxid, finalCheckpoints);
+console.log('Escrow released!');
+```
+
+## Script breakdown
+
+| Opcode | Effect |
+|--------|--------|
+| `CHECKSIG` | Verify signature, return result |
+| `CHECKSIGVERIFY` | Verify signature, continue if valid |
+| `CHECKLOCKTIMEVERIFY` | Enforce absolute timelock (CLTV) |
+| `DROP` | Remove top stack element |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card icon="book-open" title="Deep dive" href="/contracts/deep-dive">
+    Learn about VTXOs, transaction flow, and Tapscript helpers
+  </Card>
+  <Card icon="bolt" title="Lightning swaps" href="/contracts/lightning-swaps">
+    Integrate Lightning Network
+  </Card>
+</CardGroup>

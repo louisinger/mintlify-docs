@@ -1,0 +1,172 @@
+---
+title: "Deep dive"
+description: "Learn about VTXOs, the two-phase transaction flow, and Tapscript helpers"
+icon: "book-open"
+---
+
+## VTXOs
+
+Virtual Transaction Outputs (VTXOs) behave like Bitcoin UTXOs but execute offchain:
+
+- **Offchain execution** - Instant transactions without waiting for block confirmation
+- **Onchain settlement** - Backed by presigned Bitcoin transactions publishable at any time
+- **Server co-signing** - Server provides preconfirmations but never controls funds
+
+<Card icon="book-open" horizontal href="/learn/pillars/vtxos">
+  Learn more about VTXOs and their security model
+</Card>
+
+## Script compatibility and path rules
+
+Arkade executes standard Bitcoin Script semantics inside VTXOs, so scripts that
+work onchain can be executed offchain. There are two protocol rules for spending paths:
+
+- **Collaborative path (offchain, instant)** must include the server pubkey so the operator can co-sign.
+- **Unilateral path (onchain, timelocked)** must include a CSV Exit Delay using the value from `getInfo()`. The server signature is not required.
+
+```typescript
+const info = await arkProvider.getInfo();
+const serverPubkey = hex.decode(info.signerPubkey).slice(1);
+const exitDelay = BigInt(info.exitDelay);
+
+const collaborativePath = MultisigTapscript.encode({
+  pubkeys: [userPubkey, serverPubkey],
+}).script;
+
+const unilateralPath = CSVMultisigTapscript.encode({
+  pubkeys: [userPubkey],
+  timelock: exitDelay // Exit Delay from getInfo()
+}).script;
+
+const vtxoScript = new VtxoScript([collaborativePath, unilateralPath]);
+```
+
+<Warning>
+    CSV (relative timelocks) can only be used for unilateral exit paths. For collaborative paths, you MUST use CLTV (absolute timelocks).
+</Warning>
+
+## Timelocks
+
+
+| Type | VTXO Path | Unit | Example |
+|------|----------|------|---------|
+| **CLTV** | Collaborative | Seconds (Unix timestamp) | `BigInt(Date.now() / 1000) + 86400n` (1 day from now) |
+| **CSV** | Unilateral | Seconds (relative) | `exitDelay` from `getInfo()` |
+
+The SDK provides helpers for common patterns:
+
+```typescript
+// N-of-N multisig
+MultisigTapscript.encode({ pubkeys: [pubkeyA, pubkeyB, serverPubkey] });
+
+// Absolute timelock (CLTV) - use for offchain paths
+CLTVMultisigTapscript.encode({
+  pubkeys: [pubkeyA, serverPubkey],
+  absoluteTimelock: BigInt(Math.floor(Date.now() / 1000)) + 86400n
+});
+
+// Relative timelock (CSV) - unilateral exit path in case of server liveness failure; emergency only
+CSVMultisigTapscript.encode({
+  pubkeys: [pubkeyA, serverPubkey],
+  relativeTimelock: 86528n // ~1 day in seconds
+});
+```
+
+## Input/output structure
+
+**Inputs** specify which VTXO and spending path:
+
+```typescript
+const input = {
+  txid: vtxo.txid,
+  vout: vtxo.vout,
+  value: vtxo.value,                                      // Must match exactly
+  tapLeafScript: vtxoScript.findLeaf(hex.encode(leaf)),   // Spending path
+  tapTree: vtxoScript.encode(),                           // Full tree
+};
+```
+
+**Outputs** specify destinations:
+
+```typescript
+const outputs = [{ amount: 10000n, script: pkScript }];
+```
+
+## Two-phase transaction flow
+
+Arkade uses a two-phase protocol:
+
+1. **SubmitTx** - Client submits signed transaction + unsigned checkpoints → Server validates, co-signs, and returns partially signed checkpoints
+2. **FinalizeTx** - Client completes checkpoint signatures → Transaction receives preconfirmation status
+
+```typescript
+const { arkTx, checkpoints } = buildOffchainTx(inputs, outputs, serverUnrollScript);
+
+// Sign the main Arkade transaction
+const signedTx = await signer.sign(arkTx);
+
+const { arkTxid, signedCheckpointTxs } = await arkProvider.submitTx(
+  base64.encode(signedTx.toPSBT()),
+  checkpoints.map((cp) => base64.encode(cp.toPSBT()))
+);
+
+// Finalize by fully signing each checkpoint (spending-path signers required)
+const finalCheckpoints = await Promise.all(
+  signedCheckpointTxs.map(async (cpB64) => {
+    const cpTx = Transaction.fromPSBT(base64.decode(cpB64));
+    const signedCp = await signer.sign(cpTx, [0]);
+    return base64.encode(signedCp.toPSBT());
+  })
+);
+
+await arkProvider.finalizeTx(arkTxid, finalCheckpoints);
+```
+
+<Card icon="play" horizontal href="/arkd/txs/offchain-execution">
+  Deep dive into the offchain execution workflow
+</Card>
+
+
+## PSBTs and the Transaction class
+
+You can craft a classic PSBT using `@scure/btc-signer`. When decoding Arkade PSBTs,
+pass `{ allowUnknown: true }` to preserve Arkade-specific fields:
+
+```typescript
+const decoded = btc.Transaction.fromPSBT(psbt, { allowUnknown: true });
+```
+
+We **strongly recommend** using the SDK's `Transaction` class instead. It matches `@scure/btc-signer`
+1:1, so the same API calls (and `{ allowUnknown: true }`) work:
+
+```typescript
+import { Transaction } from '@arkade-os/sdk';
+
+const tx = new Transaction();
+tx.addInput({
+  txid,
+  index: vout,
+  witnessUtxo: { script: inputScript, amount: inputValue },
+});
+tx.addOutput({ script: recipientScript, amount: outputValue });
+
+const psbt = tx.toPSBT();
+const decoded = Transaction.fromPSBT(psbt);
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card icon="bolt" title="Lightning swaps" href="/contracts/lightning-swaps">
+    Integrate Lightning Network
+  </Card>
+  <Card icon="route" title="Spilman channels" href="/contracts/spilman-example">
+    Build payment channels
+  </Card>
+  <Card icon="flask" title="Experimental contracts" href="/experimental/overview">
+    Advanced contract patterns
+  </Card>
+  <Card icon="book-open" title="API reference" href="https://arkade-os.github.io/ts-sdk/">
+    Full SDK documentation
+  </Card>
+</CardGroup>

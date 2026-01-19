@@ -1,0 +1,193 @@
+---
+title: "Hashlock Contract"
+description: "Build a Hash Time Lock Contract using Bitcoin opcodes for atomic swaps"
+icon: "key"
+---
+
+A simplified Hash Timelocked Contract with two spending paths using Bitcoin Tapscript opcodes.
+
+| Path | Condition | When to use |
+|------|-----------|-------------|
+| **Collaborative** | preimage + receiver signature + server signature | Instant offchain claim |
+| **Unilateral** | preimage + receiver signature (after exit delay) | Fallback if server is unresponsive |
+
+## Build the Tapscript
+
+```typescript
+import { Script } from '@scure/btc-signer';
+import { hex } from '@scure/base';
+import {
+  RestArkProvider,
+  RestIndexerProvider,
+  SingleKey,
+  VtxoScript,
+  networks
+} from '@arkade-os/sdk';
+
+// Setup
+const arkProvider = new RestArkProvider('https://mutinynet.arkade.sh');
+const info = await arkProvider.getInfo();
+const serverPubkey = hex.decode(info.signerPubkey).slice(1); // x-only
+const exitDelay = BigInt(info.exitDelay);
+
+// Identities
+const receiver = SingleKey.fromRandomBytes();
+const receiverPubkey = await receiver.xOnlyPublicKey();
+
+// The secret (in production, receiver generates this)
+const preimage = crypto.getRandomValues(new Uint8Array(32));
+const preimageHash = await crypto.subtle.digest('SHA-256', preimage)
+  .then(buf => new Uint8Array(buf).slice(0, 20)); // HASH160 expects 20 bytes
+```
+
+### Collaborative path (offchain, instant)
+
+The receiver reveals the preimage and signs with the server:
+
+```hack
+OP_HASH160 <preimageHash> OP_EQUALVERIFY <receiverPubkey> OP_CHECKSIGVERIFY <serverPubkey> OP_CHECKSIG
+```
+
+```typescript
+// Collaborative: preimage + receiverSig + serverSig
+const collaborativePath = Script.encode([
+  'HASH160',
+  preimageHash,
+  'EQUALVERIFY',
+  receiverPubkey,
+  'CHECKSIGVERIFY',
+  serverPubkey,
+  'CHECKSIG'
+]);
+```
+
+### Unilateral path (onchain, timelocked)
+
+After the exit delay, the receiver can claim without server cooperation:
+
+```
+<exitDelay> OP_CHECKSEQUENCEVERIFY OP_DROP OP_HASH160 <preimageHash> OP_EQUALVERIFY <receiverPubkey> OP_CHECKSIG
+```
+
+```typescript
+// Unilateral: after exitDelay, preimage + receiverSig
+const unilateralPath = Script.encode([
+  exitDelay,
+  'CHECKSEQUENCEVERIFY',
+  'DROP',
+  'HASH160',
+  preimageHash,
+  'EQUALVERIFY',
+  receiverPubkey,
+  'CHECKSIG'
+]);
+```
+
+### Assemble the VtxoScript
+
+```typescript
+// Build the VTXO with both paths
+const vhtlcScript = new VtxoScript([collaborativePath, unilateralPath]);
+const vhtlcAddress = vhtlcScript.address(networks.mutinynet.hrp, serverPubkey).encode();
+
+console.log('VHTLC address:', vhtlcAddress);
+console.log('Preimage (save this!):', hex.encode(preimage));
+```
+
+## Spending the VHTLC
+
+### Collaborative claim (receiver + server)
+
+```typescript
+import {
+  buildOffchainTx,
+  CSVMultisigTapscript,
+  Transaction
+} from '@arkade-os/sdk';
+import { base64 } from '@scure/base';
+
+// Query the VTXO
+const indexerProvider = new RestIndexerProvider('https://mutinynet.arkade.sh');
+const result = await indexerProvider.getVtxos({
+  scripts: [hex.encode(vhtlcScript.pkScript)],
+  spendableOnly: true,
+});
+
+const vtxo = result.vtxos[0];
+
+// Recipient script (where funds go after claim)
+const recipientScript = /* your destination VtxoScript */;
+
+// Build the transaction
+const serverUnrollScript = CSVMultisigTapscript.decode(
+  hex.decode(info.checkpointTapscript)
+);
+
+const input = {
+  txid: vtxo.txid,
+  vout: vtxo.vout,
+  value: vtxo.value,
+  tapLeafScript: vhtlcScript.findLeaf(hex.encode(collaborativePath)),
+  tapTree: vhtlcScript.encode(),
+};
+
+const outputs = [{ amount: vtxo.value, script: recipientScript.pkScript }];
+
+const { arkTx, checkpoints } = buildOffchainTx(
+  [input],
+  outputs,
+  serverUnrollScript
+);
+
+// Sign with receiver
+const psbt = arkTx.toPSBT();
+const tx = Transaction.fromPSBT(psbt);
+const signedTx = await receiver.sign(tx);
+
+// Submit to server (server co-signs)
+const { arkTxid, signedCheckpointTxs } = await arkProvider.submitTx(
+  base64.encode(signedTx.toPSBT()),
+  checkpoints.map(c => base64.encode(c.toPSBT()))
+);
+
+// Finalize checkpoints
+const finalCheckpoints = await Promise.all(
+  signedCheckpointTxs.map(async (cpB64) => {
+    const cpTx = Transaction.fromPSBT(base64.decode(cpB64));
+    const signed = await receiver.sign(cpTx, [0]);
+    return base64.encode(signed.toPSBT());
+  })
+);
+
+await arkProvider.finalizeTx(arkTxid, finalCheckpoints);
+console.log('VHTLC claimed!', arkTxid);
+```
+
+<Note>
+The witness for the collaborative path includes: `<preimage> <receiverSig> <serverSig>`. The server validates the preimage hash before co-signing.
+</Note>
+
+## Script breakdown
+
+| Opcode | Effect |
+|--------|--------|
+| `HASH160` | Hash the top stack element (preimage) |
+| `<preimageHash>` | Push the expected hash |
+| `EQUALVERIFY` | Fail if hashes don't match |
+| `CHECKSIGVERIFY` | Verify signature against pubkey, continue |
+| `CHECKSIG` | Final signature check |
+| `CHECKSEQUENCEVERIFY` | Enforce relative timelock |
+| `DROP` | Remove timelock value from stack |
+
+For production code, consider using the TypeScript SDK's `VHTLC.Script` class which handles validation and provides a cleaner API.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card icon="bolt" title="Lightning swaps" href="/contracts/lightning-swaps">
+    Use VHTLCs for Lightning Swaps
+  </Card>
+  <Card icon="book-open" title="Deep dive" href="/contracts/deep-dive">
+    Learn about VTXOs and timelocks
+  </Card>
+</CardGroup>

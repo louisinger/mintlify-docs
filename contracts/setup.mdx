@@ -1,0 +1,70 @@
+---
+title: "Setup"
+description: "Install dependencies and set up your environment for building custom Arkade applications using the TypeScript SDK"
+icon: "wrench"
+---
+
+## Quick start
+
+Install dependencies and set up your environment:
+
+```bash
+npm install @arkade-os/sdk @scure/base
+```
+
+```typescript
+import {
+  RestArkProvider,
+  RestIndexerProvider,
+  SingleKey,
+  VtxoScript,
+  Transaction,
+  MultisigTapscript,
+  CLTVMultisigTapscript,
+  buildOffchainTx,
+  CSVMultisigTapscript,
+  networks
+} from '@arkade-os/sdk';
+import { hex, base64 } from '@scure/base';
+
+// Setup providers (use same URL for both on mutinynet)
+const arkProvider = new RestArkProvider('https://mutinynet.arkade.sh');
+const indexerProvider = new RestIndexerProvider('https://mutinynet.arkade.sh');
+const info = await arkProvider.getInfo();
+// Convert 33-byte compressed pubkey to 32-byte x-only
+const serverPubkey = hex.decode(info.signerPubkey).slice(1);
+
+// Create identity
+const identity = SingleKey.fromRandomBytes();
+const myPubkey = await identity.xOnlyPublicKey();
+```
+
+<Warning>
+Use `@scure/base` for encoding, NOT `bitcoinjs-lib`. The SDK is built on `@scure` libraries.
+</Warning>
+
+## Tapscript helpers
+
+The SDK includes helper classes for common Tapscript patterns:
+
+| Helper | Purpose |
+|--------|---------|
+| `MultisigTapscript` | N-of-N multisig scripts |
+| `CLTVMultisigTapscript` | Multisig with absolute timelock (CLTV) |
+| `CSVMultisigTapscript` | Multisig with relative timelock (CSV) |
+| `VtxoScript` | Combine multiple spending paths into a Taproot tree |
+
+<Card icon="book-open" horizontal href="/contracts/deep-dive">
+  Learn how to use these helpers with VTXOs and the two-phase transaction flow
+</Card>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card icon="handshake" title="Escrow example" href="/contracts/escrow-example">
+    Build a complete escrow contract
+  </Card>
+  <Card icon="book-open" title="Deep dive" href="/contracts/deep-dive">
+    Learn about VTXOs, transaction flow, and Tapscript helpers
+  </Card>
+</CardGroup>

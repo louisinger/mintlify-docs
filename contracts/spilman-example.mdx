@@ -1,0 +1,252 @@
+---
+title: "Spilman Channel"
+description: "Build a unidirectional payment channel using Bitcoin opcodes"
+icon: "route"
+---
+
+A Spilman Channel allows one party (Alice) to incrementally pay another (Bob) offchain using monotonically increasing state updates.
+| Path | Condition | When to use |
+|------|-----------|-------------|
+| **Collaborative update** | Alice + Bob + server signatures | Instant offchain state updates |
+| **Refund** | Alice + server signatures (after absolute timeout) | Alice reclaims if Bob disappears |
+| **Unilateral update** | Alice + Bob signatures (after exit delay) | Close channel without server |
+| **Unilateral refund** | Alice signature (after longer delay) | Emergency fallback |
+
+## Build the Tapscript
+
+```typescript
+import { Script } from '@scure/btc-signer';
+import { hex } from '@scure/base';
+import {
+  RestArkProvider,
+  SingleKey,
+  VtxoScript,
+  networks
+} from '@arkade-os/sdk';
+
+// Setup
+const arkProvider = new RestArkProvider('https://mutinynet.arkade.sh');
+const info = await arkProvider.getInfo();
+const serverPubkey = hex.decode(info.signerPubkey).slice(1); // x-only
+const exitDelay = BigInt(info.exitDelay);
+
+// Identities
+const alice = SingleKey.fromRandomBytes();
+const bob = SingleKey.fromRandomBytes();
+const alicePubkey = await alice.xOnlyPublicKey();
+const bobPubkey = await bob.xOnlyPublicKey();
+
+// Channel parameters
+const refundTimeout = BigInt(Math.floor(Date.now() / 1000)) + 86400n; // 1 day from now
+const unilateralUpdateDelay = exitDelay;
+const unilateralRefundDelay = exitDelay + 2n; // Slightly longer than update delay
+```
+
+### Collaborative update path (offchain, instant)
+
+Alice and Bob agree on state, server co-signs:
+
+```hack
+<alicePubkey> OP_CHECKSIGVERIFY <bobPubkey> OP_CHECKSIGVERIFY <serverPubkey> OP_CHECKSIG
+```
+
+```typescript
+// Collaborative: aliceSig + bobSig + serverSig
+const updatePath = Script.encode([
+  alicePubkey,
+  'CHECKSIGVERIFY',
+  bobPubkey,
+  'CHECKSIGVERIFY',
+  serverPubkey,
+  'CHECKSIG'
+]);
+```
+
+### Refund path (after timeout)
+
+Alice can reclaim funds after the absolute timeout if Bob is unresponsive:
+
+```hack
+<refundTimeout> OP_CHECKLOCKTIMEVERIFY OP_DROP <alicePubkey> OP_CHECKSIGVERIFY <serverPubkey> OP_CHECKSIG
+```
+
+```typescript
+// Refund: after refundTimeout, aliceSig + serverSig
+const refundPath = Script.encode([
+  refundTimeout,
+  'CHECKLOCKTIMEVERIFY',
+  'DROP',
+  alicePubkey,
+  'CHECKSIGVERIFY',
+  serverPubkey,
+  'CHECKSIG'
+]);
+```
+
+### Unilateral update path (onchain, timelocked)
+
+Close channel without server after exit delay:
+
+```hack
+<unilateralUpdateDelay> OP_CHECKSEQUENCEVERIFY OP_DROP <alicePubkey> OP_CHECKSIGVERIFY <bobPubkey> OP_CHECKSIG
+```
+
+```typescript
+// Unilateral update: after exitDelay, aliceSig + bobSig
+const unilateralUpdatePath = Script.encode([
+  unilateralUpdateDelay,
+  'CHECKSEQUENCEVERIFY',
+  'DROP',
+  alicePubkey,
+  'CHECKSIGVERIFY',
+  bobPubkey,
+  'CHECKSIG'
+]);
+```
+
+### Unilateral refund path (emergency fallback)
+
+Alice can reclaim unilaterally after a longer delay:
+
+```hack
+<unilateralRefundDelay> OP_CHECKSEQUENCEVERIFY OP_DROP <alicePubkey> OP_CHECKSIG
+```
+
+```typescript
+// Unilateral refund: after longer delay, aliceSig only
+const unilateralRefundPath = Script.encode([
+  unilateralRefundDelay,
+  'CHECKSEQUENCEVERIFY',
+  'DROP',
+  alicePubkey,
+  'CHECKSIG'
+]);
+```
+
+### Assemble the VtxoScript
+
+```typescript
+// Build the channel with all four paths
+const channelScript = new VtxoScript([
+  updatePath,
+  refundPath,
+  unilateralUpdatePath,
+  unilateralRefundPath
+]);
+
+const channelAddress = channelScript.address(networks.mutinynet.hrp, serverPubkey).encode();
+console.log('Channel address:', channelAddress);
+```
+
+## Channel state updates
+
+Alice sends incrementally larger amounts to Bob by signing new transactions:
+
+```typescript
+import { buildOffchainTx, CSVMultisigTapscript } from '@arkade-os/sdk';
+
+const serverUnrollScript = CSVMultisigTapscript.decode(
+  hex.decode(info.checkpointTapscript)
+);
+
+// Initial channel capacity (funded by Alice)
+const channelCapacity = 100000n;
+
+// Alice sends 1000 sats to Bob
+const { arkTx: tx1, checkpoints } = buildOffchainTx(
+  [{
+    txid: vtxo.txid,
+    vout: vtxo.vout,
+    value: vtxo.value,
+    tapLeafScript: channelScript.findLeaf(hex.encode(updatePath)),
+    tapTree: channelScript.encode(),
+  }],
+  [
+    { amount: 1000n, script: bobScript.pkScript },           // Bob's output
+    { amount: channelCapacity - 1000n, script: channelScript.pkScript }  // Change back to channel
+  ],
+  serverUnrollScript
+);
+
+// Alice signs and sends to Bob (offchain, not submitted to server yet)
+const signedByAlice = await alice.sign(tx1);
+// Bob receives and stores this state
+bobChannelStates.push(await bob.sign(signedByAlice));
+
+// Later: Alice sends 500 more sats (total: 1500 to Bob)
+const { arkTx: tx2 } = buildOffchainTx(
+  [/* same input */],
+  [
+    { amount: 1500n, script: bobScript.pkScript },
+    { amount: channelCapacity - 1500n, script: channelScript.pkScript }
+  ],
+  serverUnrollScript
+);
+
+const signedTx2 = await alice.sign(tx2);
+bobChannelStates.push(await bob.sign(signedTx2));
+```
+
+<Note>
+Bob only keeps the latest state. Each new transaction pays Bob more than the previous one, so older states are worthless to him.
+</Note>
+
+## Closing the channel
+
+Bob closes by submitting the latest signed state to the server:
+
+```typescript
+import { Transaction } from '@arkade-os/sdk';
+import { base64 } from '@scure/base';
+
+// Bob takes the latest state and submits it
+const latestState = bobChannelStates[bobChannelStates.length - 1];
+
+const { arkTxid, signedCheckpointTxs } = await arkProvider.submitTx(
+  base64.encode(latestState.toPSBT()),
+  checkpoints.map(c => base64.encode(c.toPSBT()))
+);
+
+// Finalize checkpoints (both Alice and Bob sign)
+const finalCheckpoints = await Promise.all(
+  signedCheckpointTxs.map(async (cpB64) => {
+    const cpTx = Transaction.fromPSBT(base64.decode(cpB64));
+    const signedByAlice = await alice.sign(cpTx, [0]);
+    const signedByBoth = await bob.sign(
+      Transaction.fromPSBT(signedByAlice.toPSBT()),
+      [0]
+    );
+    return base64.encode(signedByBoth.toPSBT());
+  })
+);
+
+await arkProvider.finalizeTx(arkTxid, finalCheckpoints);
+console.log('Channel closed!');
+```
+
+## Script breakdown
+
+| Opcode | Effect |
+|--------|--------|
+| `CHECKSIGVERIFY` | Verify signature, continue if valid |
+| `CHECKSIG` | Final signature check, return result |
+| `CHECKLOCKTIMEVERIFY` | Enforce absolute timelock (CLTV) |
+| `CHECKSEQUENCEVERIFY` | Enforce relative timelock (CSV) |
+| `DROP` | Remove timelock value from stack |
+
+## Timelock ordering
+
+The timelocks must be ordered: `unilateralUpdateDelay` < `unilateralRefundDelay`
+
+This ensures Bob can always close with the latest valid state before Alice's refund becomes valid.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card icon="lock" title="Hashlock contract" href="/contracts/vhtlc-example">
+    Add hash conditions for atomic swaps
+  </Card>
+  <Card icon="book-open" title="Deep dive" href="/contracts/deep-dive">
+    Learn about VTXOs and timelocks
+  </Card>
+</CardGroup>

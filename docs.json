@@ -130,23 +130,30 @@
         "tab": "Contracts & Apps",
         "pages": [
           "contracts/overview",
-          "contracts/background",
-          "contracts/smart-contracts-utxo",
+          "contracts/deep-dive",
           {
-            "group": "Simple Contracts",
+            "group": "Working with Tapscript",
+            "pages": [
+              "contracts/setup",
+              "contracts/escrow-example",
+              "contracts/vhtlc-example",
+              "contracts/spilman-example",
+              "contracts/dryja-poon-example"
+            ]
+          },
+          {
+            "group": "Use Cases",
             "pages": [
               "contracts/lightning-swaps",
-              "contracts/spilman-channels",
               "contracts/lightning-channels",
               "contracts/chain-swaps",
-              "contracts/oracle-dlc",
-              "contracts/escrow"
+              "contracts/oracle-dlc"
             ]
           }
         ]
       },
       {
-        "tab": "Server & API Reference",
+        "tab": "Server & API",
         "pages": [
           "arkd/what-is-arkd",
           {

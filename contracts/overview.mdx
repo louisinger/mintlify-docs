@@ -1,103 +1,47 @@
 ---
 title: "Overview"
-description: "Foundations and practical applications built on Arkade’s offchain execution model"
+description: "Bitcoin's UTXO model, its constraints, and how Arkade enables programmable offchain contracts"
 icon: "file-contract"
 ---
 
-Arkade extends Bitcoin’s UTXO model with an offchain execution layer based on Virtual Transaction Outputs (VTXOs).\
-This enables instant execution, preconfirmation, and programmable contracts while preserving Bitcoin’s security, settlement finality, and unilateral exit guarantees.
-
-This section focuses on conceptual foundations and concrete application patterns that are either already usable today or are directly motivated by Arkade’s current execution model.\
-Unlike the [Experimental](/experimental/overview) tab, this section avoids speculative language design and instead builds intuition for _how Arkade works_ and _what you can build with it_.
-
-## What This Section Is About
-
-The goal of this section is to help you build a mental model for:
-
-- How Bitcoin’s UTXO and Script model works
-- Why Bitcoin L1 alone is insufficient for real-time, composable applications
-- How Arkade’s VTXO-based offchain layer overcomes these constraints
-- How common payment and contract patterns can be implemented on Arkade today or in the near term
-
-It serves as the conceptual bridge between Bitcoin fundamentals and Arkade-based applications.
-
-## Conceptual Foundations
-
-These pages explain the underlying execution and contract model Arkade builds upon:
-
-### **Background (UTXO paradigm)**
-
-Introduces the core building blocks:
-
-- Bitcoin Script and the UTXO model
-- Mempool behavior, fee markets, and latency constraints
-- Why onchain execution is unsuitable for interactive applications
-- How Arkade’s offchain execution layer and batch settlement model work
-
-This page establishes _why_ Arkade exists.
-
-### **Smart Contracts in the UTXO Model**
-
-Explains how smart contracts work without global state:
-
-- Commit–reveal patterns and one-time spend semantics
-- Why enforcing state transitions is difficult on Bitcoin L1
-- How transaction introspection, Taproot, and key tweaking enable covenants
-- How Arkade’s VTXO paradigm enables stateful, composable contracts
-
-This page establishes _how_ contracts are expressed in a UTXO-based system.
-
-## Contracts & Applications
-
-The following pages focus on practical contract patterns and integrations built on Arkade’s execution model.
-
-### **Lightning Swaps**
-
-Integrate the Lightning Network with Arkade using submarine swaps:
-
-- Move funds between Lightning and Arkade
-- Receive Lightning payments into Arkade wallets
-- Pay Lightning invoices from Arkade balances
-
-<Card icon="bolt" horizontal href="/contracts/lightning-swaps">
-  Lightning Swaps: Bridge Arkade and Lightning using submarine swaps
+<Card title="Ready to code?" icon="rocket" href="/contracts/setup">
+  Skip the theory and build your first contract
 </Card>
 
-### **Spilman Channels**
+## Bitcoin's UTXO Model
 
-Build scalable, unidirectional payment channels using VTXOs:
+Bitcoin tracks ownership through **Unspent Transaction Outputs (UTXOs)**. Each UTXO locks value to a script defining spending conditions. Transactions consume UTXOs as inputs and create new ones as outputs.
 
-- Offchain incremental payments
-- Cooperative and unilateral close paths
-- Timelock-enforced safety without onchain funding
+This provides local validation (no global state), strong composability, and a DAG structure. The tradeoff: every spend requires onchain confirmation—block delays, fee competition, and mempool constraints make multi-step contracts fragile or expensive.
 
-<Card icon="route" horizontal href="/contracts/spilman-channels">
-  Spilman Channels: Virtual payment channels on Arkade
+## Why Bitcoin L1 Falls Short
+
+Block space is scarce, blocks arrive ~10 minutes apart, and demand is unpredictable. Result: unpredictable latency, volatile fees, unreliable ordering. Real-time or interactive contracts cannot rely on onchain execution alone.
+
+Traditional Bitcoin script uses **commit-reveal patterns**—lock funds, reveal values when spending. Works for atomic swaps and HTLCs. Breaks for persistent state, sequential updates, or multi-party coordination. Script cannot enforce output constraints or contract continuity.
+
+## How Arkade L2 Solves This
+
+Arkade replaces UTXOs with **Virtual Transaction Outputs (VTXOs)**—offchain outputs that execute instantly while preserving unilateral control of funds at any time.
+
+**Dynamic settlement**: transactions receive instant preconfirmation, then settle onchain in the next economically optimal batch anchored to a Bitcoin block. Users choose their finality tradeoff—speed now, full Bitcoin security on settlement.
+
+## Scripting on Arkade
+
+Arkade supports **standard Bitcoin Tapscript** for VTXO spending conditions. Any valid Tapscript works as a VTXO locking script.
+
+For multi-party contracts, a collaborative **unilateral exit path** can be added. This provides emergency exit if the server becomes unavailable.
+
+<Card icon="book-open" horizontal href="/contracts/deep-dive">
+  Deep dive into VTXOs, script compatibility, and the two-phase transaction flow
 </Card>
 
-### **Chain Swaps** _(Coming Soon)_
+### Arkade Script (Experimental)
 
-Trust-minimized cross-chain swaps using Arkade as an execution layer.
+Arkade Script extends Bitcoin Script with additional opcodes executable **only in the offchain environment**. These opcodes enable transaction introspection and state enforcement, but operate under **preconfirmation trust assumptions**—VTXOs using extended opcodes live in continuous preconfirmation state until settled onchain.
 
-### **Oracle DLCs** _(Coming Soon)_
+Stateful contracts face batch expiry like any VTXO. The [Intent System](/arkd/components/intent-system) and [Intent Delegation](/arkd/components/intent-delegation) enable automatic renewal without user intervention.
 
-Discreet Log Contracts using external oracles for conditional payouts.
-
-### **Escrow Contracts** _(Coming Soon)_
-
-Programmable Bitcoin escrow patterns for marketplaces and P2P trades.
-
-## How This Relates to the Experimental Section
-
-This section deliberately focuses on execution models and application patterns, not language or opcode design.
-
-If you want to explore future programmability and design space, including:
-
-- Arkade Script (a proposed high-level Bitcoin contract language)
-- Compiler architecture
-- New Tapscript opcode concepts
-- Advanced, research-oriented contracts (AMMs, synthetic assets, prediction markets)
-
-👉 Visit the [**Experimental**](/experimental/overview) section.
-
-That section is forward-looking and not implemented today, while this section builds intuition around Arkade’s real execution model and near-term applications.
+<Card icon="flask" horizontal href="/experimental/overview">
+  Explore Arkade Script syntax, types, and advanced contract patterns
+</Card>

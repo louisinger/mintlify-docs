@@ -1,0 +1,201 @@
+---
+title: "Dryja-Poon Contract"
+description: "Build bidirectional payment channel primitives in Arkade"
+icon: "arrows-left-right"
+---
+
+The Dryja-Poon construction enables bidirectional payment channels with revocation-based state updates.
+| Path | Condition | When to use |
+|------|-----------|-------------|
+| **Funding (collaborative)** | Alice + Bob + server signatures | Open channel instantly |
+| **Funding (unilateral)** | Alice + Bob signatures (after exit delay) | Fallback if server unresponsive |
+| **To-local (revocation)** | Counterparty revocation signature | Punish old state broadcast |
+| **To-local (normal)** | Self signature (after CSV delay) | Claim own balance |
+| **To-remote** | Counterparty signature | Immediate claim |
+
+## Build the Tapscript
+
+```typescript
+import { Script } from '@scure/btc-signer';
+import { hex } from '@scure/base';
+import {
+  RestArkProvider,
+  SingleKey,
+  VtxoScript,
+  networks
+} from '@arkade-os/sdk';
+
+// Setup
+const arkProvider = new RestArkProvider('https://mutinynet.arkade.sh');
+const info = await arkProvider.getInfo();
+const serverPubkey = hex.decode(info.signerPubkey).slice(1); // x-only
+const exitDelay = BigInt(info.exitDelay);
+
+// Channel participants
+const alice = SingleKey.fromRandomBytes();
+const bob = SingleKey.fromRandomBytes();
+const alicePubkey = await alice.xOnlyPublicKey();
+const bobPubkey = await bob.xOnlyPublicKey();
+
+// Standard Lightning CSV delay for to_local
+const toLocalDelay = 144n; // ~1 day in blocks
+```
+
+### Funding output
+
+2-of-2 multisig between Alice and Bob, with Ark timeout path:
+
+```hack
+Collaborative: <alicePubkey> OP_CHECKSIGVERIFY <bobPubkey> OP_CHECKSIGVERIFY <serverPubkey> OP_CHECKSIG
+Unilateral:    <exitDelay> OP_CSV OP_DROP <alicePubkey> OP_CHECKSIGVERIFY <bobPubkey> OP_CHECKSIG
+```
+
+```typescript
+// Collaborative: aliceSig + bobSig + serverSig
+const fundingCollaborative = Script.encode([
+  alicePubkey,
+  'CHECKSIGVERIFY',
+  bobPubkey,
+  'CHECKSIGVERIFY',
+  serverPubkey,
+  'CHECKSIG'
+]);
+
+// Unilateral: after exitDelay, aliceSig + bobSig
+const fundingUnilateral = Script.encode([
+  exitDelay,
+  'CHECKSEQUENCEVERIFY',
+  'DROP',
+  alicePubkey,
+  'CHECKSIGVERIFY',
+  bobPubkey,
+  'CHECKSIG'
+]);
+
+const fundingScript = new VtxoScript([fundingCollaborative, fundingUnilateral]);
+const fundingAddress = fundingScript.address(networks.mutinynet.hrp, serverPubkey).encode();
+
+console.log('Funding address:', fundingAddress);
+```
+
+### To-local output (commitment transaction)
+
+Funds belonging to the broadcaster, with revocation for punishment:
+
+```hack
+Revocation: <revocationPubkey> OP_CHECKSIG
+Normal:     <toLocalDelay> OP_CSV OP_DROP <localPubkey> OP_CHECKSIG
+```
+
+```typescript
+// Revocation keys are derived per commitment (simplified here)
+function buildToLocalScript(
+  localPubkey: Uint8Array,
+  revocationPubkey: Uint8Array,
+  delay: bigint
+) {
+  // Revocation path: counterparty can punish old state
+  const revocationPath = Script.encode([
+    revocationPubkey,
+    'CHECKSIG'
+  ]);
+
+  // Normal path: broadcaster claims after delay
+  const normalPath = Script.encode([
+    delay,
+    'CHECKSEQUENCEVERIFY',
+    'DROP',
+    localPubkey,
+    'CHECKSIG'
+  ]);
+
+  // Ark unilateral exit variant
+  const unilateralPath = Script.encode([
+    exitDelay,
+    'CHECKSEQUENCEVERIFY',
+    'DROP',
+    delay,
+    'CHECKSEQUENCEVERIFY',
+    'DROP',
+    localPubkey,
+    'CHECKSIG'
+  ]);
+
+  return new VtxoScript([revocationPath, normalPath, unilateralPath]);
+}
+
+// Alice's to_local in her commitment
+const aliceRevocationPubkey = /* derived from Bob's revocation basepoint */;
+const aliceToLocal = buildToLocalScript(alicePubkey, aliceRevocationPubkey, toLocalDelay);
+```
+
+### To-remote output (commitment transaction)
+
+Funds belonging to the counterparty, immediately spendable:
+
+```hack
+Normal:     <remotePubkey> OP_CHECKSIG
+Unilateral: <exitDelay> OP_CSV OP_DROP <remotePubkey> OP_CHECKSIG
+```
+
+```typescript
+function buildToRemoteScript(remotePubkey: Uint8Array) {
+  // Normal: counterparty claims immediately
+  const normalPath = Script.encode([
+    remotePubkey,
+    'CHECKSIG'
+  ]);
+
+  // Ark unilateral exit
+  const unilateralPath = Script.encode([
+    exitDelay,
+    'CHECKSEQUENCEVERIFY',
+    'DROP',
+    remotePubkey,
+    'CHECKSIG'
+  ]);
+
+  return new VtxoScript([normalPath, unilateralPath]);
+}
+
+// Bob's to_remote in Alice's commitment
+const bobToRemote = buildToRemoteScript(bobPubkey);
+```
+
+## The dual-path pattern
+
+Every Lightning script gets two Taproot leaves:
+
+```
+Taproot tree:
+├── <standard lightning script>
+└── <exitDelay> OP_CSV OP_DROP <standard lightning script>
+```
+
+The first leaf is vanilla Lightning. The second adds a CSV delay matching the Batch expiry for Ark unilateral exit. The server's key never appears in commitment or HTLC scripts.
+
+## Script breakdown
+
+| Opcode | Effect |
+|--------|--------|
+| `CHECKSIG` | Verify signature, return result |
+| `CHECKSIGVERIFY` | Verify signature, continue if valid |
+| `CHECKSEQUENCEVERIFY` | Enforce relative timelock (CSV) |
+| `DROP` | Remove top stack element |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card icon="circle-nodes" title="Lightning Channels" href="/contracts/lightning-channels">
+    Full channel lifecycle on Arkade
+  </Card>
+  <Card icon="key" title="Hashlock contract" href="/contracts/vhtlc-example">
+    Add hash conditions for HTLCs
+  </Card>
+  <Card icon="route" title="Spilman channel" href="/contracts/spilman-example">
+    Simpler unidirectional channels
+  </Card>
+  <Card icon="book-open" title="Deep dive" href="/contracts/deep-dive">
+    Learn about VTXOs and timelocks
+  </Card>
+</CardGroup>

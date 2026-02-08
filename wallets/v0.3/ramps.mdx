@@ -64,7 +64,8 @@ A boarding address is a special 2-of-2 multisig Taproot address that protects ag
     Once confirmed, settle the boarding UTXO to your Arkade wallet:
 
     ```typescript
-    const commitmentTxid = await new Ramps(wallet).onboard()
+    const info = await wallet.arkProvider.getInfo();
+    const commitmentTxid = await new Ramps(wallet).onboard(info.fees)
     console.log('Commitment transaction ID:', commitmentTxid)
     ```
   </Step>

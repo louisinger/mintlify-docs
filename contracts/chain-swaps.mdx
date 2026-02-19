@@ -1,23 +1,316 @@
 ---
 title: "Chain Swaps"
-description: "Integrate cross-chain atomic swaps between Bitcoin and Lightning Network using Arkade contracts"
+description: "Atomic swaps between Bitcoin and Arkade using Boltz integration"
 icon: "link"
 ---
 
-Arkade enables secure cross-chain swaps, allowing users to exchange assets between different blockchains. This feature leverages advanced cryptographic techniques to ensure atomic execution of swaps across chains.
+Arkade enables secure cross-chain atomic swaps between Bitcoin (on-chain) and Arkade (off-chain) using the Boltz swap provider. This allows users to:
 
-## Coming Soon
+- **BTC → Arkade**: Receive on-chain Bitcoin into your Arkade wallet
+- **Arkade → BTC**: Send from your Arkade wallet to any Bitcoin address
 
-This documentation is currently under development. Check back soon for detailed information on implementing cross-chain swaps with Arkade.
+All swaps are trustless and atomic—either the full swap completes or neither party loses funds.
 
-Topics that will be covered:
+## Installation
 
-- Setting up cross-chain swap contracts
-- Initiating and monitoring swap transactions
-- Security considerations for cross-chain operations
-- Integration examples with popular blockchains
+```bash
+npm install @arkade-os/sdk @arkade-os/boltz-swap
+```
+
+## Setup
+
+```typescript
+import { Wallet, SingleKey } from '@arkade-os/sdk';
+import { ArkadeChainSwap, BoltzSwapProvider } from '@arkade-os/boltz-swap';
+
+// Create an identity
+const identity = SingleKey.fromHex('your_private_key_in_hex');
+
+// Initialize your Arkade wallet
+const wallet = await Wallet.create({
+  identity,
+  arkServerUrl: 'https://arkade.computer',
+});
+
+// Initialize the chain swap provider
+const swapProvider = new BoltzSwapProvider({
+  apiUrl: 'https://api.boltz.arkade.computer',
+  network: 'mainnet',
+  referralId: 'arkade', // optional
+});
+
+// Create the ArkadeChainSwap instance
+const arkadeChainSwap = new ArkadeChainSwap({
+  wallet,
+  swapProvider,
+  swapManager: true, // Enable automatic background monitoring
+});
+```
+
+<Note>
+For testnet/mutinynet development, use:
+- `arkServerUrl: 'https://mutinynet.arkade.sh'`
+- `apiUrl: 'https://api.boltz.mutinynet.arkade.sh'`
+- `network: 'mutinynet'`
+</Note>
+
+## Check Limits & Fees
+
+Before creating swaps, validate amounts are within acceptable ranges:
+
+```typescript
+// Get swap limits
+const limits = await arkadeChainSwap.getLimits('ARK', 'BTC');
+
+if (limits) {
+  console.log('Min:', limits.min, 'sats');
+  console.log('Max:', limits.max, 'sats');
+}
+
+// Calculate fees
+const calcChainSwapFee = async (satoshis: number, from: 'ARK' | 'BTC', to: 'ARK' | 'BTC') => {
+  const fees = await arkadeChainSwap.getFees(from, to);
+  if (!fees) throw new Error('Failed to fetch fees');
+  
+  return Math.ceil(
+    (satoshis * fees.percentage) / 100 +
+    fees.minerFees.server +
+    fees.minerFees.user.claim +
+    fees.minerFees.user.lockup
+  );
+};
+
+const fee = await calcChainSwapFee(50000, 'ARK', 'BTC');
+console.log('Fee for 50k sats ARK→BTC:', fee, 'sats');
+```
+
+## Receiving BTC (BTC → Arkade)
+
+Generate a Bitcoin address that deposits into your Arkade wallet:
+
+```typescript
+// Option 1: Specify exact amount to receive
+const { btcAddress, amountToPay, pendingSwap } = await arkadeChainSwap.btcToArk({
+  receiverLockAmount: 50000, // Receive exactly 50,000 sats
+});
+
+// Option 2: Specify exact amount sender pays
+const result = await arkadeChainSwap.btcToArk({
+  senderLockAmount: 50000, // Sender pays exactly 50,000 sats, you receive less
+});
+
+console.log('Send', amountToPay, 'sats to:', btcAddress);
+// Share btcAddress with the payer
+```
+
+### Monitoring Incoming Payments
+
+**With SwapManager (recommended):**
+```typescript
+// SwapManager handles monitoring and claiming automatically
+// Payment will be claimed when received - no manual action needed
+const { btcAddress, amountToPay } = await arkadeChainSwap.btcToArk({ 
+  receiverLockAmount: 50000 
+});
+// Display btcAddress to user, they can navigate away
+```
+
+**Manual monitoring:**
+```typescript
+// Blocks until payment received and claimed
+const result = await arkadeChainSwap.waitAndClaimArk(pendingSwap);
+console.log('Received! TX:', result.txid);
+// ⚠️ User must stay on page until complete
+```
+
+## Sending BTC (Arkade → BTC)
+
+Send from your Arkade wallet to any Bitcoin address:
+
+```typescript
+// Option 1: Receiver gets exact amount
+const { arkAddress, amountToPay, pendingSwap } = await arkadeChainSwap.arkToBtc({
+  receiverLockAmount: 50000, // Receiver gets exactly 50,000 sats
+  btcAddress: 'bc1q...', // Bitcoin address to receive funds
+});
+
+// Option 2: Pay exact amount from Arkade
+const result = await arkadeChainSwap.arkToBtc({
+  senderLockAmount: 50000, // Pay exactly 50,000 sats, receiver gets less
+  btcAddress: 'bc1q...',
+});
+
+// Fund the swap from your Arkade wallet
+await wallet.sendBitcoin({
+  address: arkAddress,
+  amount: amountToPay,
+});
+```
+
+### Monitoring Outgoing Payments
+
+**With SwapManager (recommended):**
+```typescript
+// SwapManager handles monitoring automatically
+const { arkAddress, amountToPay } = await arkadeChainSwap.arkToBtc({
+  receiverLockAmount: 50000,
+  btcAddress: 'bc1q...',
+});
+
+await wallet.sendBitcoin({ address: arkAddress, amount: amountToPay });
+// User can navigate away - swap completes in background
+```
+
+**Manual monitoring:**
+```typescript
+const result = await arkadeChainSwap.waitAndClaimBtc(pendingSwap);
+console.log('Sent! TX:', result.txid);
+```
+
+## SwapManager (Background Monitoring)
+
+SwapManager enables autonomous swap processing—swaps complete automatically while your app runs, and resume automatically when the app reopens.
+
+### Configuration
+
+```typescript
+const arkadeChainSwap = new ArkadeChainSwap({
+  wallet,
+  swapProvider,
+  swapManager: {
+    autoStart: true,           // Start monitoring immediately
+    enableAutoActions: true,   // Auto claim/refund
+    pollInterval: 30000,       // Failsafe poll interval
+    events: {
+      onSwapCompleted: (swap) => {
+        showNotification(`Swap completed!`);
+      },
+      onSwapFailed: (swap, error) => {
+        showError(`Swap failed: ${error.message}`);
+      },
+    },
+  },
+});
+```
+
+### Event Subscription
+
+```typescript
+const manager = arkadeChainSwap.getSwapManager();
+
+// Subscribe to specific swap updates
+const unsubscribe = manager.subscribeToSwapUpdates(
+  pendingSwap.id,
+  (swap, oldStatus) => {
+    console.log(`${oldStatus} → ${swap.status}`);
+    updateUI(swap.status);
+  }
+);
+
+// Global event listeners
+manager.onSwapCompleted((swap) => console.log('Completed:', swap.id));
+manager.onSwapFailed((swap, err) => console.error('Failed:', swap.id, err));
+manager.onActionExecuted((swap, action) => console.log('Action:', action));
+```
+
+### Check Status
+
+```typescript
+const stats = manager.getStats();
+console.log(`Monitoring ${stats.monitoredSwaps} swaps`);
+console.log(`WebSocket: ${stats.websocketConnected ? 'connected' : 'disconnected'}`);
+```
+
+## Storage & History
+
+All swap data is automatically persisted:
+
+```typescript
+// Get pending chain swaps
+const pending = await arkadeChainSwap.getPendingChainSwaps();
+
+// Get complete swap history
+const history = await arkadeChainSwap.getSwapHistory();
+```
+
+## Error Handling
+
+```typescript
+import {
+  SwapExpiredError,
+  InsufficientFundsError,
+  NetworkError,
+  TransactionFailedError,
+} from '@arkade-os/boltz-swap';
+
+try {
+  await arkadeChainSwap.arkToBtc({ receiverLockAmount: 50000, btcAddress: '...' });
+} catch (error) {
+  if (error instanceof InsufficientFundsError) {
+    console.error('Not enough funds in Arkade wallet');
+  } else if (error instanceof SwapExpiredError) {
+    console.error('Swap expired - refund will be processed automatically');
+  } else if (error instanceof NetworkError) {
+    console.error('Network issue, please retry');
+  }
+
+  // Manual refund (only needed without SwapManager)
+  if (error.isRefundable && error.pendingSwap) {
+    const refund = await arkadeChainSwap.refund(error.pendingSwap);
+    console.log('Refunded:', refund.txid);
+  }
+}
+```
+
+## Cleanup
+
+```typescript
+// Manual cleanup
+await arkadeChainSwap.dispose();
+
+// Or use automatic cleanup (TypeScript 5.2+)
+{
+  await using chainSwap = new ArkadeChainSwap({
+    wallet,
+    swapProvider,
+    swapManager: { autoStart: true },
+  });
+  
+  // Use chainSwap...
+  
+} // Automatically disposed when scope exits
+```
+
+## Technical Details
+
+### How It Works
+
+1. **BTC → Arkade**: Boltz creates a HTLC on Bitcoin. When you pay to it, Boltz claims the funds and creates Arkade VTXOs for you.
+
+2. **Arkade → BTC**: You lock Arkade funds in a HTLC. Boltz reveals the preimage by paying to the Bitcoin address, allowing you to claim back any excess.
+
+### Security
+
+- **Atomic**: Both sides complete or neither does
+- **Trustless**: Cryptographic guarantees via HTLCs
+- **Non-custodial**: Boltz never has unilateral access to your funds
+- **Refundable**: Expired swaps automatically refund to the initiator
+
+### Mainnet Servers
+
+| Service | URL |
+|---------|-----|
+| Arkade Server | `https://arkade.computer` |
+| Boltz API | `https://api.boltz.arkade.computer` |
+
+### Testnet Servers (Mutinynet)
+
+| Service | URL |
+|---------|-----|
+| Arkade Server | `https://mutinynet.arkade.sh` |
+| Boltz API | `https://api.boltz.mutinynet.arkade.sh` |
 
 ---
 
 <PreviousButton url="/contracts/lightning-swaps" text="Lightning Swaps" />
-<NextButton url="/contracts/channels" text="Payment Channels" />
+<NextButton url="/contracts/oracle-dlc" text="Oracle DLCs" />

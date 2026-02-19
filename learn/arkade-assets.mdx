@@ -1,0 +1,228 @@
+# Arkade Assets
+
+Arkade Assets enable creation and transfer of colored coins (custom tokens) on the Ark network, powered by RGB protocol integration.
+
+## Overview
+
+Arkade Assets allow you to:
+- **Issue** custom tokens with metadata (name, symbol, supply)
+- **Transfer** assets off-chain via virtual UTXOs (VTXOs)
+- **Settle** assets on-chain to Bitcoin
+- **Track** asset ownership and history
+
+Assets inherit Ark's privacy and scalability benefits while maintaining Bitcoin-level security.
+
+## Key Concepts
+
+### Asset Issuance
+- Each asset has a unique **asset ID** derived from the issuance transaction
+- Metadata includes: name, ticker symbol, precision, total supply
+- Issuance requires an on-chain Bitcoin transaction
+
+### Asset VTXOs
+- Assets live in virtual UTXOs (VTXOs) on the Ark network
+- Each VTXO can hold **one asset type** + optional Bitcoin amount
+- Transfer assets off-chain instantly and privately
+
+### Settlement
+- Redeem asset VTXOs to on-chain Bitcoin UTXOs
+- Settles to a Bitcoin output with RGB commitment
+- Can be spent like any Bitcoin UTXO with RGB capabilities
+
+## Usage Guide
+
+### 1. Issue a New Asset
+
+```typescript
+// TypeScript SDK example
+const asset = await client.issueAsset({
+  name: "My Token",
+  ticker: "MTK",
+  precision: 8,
+  amount: 1000000 * 1e8, // 1 million tokens
+});
+
+console.log(`Asset ID: ${asset.assetId}`);
+```
+
+```rust
+// Rust SDK example
+let asset = client.issue_asset(IssueAssetRequest {
+    name: "My Token".to_string(),
+    ticker: "MTK".to_string(),
+    precision: 8,
+    amount: 1_000_000 * 100_000_000, // 1M tokens
+}).await?;
+
+println!("Asset ID: {}", asset.asset_id);
+```
+
+### 2. Receive Assets
+
+```typescript
+// Get a receiving address
+const address = await client.getReceiveAddress();
+
+// Share address with sender
+console.log(`Send assets to: ${address}`);
+
+// Wait for incoming transfer
+const vtxos = await client.listVtxos({ assetId: asset.assetId });
+```
+
+### 3. Send Assets
+
+```typescript
+// Send 100 tokens to recipient
+await client.sendAsset({
+  assetId: asset.assetId,
+  amount: 100 * 1e8,
+  to: recipientAddress,
+});
+```
+
+```go
+// Go SDK example
+err := client.SendAsset(ctx, &SendAssetRequest{
+    AssetID: assetID,
+    Amount:  100 * 1e8,
+    To:      recipientAddress,
+})
+```
+
+### 4. Settle Assets On-Chain
+
+```typescript
+// Redeem asset VTXO to Bitcoin
+const txid = await client.settleAsset({
+  assetId: asset.assetId,
+  amount: 50 * 1e8,
+  address: bitcoinAddress,
+});
+
+console.log(`Settled in tx: ${txid}`);
+```
+
+## Asset Metadata
+
+Query asset information:
+
+```typescript
+const metadata = await client.getAssetMetadata(assetId);
+
+console.log({
+  name: metadata.name,
+  ticker: metadata.ticker,
+  precision: metadata.precision,
+  totalSupply: metadata.totalSupply,
+  issuer: metadata.issuer,
+});
+```
+
+## Balance Tracking
+
+```typescript
+// Get balance for specific asset
+const balance = await client.getAssetBalance(assetId);
+
+console.log(`Balance: ${balance / 1e8} ${metadata.ticker}`);
+
+// List all assets you own
+const assets = await client.listAssets();
+assets.forEach(asset => {
+  console.log(`${asset.ticker}: ${asset.balance}`);
+});
+```
+
+## Advanced Features
+
+### Multi-Asset Transfers
+Send multiple assets in one transaction:
+
+```typescript
+await client.sendMultiAsset({
+  recipients: [
+    { assetId: asset1, amount: 100 * 1e8, to: addr1 },
+    { assetId: asset2, amount: 50 * 1e8, to: addr2 },
+  ],
+});
+```
+
+### Asset History
+Track transfer history:
+
+```typescript
+const history = await client.getAssetHistory(assetId);
+
+history.forEach(tx => {
+  console.log(`${tx.type}: ${tx.amount} at ${tx.timestamp}`);
+});
+```
+
+## SDK Support
+
+| SDK | Version | Status |
+|-----|---------|--------|
+| TypeScript | ≥0.3.13 | ✅ Supported |
+| Rust | ≥0.8.0 | ✅ Supported |
+| Go | ≥0.1.0 | ✅ Supported |
+| .NET | ≥0.1.0 | 🚧 In Progress |
+
+## Technical Details
+
+### RGB Integration
+- Assets use RGB protocol for colored coins
+- Asset commitments stored in Bitcoin transactions
+- Client-side validation ensures asset integrity
+
+### VTXO Structure
+Asset VTXOs contain:
+- Bitcoin amount (can be 0)
+- Asset ID
+- Asset amount
+- Ownership proof
+
+### Privacy
+- Asset transfers are off-chain and private
+- Only issuance and settlement touch the blockchain
+- Asset amounts hidden from third parties
+
+## Security Considerations
+
+1. **Issuance is permanent** - Cannot mint more tokens after issuance
+2. **Asset ID collision** - Extremely unlikely (cryptographically secure)
+3. **Settlement finality** - Wait for Bitcoin confirmations
+4. **Backup seed phrase** - Required to recover asset ownership
+
+## Troubleshooting
+
+### Common Issues
+
+**"Insufficient asset balance"**
+- Check balance with `getAssetBalance(assetId)`
+- Ensure VTXOs are confirmed
+
+**"Invalid asset ID"**
+- Verify asset exists with `getAssetMetadata()`
+- Check for typos in asset ID string
+
+**"Settlement failed"**
+- Ensure sufficient Bitcoin for mining fees
+- Check Bitcoin address is valid RGB-compatible address
+
+## Learn More
+
+- [RGB Protocol](https://rgb.tech)
+- [Ark Protocol](/)
+- [API Reference](/arkd/api)
+
+## Examples
+
+Full code examples:
+- [TypeScript Asset Demo](https://github.com/arkade-os/ts-sdk/tree/master/examples/assets)
+- [Rust Asset Example](https://github.com/arkade-os/rust-sdk/tree/master/examples/assets)
+- [Go Asset Sample](https://github.com/arkade-os/go-sdk/tree/master/examples/assets)
+
+---
+
+**Next:** [Chain Swaps](/learn/chain-swaps) | [VTXOs](/learn/vtxos)

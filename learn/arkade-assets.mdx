@@ -175,6 +175,24 @@ history.forEach(tx => {
 - Asset commitments stored in Bitcoin transactions
 - Client-side validation ensures asset integrity
 
+### Metadata Merkle Tree (Taproot-Aligned)
+
+Arkade Assets use a **Taproot-aligned merkle tree** for asset metadata, enabling efficient proofs and consistency with Bitcoin's BIP-341 taptree structure.
+
+**Key Features:**
+- **Tagged hashing**: Leaves use `tagged_hash("ArkLeaf", version || data)` for domain separation
+- **Sorted branches**: Uses `tagged_hash("TapBranch", sorted(a, b))` identical to BIP-341
+- **Inclusion proofs**: Single `OP_MERKLEPATHVERIFY` opcode works for both Taproot scripts and asset metadata
+- **Extensibility**: Leaf version byte (0x00) allows future upgrades
+
+**Benefits:**
+- Reuse existing Taproot verification opcodes
+- No direction bits needed in proofs (lexicographic ordering)
+- Consistent with Bitcoin Script conventions
+- Compact proof sizes
+
+This design enables efficient metadata queries and validation while maintaining compatibility with Bitcoin's covenant primitives.
+
 ### VTXO Structure
 Asset VTXOs contain:
 - Bitcoin amount (can be 0)
